@@ -1,4 +1,4 @@
 SCRepo
 ======
 
-SUper Collider repo : examples, prototypes, projects
+SUper Collider repo : examples, prototypes, projects etc.
