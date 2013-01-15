@@ -1,0 +1,75 @@
+{\rtf1\ansi\ansicpg1252\cocoartf949\cocoasubrtf270
+{\fonttbl\f0\fnil\fcharset0 Monaco;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue191;\red96\green96\blue96;\red0\green115\blue0;
+\red191\green0\blue0;}
+\deftab560
+\pard\pardeftab560\li1700\fi-1700\ql\qnatural
+
+\f0\fs18 \cf0 b = \cf2 Buffer\cf0 .read(s, \cf3 "sounds/AHsounds/g1.wav"\cf0 );\
+\
+\
+\pard\pardeftab560\ql\qnatural
+\cf0 (\
+\cf2 SynthDef\cf0 (\cf4 \\AHPitchShifterBuffer\cf0 , \{\cf2 |out=0, channel, grainSize=0.3, pitch = 1.0,pan = 0.0|\cf0 \
+	\cf2 var\cf0  signal,source;\
+	signal =  \cf2 In\cf0 .ar(out,1);\
+	\
+	source = \cf2 PitchShift\cf0 .ar(signal, \
+				grainSize, 		\
+				pitch,\cf5 //MouseY.kr(0.8, 1.2,0.1),\cf0 \
+				0.001, 			\cf5 // pitch dispersion\cf0 \
+				\cf2 MouseX\cf0 .kr(0.001,0.03,0.2)	\cf5 // time dispersion\cf0 \
+		);\
+\
+	\
+	\cf2 ReplaceOut\cf0 .ar(out,\cf2 Pan2\cf0 .ar(source,pan,1.0));\
+\}).send(s);\
+)\
+\
+\pard\pardeftab560\li1700\fi-1700\ql\qnatural
+\cf0 \
+(\
+\cf2 SynthDef\cf0 (\cf3 "inputSource"\cf0 ,\{ \cf2 arg\cf0  out = 0, channel = 0;\
+	\cf2 ReplaceOut\cf0 .ar( out,\
+		\cf2 SoundIn\cf0 .ar(channel);\
+	)\
+\}).send(s);\
+)\
+\
+\
+(\
+\cf2 SynthDef\cf0 (\cf3 "playBuffer"\cf0 ,\{ \cf2 arg\cf0  out = 0, bufnum;\
+	\cf2 Out\cf0 .ar( out,\
+		\cf2 PlayBuf\cf0 .ar(1, bufnum, \cf2 BufRateScale\cf0 .kr(bufnum))\
+	)\
+\}).send(s);\
+)\
+\
+\
+\
+\pard\pardeftab560\ql\qnatural
+\cf0 g = \cf2 Group\cf0 .new();\
+\
+\pard\pardeftab560\ql\qnatural
+\cf5 // live input\cf0 \
+c = \cf2 Synth\cf0 (\cf4 \\inputSource\cf0 , [\cf4 \\out\cf0 , 0, \cf4 \\channel\cf0 , 0],g,addAction:\cf4 \\addToTail\cf0 );\
+\
+\cf5 // buffer input\cf0 \
+d = \cf2 Synth\cf0 (\cf4 \\playBuffer\cf0 , [\cf4 \\out\cf0 , 0, \cf4 \\bufnum\cf0 , b],g,addAction:\cf4 \\addToTail\cf0 );\
+e = \cf2 Synth\cf0 (\cf4 \\AHPitchShifterBuffer\cf0 , [\cf4 \\out\cf0 , 0, \cf4 \\channel\cf0 , 0, \cf4 \\pitch\cf0 , 0.85, \cf4 \\pan\cf0 , 0],g,addAction:\cf4 \\addToTail\cf0 );\
+\
+\
+e.set(\cf4 \\pitch\cf0 ,1.09);\
+\
+e.set(\cf4 \\pitch\cf0 ,1.1);\
+\
+\
+\
+c.free;\
+d.free;\
+e.free;\
+\
+\
+b.free;\
+g.free;\
+}

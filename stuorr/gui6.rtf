@@ -1,0 +1,269 @@
+{\rtf1\ansi\ansicpg1252\cocoartf949\cocoasubrtf270
+{\fonttbl\f0\fnil\fcharset0 Monaco;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue191;\red0\green115\blue0;\red28\green49\blue149;
+\red191\green0\blue0;\red96\green96\blue96;\red27\green50\blue154;\red11\green36\blue172;}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\fs18 \cf0 \
+\pard\pardeftab560\ql\qnatural
+\cf0 (\
+\cf2 SynthDef\cf0 (\cf3 \\AHVocalizer\cf0 , \{\cf2 |\
+	\
+	out = 0, channel = 0, gain = 1.0,ilvl = 1.0,\
+	pgs = 0.3, pch = 1.0,pmix = 0.001,plvl = 1.0,\
+	fsh = 600,fmix = 0.001,slvl = 1.0,\
+	dly = 0.001,dcy = 0.001,dmix = 0.001,dlvl = 1.0,\
+	room = 0.15,damp = 0.5,vmix = 0.25,vlvl = 1.0,\
+	mlvl = 0.001,hlvl = 0.001,\
+	hpf = 125,lpf = 12500,\
+	pan = 1.0,lvl = 1.0\
+	\
+	|\cf0 \
+	\
+	\cf2 var\cf0  iSig,iDly,iPch,iRev,iFrq,iMix,iHev,iMod,iTune;\
+	\
+	iSig = \cf2 SoundIn\cf0 .ar(channel,gain);\
+	\
+	iPch = \cf2 PitchShift\cf0 .ar(iSig,pgs,pch,0.003,0.003,mul:pmix) + (iSig * (1-pmix));\
+	\
+	iFrq = \cf2 FreqShift\cf0 .ar(iSig,\cf2 MouseX\cf0 .kr(10,800),0,[fmix*((pan+1)/2),fmix*((-1+pan)/2)]) + (iPch * (1-fmix));\
+\
+	iDly = \cf2 AllpassC\cf0 .ar(iFrq,2,dly*\cf2 MouseX\cf0 .kr(\cf4 0.8,1.3\cf0 ),dcy,dmix)+ (iPch * (1-dmix));\
+	\
+	iRev = \cf2 FreeVerb\cf0 .ar(iFrq,vmix, room, damp);\
+	\
+	z = \cf2 DelayN\cf0 .ar(\cf2 LPF\cf0 .ar(iSig,6000), 0.048);\
+	y = \cf2 Mix\cf0 .ar(\cf2 Array\cf0 .fill(2,\{ \cf2 CombL\cf0 .ar(z, 0.1, \cf2 LFNoise1\cf0 .kr([0.2,0.3], 0.00654, 0.05), 15) \})); \
+	4.do(\{ y = \cf2 AllpassN\cf0 .ar(y, 0.050, [0.050.rand, 0.050.rand], 1) \});\
+\
+	iHev = (y*0.08);	\
+\
+	iMod = \cf2 DelayC\cf0 .ar(iSig, 0.1, \cf2 SinOsc\cf0 .ar(\cf2 MouseY\cf0 .kr(0.01,5), add:0.01,mul:\cf2 MouseX\cf0 .kr(0.001,0.005))) ;\
+	\
+	iMix = \cf2 Pan2\cf0 .ar(\cf2 Mix\cf0 .ar([(iSig*ilvl),(iPch*plvl),(iDly*dlvl),(iRev*vlvl),(iFrq*slvl),(iHev*hlvl),(iMod*mlvl)]),pan,lvl*6);\
+\
+	iTune = \cf2 MidEQ\cf0 .ar(\
+				\cf2 MidEQ\cf0 .ar(\
+					\cf2 MidEQ\cf0 .ar(\
+						iMix,\
+					310,0.3,-24),						\
+				440,0.3,-24),\
+			120,0.3,-24);\
+	\
+	\cf2 Out\cf0 .ar(out, iTune);\
+\
+	\
+\}).send(s);\
+)\
+\
+\pard\pardeftab560\ql\qnatural
+\cf5 ////////////////////////////////////////////////////////////////////////////////////////////////////////////\cf0 \
+\
+\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf0 (\
+	\cf2 var\cf0  window = \cf2 SCWindow\cf0 .new(\cf6 ""\cf0 ,\cf2 Rect\cf0 (600, 320, 700, 440)).front;\
+	\
+	\
+	\cf2 var\cf0  numChannels =3;\
+\
+	\cf2 var\cf0  sceneLists = \cf2 Array\cf0 .new(numChannels);\
+	\cf2 var\cf0  patchLists = \cf2 Array\cf0 .new(numChannels);\
+	\cf2 var\cf0  groups = \cf2 Array\cf0 .new(numChannels);\
+	\cf2 var\cf0  instruments = \cf2 Array\cf0 .new(numChannels);\
+	\cf2 var\cf0  listViews = \cf2 Array\cf0 .new(numChannels);\
+	\cf2 var\cf0  butViews = \cf2 Array\cf0 .new(numChannels);\
+\
+	var mOut;\
+	\
+	\
+	\cf7 MIDIClient\cf0 .init;\
+	mOut = MIDIOut(0,\cf8 MIDIClient\cf0 .destinations[0].uid);\
+	\
+	numChannels.do(\{\cf2 |i|\cf0 \
+		\
+		patchLists.add(\cf2 Dictionary\cf0 []);\
+\
+		\cf5 // build groups and synths\cf0 \
+		groups.add(	\
+			\cf2 Group\cf0 .new();\
+		);\
+\
+		\cf2 Synth\cf0 (\cf3 \\AHVocalizer\cf0 , [\cf3 \\out\cf0 , 0,\cf3 \\channel\cf0 ,i],groups.at(i),addAction:\cf3 \\addToTail\cf0 );\
+		\cf5 // turn all groups off\cf0 \
+		s.sendMsg(\cf6 "/n_run"\cf0 , groups.at(i).nodeID, \cf2 false\cf0 );\
+	\
+\
+	\});\
+	s.queryAllNodes;\
+	\
+	numChannels.do(\{\cf2 |i|\cf0 \
+\
+		\
+\
+		\cf2 var\cf0  file = \cf2 CSVFileReader\cf0 .read(\cf6 "patchlist"\cf0 ++(i+1)++\cf6 ".sc"\cf0 ,\cf2 true\cf0 ,\cf2 true\cf0 );\
+		\cf2 var\cf0  scl = \cf2 Array\cf0 .new(file.size);\
+		\cf2 var\cf0  args = \cf2 Array\cf0 .new(file.size);\
+\
+		\cf5 // put patch name (file.at(0)) into list and args\cf0 \
+		file.size.do(\{\cf2 |j|\cf0 \
+			scl.add(file.at(j).at(0));\
+			args.add(file.at(j).copyToEnd(1));\
+		\});\
+		\
+		\cf5 // add patch names to gui\cf0 \
+		sceneLists.add(scl);\
+\
+		\cf5 // need to itr thru each set of args, \cf0 \
+		file.size.do(\{\cf2 arg\cf0  k;\
+			\
+			\cf2 var\cf0  cmds = \cf2 Array\cf0 .new(25);\
+	\
+			\cf5 // seperate using "+", and create sets\cf0 \
+			cmds = args.at(k).separate(\{ \cf2 arg\cf0  a, b; a == \cf6 "+"\cf0  \});\
+			\
+			\cf5 // if odd size args (ie there is a "+") remove it\cf0 \
+			cmds.size.do(\{ \cf2 |m|\cf0 \
+				if ( (cmds.at(m).size).odd,\{\
+					cmds.at(m).removeAt(cmds.at(m).size-1);\
+				\});\
+			\});\
+\
+			cmds.size.do(\{\cf2 |j|\cf0 \
+				cmds.at(j).size.do(\{\cf2 |n|\cf0 \
+				\
+					\
+					if(cmds.at(j).at(n).asFloat != 0 ,\{\
+						\cf5 //"float".postln;\cf0 \
+						cmds.at(j).put(n,cmds.at(j).at(n).asFloat);\
+					\},\{\
+						\cf5 //"not float".postln;\cf0 \
+					\});\
+					\
+					\cf5 // set each group's nodeID from patch list\cf0 \
+					if(n==1,\{\
+						cmds.at(j).put(1,groups.at(cmds.at(j).at(1)-1).nodeID);\
+					\});\
+				\});\
+			\});\
+			\
+			//cmds.postln;\
+			\
+			\cf5 //pass as server messages\cf0 \
+			patchLists.at(i).put(sceneLists.at(i).at(k),cmds);\
+		\
+		\});\
+\
+	\});\
+	\
+\
+	\cf2 SCStaticText\cf0 .new(window,\cf2 Rect\cf0 (10, 10, 140, 20))\
+		.string_(\cf6 "VOCALIZER"\cf0 )\
+		.action_\{\cf2 |v|\cf0  \};\
+\
+	numChannels.do(\{\cf2 |i|\cf0 \
+\
+		\cf2 var\cf0  ns = i*220;\
+		\cf2 var\cf0  listView;\
+		\
+		\
+		\cf2 SCStaticText\cf0 .new(window,\cf2 Rect\cf0 (10+ns, 40, 140, 20))\
+			.string_(\cf6 "CHANNEL "\cf0  + (i+1))\
+			.action_\{\cf2 |v|\cf0  \};\
+	\
+		listView = \cf2 SCListView\cf0 .new(window,\cf2 Rect\cf0 (10+ns, 60, 200, 240))\
+			.items_(sceneLists.at(i))\
+			.action_\{\cf2 |v|\cf0  \
+			\
+			\
+				//patchLists.at(i).at(listView.items[v.value]).postln;\
+				s.listSendBundle(0.1,patchLists.at(i).at(listView.items[v.value]));\
+				\
+				\cf2 \
+				[i,\cf0 listViews.at(i).value].postln;\cf2 \
+				mOut.noteOn(i,\cf0 v.value,60);\cf2 \
+				mOut.noteOff(i,\cf0 v.value,60);\cf2 \
+			\cf0 	\
+	\
+			\};\
+			\
+		listViews.add(listView);\
+		\
+		butViews.add(\cf2 SCButton\cf0 .new(window,\cf2 Rect\cf0 (170+ns, 40, 40, 20))\
+			.states_([ 	[ \cf6 "stop"\cf0 , \cf2 Color\cf0 (0.0, 0.0, 0.0, 1.0), \cf2 Color\cf0 (1.0, 0.0, 0.0, 1.0) ],\
+						[ \cf6 "go"\cf0 , \cf2 Color\cf0 (0.0, 0.0, 0.0, 1.0), \cf2 Color\cf0 (0.0, 1.0, 0.0, 1.0) ]])\
+			.action_\{\cf2 |v|\cf0  \
+				s.sendMsg(\cf6 "/n_run"\cf0 ,groups.at(i).nodeID,v.value);\
+				if(v.value == 1,\{\
+					s.listSendBundle(0.1,patchLists.at(i).at(listView.items[listView.value]));\
+				\});\
+			\});\
+		\
+	\});\
+\
+	\cf5 // key events\cf0 \
+	window.view.keyDownAction = \{\cf2 |a,b,c,d|\cf0 \
+				//[a,b.asString,c,d].postln;\
+				\
+				\
+				if(d == 113,\{\
+					butViews.at(0).valueAction = if(butViews.at(0).value == 1,\{0\},\{1\});\
+				\});\
+				if(d == 97,\{\
+					listViews.at(0).valueAction = listViews.at(0).value - 1;\
+				\});\
+				if(d == 122,\{\
+					listViews.at(0).valueAction = listViews.at(0).value + 1;\
+				\});\
+\
+\
+				if(d == 119,\{\
+					butViews.at(1).valueAction = if(butViews.at(1).value == 1,\{0\},\{1\});\
+				\});\
+				if(d == 115,\{\
+					listViews.at(1).valueAction = listViews.at(1).value - 1;\
+				\});\
+				if(d == 120,\{\
+					listViews.at(1).valueAction = listViews.at(1).value + 1;\
+				\});\
+\
+\
+				if(d == 101,\{\
+					butViews.at(2).valueAction = if(butViews.at(2).value == 1,\{0\},\{1\});\
+				\});\
+				if(d == 100,\{\
+					listViews.at(2).valueAction = listViews.at(2).value - 1;\
+				\});\
+				if(d == 99,\{\
+					listViews.at(2).valueAction = listViews.at(2).value + 1;\
+				\});\
+\
+					\
+				\
+			\};\
+\
+\
+\pard\pardeftab560\ql\qnatural
+\cf0 	s.queryAllNodes;\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf0 \
+	\cf5 //events\cf0 \
+	\
+	\
+	window.onClose = \{\
+		numChannels.do(\{\cf2 |i|\cf0 \
+			\
+			s.sendMsg(\cf6 "/n_free"\cf0 ,groups.at(i).nodeID);\
+			\cf5 //fscope.kill;\cf0 \
+\pard\pardeftab560\ql\qnatural
+\cf0 			s.queryAllNodes;\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf0 			\
+		\});\
+	\}\
+		\
+)	\
+}

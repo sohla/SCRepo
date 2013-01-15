@@ -1,0 +1,38 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1138\cocoasubrtf230
+{\fonttbl\f0\fnil\fcharset0 Monaco;\f1\fnil\fcharset0 LucidaGrande;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue191;\red96\green96\blue96;\red10\green34\blue172;
+}
+\deftab560
+\pard\pardeftab560
+
+\f0\fs18 \cf0 (\
+	\cf2 var\cf0  path = \cf3 "
+\f1\fs24 \cf0 sounds/alleg.wav
+\f0\fs18 \cf3 ";\
+	var samp = \cf2 Sample\cf0 (path);\
+	var pos = 4;\
+	var cut = 8;\
+	var len = samp.duration/cut;\
+\cf3 	var ml = len;\
+	\
+		\cf0 \
+\cf2 InstrSpawner\cf0 (\{ \cf2 arg\cf0  sample,start=0,pchRatio=1.0,env;\
+\
+	var sig;\
+	\
+	start = MouseX.kr(0,pos).floor * 1/pos;\
+	start.postln;\
+	ml = ml * 4;	\
+	\cf2 PlayBuf\cf0 .ar( sample.numChannels, sample.bufnumIr,pchRatio,1,start * sample.bufFramesIr,1 )\
+		* \cf2 EnvGen\cf0 .kr(env,doneAction: 2, timeScale:MouseY.kr(0.00001,2));\
+	//[sig,sig]\
+\},[\
+	\cf2 samp\cf0 ,\
+	\cf4 0\cf0 ,\
+	1.0,\
+	\cf2 Env\cf0 .linen(0.0001,\cf2 len-0.0002\cf0 ,0.0001,0.4)\
+\
+],\{\cf2 ml\}.value\cf0 ).play\
+\
+)\
+}

@@ -1,0 +1,236 @@
+{\rtf1\ansi\ansicpg1252\cocoartf949\cocoasubrtf270
+{\fonttbl\f0\fnil\fcharset0 Monaco;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue191;\red0\green115\blue0;\red191\green0\blue0;
+\red96\green96\blue96;}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\fs18 \cf0 \
+\pard\pardeftab560\ql\qnatural
+\cf0 (\
+\cf2 SynthDef\cf0 (\cf3 \\AHVocalizer\cf0 , \{\cf2 |out=0, channel = 0, grainSize=0.3, pitch = 1.0,pmix=0.001, pan=0.001,amp=1.0,\
+					dly=0.056,dcy=0.242,alps=2,apa=0.98,lpf=8000,hpf=350,fs=600,fsa=0.001,mix=0.001|\cf0 \
+	\
+	\cf2 var\cf0  signal,source;\
+	signal =  \cf2 SoundIn\cf0 .ar(channel);\
+	source = \cf2 PitchShift\cf0 .ar(signal,grainSize,pitch,0.001,0.001);\
+	v = (source*pmix) + (signal * (1-pmix));\
+	z = \cf2 Pan2\cf0 .ar(v,pan)*amp;\
+	\
+	\
+	\
+	//y = \cf2 CombC\cf0 .ar(v,0.3,\cf2 Array\cf0 .fill(6,\{dly.rand\}),dcy);\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab560\ql\qnatural\pardirnatural
+\cf0 	//4.do(\{ y = \cf2 AllpassN\cf0 .ar(y, 0.3, [0.1.rand,0.2.rand], alps, add:(y*(1-apa)), mul:apa) \});\
+\pard\pardeftab560\ql\qnatural
+\cf0 	\
+	\
+	x = \cf2 LPF\cf0 .ar( \cf2 HPF\cf0 .ar(y,hpf),lpf);\
+	\
+	w = FreqShift.ar(signal,fs,0.1,fsa);\
+	\
+	\cf2 Out\cf0 .ar(out, (x*mix) + (z * (1-mix)) + w);\
+//	\cf2 Out\cf0 .ar(out, w);\
+\
+	\
+\}).send(s);\
+)\
+\
+\pard\pardeftab560\ql\qnatural
+\cf4 ////////////////////////////////////////////////////////////////////////////////////////////////////////////\cf0 \
+\
+\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf0 (\
+	\cf2 var\cf0  window = \cf2 SCWindow\cf0 .new(\cf5 ""\cf0 ,\cf2 Rect\cf0 (600, 320, 700, 440)).front;\
+	\
+	\
+	\cf2 var\cf0  numChannels =3;\
+\
+	\cf2 var\cf0  sceneLists = \cf2 Array\cf0 .new(numChannels);\
+	\cf2 var\cf0  patchLists = \cf2 Array\cf0 .new(numChannels);\
+	\cf2 var\cf0  groups = \cf2 Array\cf0 .new(numChannels);\
+	\cf2 var\cf0  instruments = \cf2 Array\cf0 .new(numChannels);\
+	\cf2 var\cf0  listViews = \cf2 Array\cf0 .new(numChannels);\
+	\cf2 var\cf0  butViews = \cf2 Array\cf0 .new(numChannels);\
+\
+	\
+	numChannels.do(\{\cf2 |i|\cf0 \
+		\
+		patchLists.add(\cf2 Dictionary\cf0 []);\
+\
+		\cf4 // build groups and synths\cf0 \
+		groups.add(	\
+			\cf2 Group\cf0 .new();\
+		);\
+\
+		\cf2 Synth\cf0 (\cf3 \\AHVocalizer\cf0 , [\cf3 \\out\cf0 , 0,\cf3 \\channel\cf0 ,i],groups.at(i),addAction:\cf3 \\addToTail\cf0 );\
+		\cf4 // turn all groups off\cf0 \
+		s.sendMsg(\cf5 "/n_run"\cf0 , groups.at(i).nodeID, \cf2 false\cf0 );\
+	\
+\
+	\});\
+	s.queryAllNodes;\
+	\
+	numChannels.do(\{\cf2 |i|\cf0 \
+\
+		\
+\
+		\cf2 var\cf0  file = \cf2 CSVFileReader\cf0 .read(\cf5 "patchlist"\cf0 ++(i+1)++\cf5 ".sc"\cf0 ,\cf2 true\cf0 ,\cf2 true\cf0 );\
+		\cf2 var\cf0  scl = \cf2 Array\cf0 .new(file.size);\
+		\cf2 var\cf0  args = \cf2 Array\cf0 .new(file.size);\
+\
+		\cf4 // put patch name (file.at(0)) into list and args\cf0 \
+		file.size.do(\{\cf2 |j|\cf0 \
+			scl.add(file.at(j).at(0));\
+			args.add(file.at(j).copyToEnd(1));\
+		\});\
+		\
+		\cf4 // add patch names to gui\cf0 \
+		sceneLists.add(scl);\
+\
+		\cf4 // need to itr thru each set of args, \cf0 \
+		file.size.do(\{\cf2 arg\cf0  k;\
+			\
+			\cf2 var\cf0  cmds = \cf2 Array\cf0 .new(25);\
+	\
+			\cf4 // seperate using "+", and create sets\cf0 \
+			cmds = args.at(k).separate(\{ \cf2 arg\cf0  a, b; a == \cf5 "+"\cf0  \});\
+			\
+			\cf4 // if odd size args (ie there is a "+") remove it\cf0 \
+			cmds.size.do(\{ \cf2 |m|\cf0 \
+				if ( (cmds.at(m).size).odd,\{\
+					cmds.at(m).removeAt(cmds.at(m).size-1);\
+				\});\
+			\});\
+\
+			cmds.size.do(\{\cf2 |j|\cf0 \
+				cmds.at(j).size.do(\{\cf2 |n|\cf0 \
+				\
+					\
+					if(cmds.at(j).at(n).asFloat != 0 ,\{\
+						\cf4 //"float".postln;\cf0 \
+						cmds.at(j).put(n,cmds.at(j).at(n).asFloat);\
+					\},\{\
+						\cf4 //"not float".postln;\cf0 \
+					\});\
+					\
+					\cf4 // set each group's nodeID from patch list\cf0 \
+					if(n==1,\{\
+						cmds.at(j).put(1,groups.at(cmds.at(j).at(1)-1).nodeID);\
+					\});\
+				\});\
+			\});\
+			\
+			cmds.postln;\
+			\
+			\cf4 //pass as server messages\cf0 \
+			patchLists.at(i).put(sceneLists.at(i).at(k),cmds);\
+		\
+		\});\
+\
+	\});\
+	\
+\
+	\cf2 SCStaticText\cf0 .new(window,\cf2 Rect\cf0 (10, 10, 140, 20))\
+		.string_(\cf5 "VOCALIZER"\cf0 )\
+		.action_\{\cf2 |v|\cf0  \};\
+\
+	numChannels.do(\{\cf2 |i|\cf0 \
+\
+		\cf2 var\cf0  ns = i*220;\
+		\cf2 var\cf0  listView;\
+		\
+		\
+		\cf2 SCStaticText\cf0 .new(window,\cf2 Rect\cf0 (10+ns, 40, 140, 20))\
+			.string_(\cf5 "CHANNEL "\cf0  + (i+1))\
+			.action_\{\cf2 |v|\cf0  \};\
+	\
+		listView = \cf2 SCListView\cf0 .new(window,\cf2 Rect\cf0 (10+ns, 60, 200, 240))\
+			.items_(sceneLists.at(i))\
+			.action_\{\cf2 |v|\cf0  \
+			\
+			\
+				patchLists.at(i).at(listView.items[v.value]).postln;\
+				s.listSendBundle(0.1,patchLists.at(i).at(listView.items[v.value]));\
+	\
+			\};\
+			\
+		listViews.add(listView);\
+		\
+		butViews.add(\cf2 SCButton\cf0 .new(window,\cf2 Rect\cf0 (170+ns, 40, 40, 20))\
+			.states_([ 	[ \cf5 "stop"\cf0 , \cf2 Color\cf0 (0.0, 0.0, 0.0, 1.0), \cf2 Color\cf0 (1.0, 0.0, 0.0, 1.0) ],\
+						[ \cf5 "go"\cf0 , \cf2 Color\cf0 (0.0, 0.0, 0.0, 1.0), \cf2 Color\cf0 (0.0, 1.0, 0.0, 1.0) ]])\
+			.action_\{\cf2 |v|\cf0  \
+				s.sendMsg(\cf5 "/n_run"\cf0 ,groups.at(i).nodeID,v.value);\
+				if(v.value == 1,\{\
+					s.listSendBundle(0.1,patchLists.at(i).at(listView.items[listView.value]));\
+				\});\
+			\});\
+		\
+	\});\
+\
+	\cf4 // key events\cf0 \
+	window.view.keyDownAction = \{\cf2 |a,b,c,d|\cf0 \
+				[a,b.asString,c,d].postln;\
+				\
+				\
+				if(d == 113,\{\
+					butViews.at(0).valueAction = if(butViews.at(0).value == 1,\{0\},\{1\});\
+				\});\
+				if(d == 97,\{\
+					listViews.at(0).valueAction = listViews.at(0).value - 1;\
+				\});\
+				if(d == 122,\{\
+					listViews.at(0).valueAction = listViews.at(0).value + 1;\
+				\});\
+\
+\
+				if(d == 119,\{\
+					butViews.at(1).valueAction = if(butViews.at(1).value == 1,\{0\},\{1\});\
+				\});\
+				if(d == 115,\{\
+					listViews.at(1).valueAction = listViews.at(1).value - 1;\
+				\});\
+				if(d == 120,\{\
+					listViews.at(1).valueAction = listViews.at(1).value + 1;\
+				\});\
+\
+\
+				if(d == 101,\{\
+					butViews.at(2).valueAction = if(butViews.at(2).value == 1,\{0\},\{1\});\
+				\});\
+				if(d == 100,\{\
+					listViews.at(2).valueAction = listViews.at(2).value - 1;\
+				\});\
+				if(d == 99,\{\
+					listViews.at(2).valueAction = listViews.at(2).value + 1;\
+				\});\
+\
+\
+			\};\
+\
+\
+\pard\pardeftab560\ql\qnatural
+\cf0 	s.queryAllNodes;\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf0 \
+	\cf4 //events\cf0 \
+	\
+	\
+	window.onClose = \{\
+		numChannels.do(\{\cf2 |i|\cf0 \
+			\
+			s.sendMsg(\cf5 "/n_free"\cf0 ,groups.at(i).nodeID);\
+			\cf4 //fscope.kill;\cf0 \
+\pard\pardeftab560\ql\qnatural
+\cf0 			s.queryAllNodes;\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf0 			\
+		\});\
+	\}\
+		\
+)	\
+}

@@ -1,0 +1,48 @@
+{\rtf1\ansi\ansicpg1252\cocoartf949\cocoasubrtf270
+{\fonttbl\f0\fnil\fcharset0 Monaco;}
+{\colortbl;\red255\green255\blue255;\red191\green0\blue0;\red0\green0\blue191;\red96\green96\blue96;
+\red22\green54\blue167;}
+\deftab560
+\pard\pardeftab560\ql\qnatural
+
+\f0\fs18 \cf0 (\
+\pard\pardeftab560\ql\qnatural
+\cf2 // write a test file:\cf0 \
+f = \cf3 File\cf0 (\cf4 "test.sc"\cf0 , \cf4 "w"\cf0 );\
+f.write(\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab560\ql\qnatural\pardirnatural
+\cf4 \
+"\
+patch 1,/n_set,1002,freq,7000,rate,20,+,/n_set,1002,freq,7000,rate,20\
+patch 2,/n_set,1002,freq,8000,rate,10,amp,0.4\
+patch 3,/n_set,1002,freq,9000,rate,15,amp,0.6\
+"\cf0 \
+\
+\pard\pardeftab560\ql\qnatural
+\cf0 );\
+f.close; \
+)\
+\
+\
+x = \cf3 CSVFileReader\cf0 .read(\cf4 "test.sc"\cf0 ,\cf3 true\cf0 ,\cf3 true\cf0 ).postcs;\
+\
+x.at(0)\
+\
+x.at(0).separate(\{ \cf5 arg\cf0  a, b; a == "sss" \})\
+\
+\
+\
+(\
+\
+	var s=[];\
+	\
+x.at(0).size.do(\{|i|\
+\
+	if(x.at(0).at(i) == "+" ,\{\
+		"+".postln;\
+	\},\{\
+		"arg".postln;\
+	\})\
+\})\
+\
+)}

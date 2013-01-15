@@ -1,0 +1,30 @@
+var o, p;
+o = [
+	Array.prNew(1),  Dictionary.prNew,  Array.prNew(8),  "1",  
+	Array.prNew(1),  Array.prNew(8),  "/n_set",  "freq",  
+	"rate",  "amp",  "2",  Array.prNew(2),  
+	Array.prNew(6),  "/n_set",  "freq",  "rate",  
+	Array.prNew(4),  "/n_set",  "amp"
+];
+p = [
+	// Array
+	0, [ o[1] ],  
+	// Dictionary
+	1, [ array: o[2],  size: 2 ],  
+	// Array
+	2, [ nil,  nil,  o[3],  o[4],  
+		o[10],  o[11],  nil,  nil ],  
+	// Array
+	4, [ o[5] ],  
+	// Array
+	5, [ o[6],  1000,  o[7],  600,  
+		o[8],  10,  o[9],  0.2 ],  
+	// Array
+	11, [ o[12],  o[16] ],  
+	// Array
+	12, [ o[13],  1000,  o[14],  100,  
+		o[15],  80 ],  
+	// Array
+	16, [ o[17],  1000,  o[18],  0.5 ]
+];
+prUnarchive(o,p);

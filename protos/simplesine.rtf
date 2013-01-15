@@ -1,0 +1,131 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1038\cocoasubrtf320
+{\fonttbl\f0\fnil\fcharset0 Monaco;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue191;\red96\green96\blue96;\red191\green0\blue0;
+}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\fs18 \cf0 (\
+\
+	\cf2 SynthDef\cf0 (\
+		\cf3 "simpleSine2"\cf0 ,\
+		\{\
+			\cf2 arg\cf0  freq=440,amp=0.1,sig;\
+			\cf2 var\cf0  trg;\
+			\
+			trg = \cf2 Decay2\cf0 .ar(\cf2 Impulse\cf0 .ar(2,0,0.3), 0.01, 0.3);\
+\
+			sig = \cf2 SinOsc\cf0 .ar(freq,0,trg*amp);\
+			\
+			\cf2 Out\cf0 .ar(0,[sig,sig])\
+		\}\
+	).writeDefFile("SuperCollider/synthdefs/");\
+\
+)\
+\pard\pardeftab560\ql\qnatural
+\cf0 (\
+\pard\pardeftab560\ql\qnatural
+\cf4 // define an echo effect\cf0 \
+\pard\pardeftab560\ql\qnatural
+\cf2 SynthDef\cf0 (\cf3 "echo"\cf0 , \{ \cf2 arg\cf0  delay = 0.2, decay = 4;\
+	\cf2 var\cf0  in;\
+	in = \cf2 In\cf0 .ar(0,2);\
+	\cf4 // use ReplaceOut to overwrite the previous contents of the bus.\cf0 \
+	\cf2 ReplaceOut\cf0 .ar(0, \cf2 CombN\cf0 .ar(in, 0.5, delay, decay, 1, in));\
+\}).send(s);\
+)\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf0 \
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+\cf4 // dic\cf0 \
+\
+d = Dictionary[];\
+d.put("Scene 1",[\cf3 "/s_new"\cf0 , \cf3 "simpleSine"\cf0 , x = s.nextNodeID, 1, 1, \cf3 "freq"\cf0 , 440, \cf3 "amp"\cf0 , 0.2]);\
+d.put("Scene 2",[\cf3 "/s_new"\cf0 , \cf3 "echo"\cf0 , y = s.nextNodeID, 1, 1, \cf3 "delay"\cf0 , 0.3, \cf3 "decay"\cf0 , 3]);\
+\
+\
+s.listSendMsg(d.at("Scene 1"));\
+s.listSendMsg(d.at("Scene 2"));\
+\
+\
+g = List["Scene 1","Scene 2"];\
+\
+\
+\
+f = Dictionary[];\
+\
+f.put("Scene 1",[\
+				[\cf3 "/s_new"\cf0 , \cf3 "simpleSine"\cf0 , x = s.nextNodeID, 1, 1, \cf3 "freq"\cf0 , 440, \cf3 "amp"\cf0 , 0.2],\
+				[\cf3 "/s_new"\cf0 , \cf3 "simpleSine"\cf0 , z = s.nextNodeID, 1, 1, \cf3 "freq"\cf0 , 840, \cf3 "amp"\cf0 , 0.2]\
+				]);\
+\
+f.put("Scene 2",[\
+				[\cf3 "/n_set"\cf0 , x, \cf3 "freq"\cf0 , 600],\
+				[\cf3 "/s_new"\cf0 , \cf3 "echo"\cf0 , y = s.nextNodeID, 1, 1, \cf3 "delay"\cf0 , 0.3, \cf3 "decay"\cf0 , 3]\
+				]);\
+\
+\
+s.listSendBundle(0.1,f.at("Scene 1"));\
+\
+\
+s.listSendBundle(0.1,f.at("Scene 2"));\
+\
+\
+\
+\cf4 // list\cf0 \
+l = \cf2 List\cf0 [];\
+l.add([\cf3 "/s_new"\cf0 , \cf3 "simpleSine"\cf0 , x = s.nextNodeID, 1, 1, \cf3 "freq"\cf0 , 440, \cf3 "amp"\cf0 , 0.2]);\
+l.add([\cf3 "/s_new"\cf0 , \cf3 "echo"\cf0 , y = s.nextNodeID, 1, 1, \cf3 "delay"\cf0 , 0.3, \cf3 "decay"\cf0 , 3]);\
+\
+\
+l.postln;\
+\
+\
+l.at(0).at(1).postln\
+\
+s.listSendMsg(l.at(1));\
+\
+\
+l.do(\{\cf2 arg\cf0  item,i;\
+	s.listSendMsg(item);\
+\});\
+\
+\
+\
+\cf4 //environment\cf0 \
+\
+e = \cf2 Environment\cf0 .make(\{\
+	~a = [\cf3 "/s_new"\cf0 , \cf3 "simpleSine"\cf0 , x = s.nextNodeID, 1, 1, \cf3 "freq"\cf0 , 440, \cf3 "amp"\cf0 , 0.2];\
+	~b = [\cf3 "/s_new"\cf0 , \cf3 "echo"\cf0 , y = s.nextNodeID, 1, 1, \cf3 "delay"\cf0 , 0.3, \cf3 "decay"\cf0 , 3];\
+	\});\
+\
+\
+\
+e.use(\{~a\}).postln\
+	\
+\
+s.listSendBundle(0.01,\
+	[e.use(\{~a\}),e.use(\{~b\})]\
+	);\
+\
+\
+\
+\cf4 // bundles\cf0 \
+s.listSendBundle(0.01,\
+	[[\cf3 "/s_new"\cf0 , \cf3 "simpleSine"\cf0 , x = s.nextNodeID, 1, 1, \cf3 "freq"\cf0 , 440, \cf3 "amp"\cf0 , 0.2],\
+	[\cf3 "/s_new"\cf0 , \cf3 "echo"\cf0 , y = s.nextNodeID, 1, 1, \cf3 "delay"\cf0 , 0.3, \cf3 "decay"\cf0 , 3]]\
+	);\
+\
+\cf4 // simple\cf0 \
+\pard\pardeftab560\ql\qnatural
+\cf0 s.sendMsg(\cf3 "/s_new"\cf0 , \cf3 "simpleSine"\cf0 , x = s.nextNodeID, 1, 1, \cf3 "freq"\cf0 , 440, \cf3 "amp"\cf0 , 0.2);\
+s.sendMsg(\cf3 "/s_new"\cf0 , \cf3 "echo"\cf0 , y = s.nextNodeID, 1, 1, \cf3 "delay"\cf0 , 0.3, \cf3 "decay"\cf0 , 3);\
+\
+\
+s.sendMsg(\cf3 "/n_set"\cf0 , x, \cf3 "freq"\cf0 ,700).postln;\
+s.sendMsg(\cf3 "/n_set"\cf0 , x, \cf3 "freq"\cf0 , 440);\
+\
+s.sendMsg(\cf3 "/n_free"\cf0 , x);\
+s.sendMsg(\cf3 "/n_free"\cf0 , y);\
+\
+}

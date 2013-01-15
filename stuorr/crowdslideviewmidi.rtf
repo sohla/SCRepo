@@ -1,0 +1,132 @@
+{\rtf1\ansi\ansicpg1252\cocoartf949\cocoasubrtf270
+{\fonttbl\f0\fnil\fcharset0 Monaco;\f1\fnil\fcharset0 LucidaGrande;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;\red0\green0\blue191;\red0\green115\blue0;
+\red96\green96\blue96;\red191\green0\blue0;}
+\deftab560
+\pard\pardeftab560\ql\qnatural
+
+\f0\fs18 \cf2 (\
+\
+\cf3 SynthDef\cf2 (\cf4 \\warp\cf2 , \{\cf3 arg\cf2  buffer = 0, envbuf = -1, ws = 5, pch = 0.8,pos=0.0,ol=2,rd=0,amp=0.0;\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab560\ql\qnatural\pardirnatural
+\cf2 	\cf3 var\cf2  mx,my;\
+\pard\pardeftab560\ql\qnatural
+\cf2 \
+	my = 0.02;\
+	\cf3 Out\cf2 .ar(0,\
+		\cf3 Splay\cf2 .ar(\
+			\cf3 Warp1\cf2 .ar(2, buffer, pos, pch * \cf3 MouseX\cf2 .kr(0.9,1.4),ws, envbuf, ol, rd, 4) * amp,\
+			1,\
+			1,\
+			0\
+		)\
+	);	\
+\}).send(s);\
+\
+)\
+\
+(\
+\
+	\cf3 var\cf2  path = \cf5 "sounds/
+\f1\fs24 stadium1.wav
+\f0\fs18 "\cf2 ;\
+	\cf3 var\cf2  inPorts = 2;\
+	\cf3 var\cf2  outPorts = 2;\
+\
+	\cf3 MIDIClient\cf2 .init(inPorts,outPorts);			\cf6 // explicitly intialize the client\cf2 \
+	inPorts.do(\{ \cf3 arg\cf2  i; \
+		\cf3 MIDIIn\cf2 .connect(i, \cf3 MIDIClient\cf2 .sources.at(i));\
+	\});\
+	s.latency = 0;\
+\
+\
+	\
+	w = \cf3 SCWindow\cf2 .new(\cf5 "CROWD CONTROL"\cf2 , \cf3 Rect\cf2 (700,100, 520, 250));\
+	a = \cf3 SCSoundFileView\cf2 .new(w, \cf3 Rect\cf2 (20,20, 460, 200));\
+	b = \cf3 Buffer\cf2 .read(s, path);\
+	f = \cf3 SoundFile\cf2 .new;\
+	f.openRead(path);\
+	\
+	a.soundfile = f;\
+	a.read(0, f.numFrames);\
+	a.elasticMode = \cf3 true\cf2 ;\
+	a.timeCursorOn = \cf3 false\cf2 ;\
+	a.gridOn = \cf3 true\cf2 ;\
+	a.gridResolution = (f.numFrames/f.sampleRate/5);\
+	a.drawsWaveForm = \cf3 true\cf2 ;\
+	\
+	\
+	a.setSelectionColor(0, \cf3 Color\cf2 .red);\
+	a.setSelectionStart(0,0);\
+	a.setSelectionSize(0,	f.numFrames/16);\
+	\
+	w.front;\
+\
+\
+	\cf6 // mouseUpAction\cf2 \
+	a.mouseUpAction = \{ \
+		\cf3 var\cf2  sp = a.selections[a.currentSelection].at(0) / f.numFrames;\
+		\cf3 var\cf2  ep = a.selections[a.currentSelection].at(1) / f.sampleRate;\
+		\cf6 //x.set(\\pos, sp);	\cf2 \
+		\cf6 //x.set(\\ws, ep);\cf2 \
+	\};\
+	a.mouseMoveAction = \{ \
+		\cf3 var\cf2  sp = a.selections[a.currentSelection].at(0) / f.numFrames;\
+		\cf3 var\cf2  ep = a.selections[a.currentSelection].at(1) / f.sampleRate;\
+		\cf6 //x.set(\\pos, sp);	\cf2 \
+		\cf6 //x.set(\\ws, ep);\cf2 \
+	\};\
+\
+	c = \cf3 ControlSpec\cf2 (0.0001,0.9,\cf4 \\exponential\cf2 );\
+	\
+	\cf3 MIDIIn\cf2 .noteOn = \{\cf3 arg\cf2  src, chan, num, vel;\
+				\
+					\cf3 var\cf2  nr = (num-36)/(84-36);\
+					\cf6 //nr.postln;\cf2 \
+					x.set(\cf4 \\pos\cf2 , nr);	\
+					\cf6 //a.selectionStart(0,nr*f.numFrames);\cf2 \
+					\
+				\};\
+\
+	\cf3 MIDIIn\cf2 .control = \{\cf3 arg\cf2  src, chan, num, val;\
+\
+					\cf3 var\cf2  nr = c.map(val/127);\cf6 //val/400;\cf2 \
+					\
+					\
+					\cf3 var\cf2  ws = 0.3+((val/127)*15);\
+					\cf3 var\cf2  pc = 0.25+((val/127)*4);\
+					\
+					if(num==1,\{\
+						\cf6 //nr.postln;\cf2 \
+						x.set(\cf4 \\amp\cf2 ,nr);\
+					\});\
+\
+					if(num==10,\{\
+						\cf6 //ws.postln;\cf2 \
+						x.set(\cf4 \\ws\cf2 , ws);\
+						x.set(\cf4 \\rd\cf2 , 0.01);\
+					\});\
+\
+					if(num==11,\{\
+						\cf6 //ws.postln;\cf2 \
+						x.set(\cf4 \\pch\cf2 , pc);\
+					\});\
+\
+				\};\
+\
+	x = \cf3 Synth\cf2 (\cf4 \\warp\cf2 ,[\cf4 \\buffer\cf2 ,b,\cf4 \\ws\cf2 ,5,\cf4 \\rd\cf2 ,0.5,\cf4 \\ol\cf2 ,4]);\
+\
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab560\ql\qnatural\pardirnatural
+\cf2 	w.onClose = \{\
+\pard\pardeftab560\ql\qnatural
+\cf2 		x.free;\
+		\cf3 MIDIIn\cf2 .disconnect();\
+		\cf3 MIDIClient\cf2 .disposeClient();\
+		b.free;\
+	\};\
+\
+\
+)\
+\
+\
+}

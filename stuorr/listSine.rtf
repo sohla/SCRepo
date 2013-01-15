@@ -1,0 +1,156 @@
+{\rtf1\ansi\ansicpg1252\cocoartf949\cocoasubrtf270
+{\fonttbl\f0\fnil\fcharset0 Monaco;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue191;\red96\green96\blue96;\red191\green0\blue0;
+}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\ql\qnatural\pardirnatural
+
+\f0\fs18 \cf0 (\
+	\cf2 SynthDef\cf0 (\
+		\cf3 "simpleSine"\cf0 ,\{\
+			\cf2 arg\cf0  freq=440,amp=0.1,rate=2.0;\
+			\cf2 var\cf0  trg,sig;\
+			trg = \cf2 Decay2\cf0 .ar(\cf2 Impulse\cf0 .ar(rate,0,0.3), 0.01, 0.3);\
+			sig = \cf2 SinOsc\cf0 .ar(freq,0,trg*amp);\
+			\cf2 Out\cf0 .ar(0,[sig,sig])\
+		\}\
+	).send(s);\
+)\
+\
+(\
+\
+	\cf2 var\cf0  window,listViewA,listViewB,tabletView,sliderView;\
+	\cf2 var\cf0  sceneListA,patchList;\
+	\cf2 var\cf0  inst1,inst2;\
+	\
+	\
+	\cf4 // storage\cf0 \
+	sceneListA = [\cf3 "-"\cf0 ,\cf3 "One"\cf0 ,\cf3 "Scene 2"\cf0 ,\cf3 "Scene 3"\cf0 ,\cf3 "4"\cf0 ,\cf3 "5 Free"\cf0 ,\cf3 "6"\cf0 ];\
+	patchList = \cf2 Dictionary\cf0 [];\
+\
+\
+	\cf4 // gui\cf0 \
+	window = \cf2 SCWindow\cf0 .new(\cf3 ""\cf0 ,\cf2 Rect\cf0 (118, 611, 600, 300)).front;\
+	\
+	listViewA = \cf2 SCListView\cf0 .new(window,\cf2 Rect\cf0 (12, 9, 188, 121));\
+	listViewA.items = sceneListA;\
+\
+	listViewB = \cf2 SCListView\cf0 .new(window,\cf2 Rect\cf0 (220, 9, 188, 121));\
+	listViewB.items = sceneListA;\
+\
+	tabletView = \cf2 SC2DSlider\cf0 .new(window,\cf2 Rect\cf0 (19, 160, 100, 100))\
+				.x_(0.2)\
+				.y_(0.2);\
+\
+\
+	sliderView = \cf2 SCSlider\cf0 .new(window,\cf2 Rect\cf0 (5, 160, 14, 100));\
+\
+\
+	\cf4 // populate\cf0 \
+	patchList.put(sceneListA.at(0),[]);\
+\
+	patchList.put(sceneListA.at(1),[\
+				[\cf3 "/s_new"\cf0 , \cf3 "simpleSine"\cf0 , inst1 = s.nextNodeID, 1, 1, \cf3 "freq"\cf0 , 440, \cf3 "amp"\cf0 , 0.2],\
+				[\cf3 "/s_new"\cf0 , \cf3 "simpleSine"\cf0 , inst2 = s.nextNodeID, 1, 1, \cf3 "freq"\cf0 , 840, \cf3 "amp"\cf0 , 0.2]\
+								]);\
+								\
+	patchList.put(sceneListA.at(2),[\
+				[\cf3 "/n_set"\cf0 , inst1, \cf3 "freq"\cf0 , 600, \cf3 "rate"\cf0 , 10],\
+				[\cf3 "/n_set"\cf0 , inst2, \cf3 "freq"\cf0 , 4000]\
+	\
+								]);\
+	\
+	patchList.put(sceneListA.at(3),[\
+				[\cf3 "/n_set"\cf0 , inst1, \cf3 "freq"\cf0 , 400, \cf3 "amp"\cf0 , 0.3],\
+				[\cf3 "/n_set"\cf0 , inst2, \cf3 "freq"\cf0 , 430, \cf3 "rate"\cf0  , 4, \cf3 "amp"\cf0 , 0.7]\
+								]);\
+	\
+\
+	patchList.put(sceneListA.at(4),[\
+				[\cf3 "/n_set"\cf0 , inst1, \cf3 "freq"\cf0 , 1400, \cf3 "rate"\cf0  , 16, \cf3 "amp"\cf0 , 0.6],\
+				[\cf3 "/n_set"\cf0 , inst2, \cf3 "freq"\cf0 , 1430, \cf3 "rate"\cf0  , 14, \cf3 "amp"\cf0 , 0.1]\
+								]);\
+	\
+	patchList.put(sceneListA.at(5),[\
+				[\cf3 "/n_run"\cf0 , inst1, \cf2 false\cf0 ],\
+				[\cf3 "/n_set"\cf0 , inst2, \cf3 "freq"\cf0 , 333, \cf3 "rate"\cf0  , 6]\
+								]);\
+\
+	patchList.put(sceneListA.at(6),[\
+				[\cf3 "/n_run"\cf0 , inst1, \cf2 true\cf0 ],\
+				[\cf3 "/n_set"\cf0 , inst1, \cf3 "freq"\cf0 , 1000, \cf3 "rate"\cf0 , 4],\
+				[\cf3 "/n_set"\cf0 , inst2, \cf3 "freq"\cf0 , 2000, \cf3 "rate"\cf0  , 4]\
+								]);\
+\
+	\cf4 // events\cf0 \
+	listViewA.action = \{ \cf2 arg\cf0  view;\
+	\
+		\cf2 var\cf0  si;\
+		\
+		\cf4 //[view.value, listViewA.items[view.value]].postln;\cf0 \
+		s.listSendBundle(0.1,patchList.at(listViewA.items[view.value]));\
+		\
+		\cf4 // find cntrl values\cf0 \
+		patchList.at(listViewA.items[view.value]).do(\{ \cf2 arg\cf0  item,i;\
+			item.do(\{ \cf2 arg\cf0  jtem,j;\
+				\
+				if(j == 1,\{si = jtem\});\
+				\
+				if(jtem == \cf3 "amp"\cf0 ,\{\
+					if(si == inst1,\{tabletView.x_(item.at(j+1))\});\
+					if(si == inst2,\{tabletView.y_(item.at(j+1))\});\
+					\
+				\});\
+				if(jtem == \cf3 "freq"\cf0 ,\{\
+					sliderView.value_(item.at(j+1)/4000)\
+				\});\
+			\});\
+		\
+		\});\
+		\
+		\
+		\
+	\};\
+	\
+	listViewB.action = \{ \cf2 arg\cf0  view;\
+		\cf4 //[view.value, listViewB.items[view.value]].postln;\cf0 \
+		s.listSendBundle(0.1,patchList.at(listViewB.items[view.value]));\
+	\};\
+	\
+\
+	tabletView.action = \{ \cf2 arg\cf0  view;\
+		\cf4 //[view.value, view.value.x, view.value.y].postln;\cf0 \
+		\
+		s.sendBundle(0.01,\
+		\
+			[\cf3 "/n_set"\cf0 , inst1, \cf3 "amp"\cf0 , view.value.x],\
+			[\cf3 "/n_set"\cf0 , inst2, \cf3 "amp"\cf0 , view.value.y]\
+		);\
+	\};\
+\
+\
+	sliderView.action = \{ \cf2 arg\cf0  view;\
+		\cf4 //[view.value, view.value.x, view.value.y].postln;\cf0 \
+		\
+		s.sendBundle(0.01,\
+		\
+			[\cf3 "/n_set"\cf0 , inst1, \cf3 "freq"\cf0 , view.value * 4000]\
+		);\
+	\};\
+\
+	\cf4 // init\cf0 \
+	listViewA.valueAction = 1;\
+	\
+	\
+	\
+	\cf4 // close\cf0 \
+	window.onClose = \{\
+		s.sendMsg(\cf3 "/n_free"\cf0 , inst1);	\
+		s.sendMsg(\cf3 "/n_free"\cf0 , inst2);	\
+	\}\
+	\
+	\
+	\
+)\
+\
+\
+}

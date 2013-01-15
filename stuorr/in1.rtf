@@ -1,0 +1,29 @@
+{\rtf1\ansi\ansicpg1252\cocoartf949\cocoasubrtf270
+{\fonttbl\f0\fnil\fcharset0 Monaco;}
+{\colortbl;\red255\green255\blue255;\red140\green34\blue31;\red9\green33\blue168;\red10\green34\blue172;
+\red0\green23\blue179;}
+\deftab560
+\pard\pardeftab560\ql\qnatural
+
+\f0\fs18 \cf0 (\
+\pard\pardeftab560\ql\qnatural
+\cf2 // use PitchShift to granulate input - USE HEADPHONES to prevent feedback.\
+// upper left corner is normal playback. x = pitch dispersion, y = time dispersion\
+\cf3 var\cf0  grainSize;\
+grainSize = 0.3;\
+play(\{\
+	x = \cf3 PitchShift\cf0 .ar(\cf3 \
+\pard\pardeftab560\ql\qnatural
+\cf0 			\cf3 SoundIn\cf0 .ar([0,1],1.0), \
+			grainSize, 		\
+			\cf4 MouseY\cf0 .kr(0.8, 1.2,0.1),\
+			\cf3 0.001\cf0 , 			\cf2 // pitch dispersion\
+\cf0 			\cf4 MouseX\cf0 .kr(0.001,0.03,0.2)	\cf2 // time dispersion\
+\cf0 	);\
+\
+\
+	x + \cf3 SoundIn\cf0 .ar([0,1],0.12)*6;\
+\})\
+)\
+			\
+//\cf5 Amplitude\cf0 .kr(\cf5 SoundIn\cf0 .ar(0),0.01,0.01,2.5,1)}

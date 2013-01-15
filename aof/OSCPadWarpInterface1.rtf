@@ -1,0 +1,94 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1138\cocoasubrtf230
+{\fonttbl\f0\fnil\fcharset0 Monaco;}
+{\colortbl;\red255\green255\blue255;\red191\green0\blue0;\red0\green0\blue0;\red0\green0\blue191;
+\red96\green96\blue96;\red0\green0\blue191;\red0\green115\blue0;\red0\green115\blue0;}
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural
+
+\f0\fs18 \cf2 //------------------------------------------------------------------------\cf3 \
+\cf2 // 2 blobs\cf3 \
+\cf2 //------------------------------------------------------------------------\cf3 \
+\
+(\
+	\
+	\
+	\cf4 var\cf3  numOfBlobs = 2;\
+\cf0 \
+\cf3 	\cf4 var\cf3  synths = \cf4 Array\cf3 .new(numOfBlobs);\
+	\
+	\cf4 var\cf3  paths = [\
+	\
+		\cf5 "Peeling potatoes.aiff"\cf3 ,\
+		\cf5 "alleg.wav"\cf3 \
+	\
+	];\
+	\
+	\cf4 var\cf3  buffers = \cf4 Array\cf3 .new(paths.size);\
+	var buf;\
+	var sampleIndex = 0;\
+	\
+	\cf0 var window = SCWindow.new("",Rect(341, 738, 400, 400)).front;\
+\
+\
+	window.view.keyDownAction = \{\cf6 |a,b,c,d|\cf0 \
+			\
+		b.asString.switch(\
+		\
+			"="	,	\{ sampleIndex = sampleIndex + 1;\},\
+			"-"	,	\{ sampleIndex = sampleIndex - 1;\}\
+		\
+		);\
+		\
+		sampleIndex = sampleIndex % paths.size;\
+		\
+		sampleIndex.postln;\
+\cf3 \
+	\};\
+		\
+	paths.do(\{ |path,i|\
+		\
+		\
+		buf = Buffer.read(s,"sounds/"++path); \
+					 \
+\cf0 		("loading..."++i++" : "++path++" into "++buf).postln;\
+		\
+		buffers = buffers.add(buf);\
+\cf3 		\
+	\});\
+\
+	\
+	numOfBlobs.do(\{\cf4 |i|\cf3 \
+		\
+\cf0 		var res;\
+\cf3 		\
+		synths = synths.add(\cf6 Synth\cf0 (\cf7 \\warpSynth\cf0 ,[\cf7 \\buffer\cf0 ,buffers.at(i),\cf7 \\ws\cf0 ,3.3,\cf7 \\pch\cf0 ,1.0])\cf3 );\
+		\
+		\
+		synth.run(\cf4 false\cf3 );\
+	\
+		res = \cf4 OSCresponderNode\cf3 .new(\cf4 nil\cf3 , \cf5 "/model"\cf3 ++i, \{ \
+			\cf4 arg\cf3  time, resp, msg; \
+			synths.at(i).set(\cf8 \\xx\cf3 ,msg[1]); \
+			\cf0 synths.at(i)\cf3 .set(\cf8 \\pch\cf3 ,0.5 + (msg[2] * 0.5)); \
+		\
+		\} ).add; \
+\
+		res = \cf4 OSCresponderNode\cf3 .new(\cf4 nil\cf3 , \cf5 "/model"\cf3 ++i++\cf5 "on"\cf3 , \{ \
+			\cf4 arg\cf3  time, resp, msg; \
+			\cf0 synths.at(i)\cf3 .set.run(\cf4 true\cf3 ); \
+		\} ).add; \
+		res = \cf4 OSCresponderNode\cf3 .new(\cf4 nil\cf3 , \cf5 "/model"\cf3 ++i++\cf5 "off"\cf3 , \{ \
+			\cf4 arg\cf3  time, resp, msg; \
+			\cf0 synths.at(i)\cf3 .set.run(\cf4 false\cf3 ); \
+		\} ).add; \
+	\
+	\});\
+			\
+\cf0 	window.onClose = \{\
+		numOfBlobs.do(\{\cf6 |i|\cf0 \
+			\
+			\
+		\});\
+	\}\
+\cf3 	\
+)\
+}

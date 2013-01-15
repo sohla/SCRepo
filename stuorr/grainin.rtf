@@ -1,0 +1,38 @@
+{\rtf1\ansi\ansicpg1252\cocoartf949\cocoasubrtf270
+{\fonttbl\f0\fnil\fcharset0 Monaco;}
+{\colortbl;\red255\green255\blue255;\red0\green22\blue166;\red149\green23\blue22;\red48\green96\blue25;
+\red8\green31\blue156;\red20\green41\blue161;\red86\green30\blue32;\red6\green27\blue153;\red74\green88\blue32;
+}
+\deftab560
+\pard\pardeftab560\ql\qnatural
+
+\f0\fs18 \cf0 (\
+\pard\pardeftab560\ql\qnatural
+\cf2 var\cf0  winenv;\
+\cf3 // a custom envelope \
+\pard\pardeftab560\ql\qnatural
+\cf0 winenv = \cf2 Env\cf0 ([0, 1, 0], [0.5, 0.5], [8, -8]);\
+z = \cf2 Buffer\cf0 .sendCollection(s, winenv.discretize, 1);\
+\
+\pard\pardeftab560\ql\qnatural
+\cf2 SynthDef\cf0 (\cf4 \\in_grain_test\cf0 , \{\cf2 arg\cf0  gate = 1, amp = 1, envbuf;\
+	\cf2 var\cf0  pan, env;\
+	\cf3 // use mouse x to control panning\
+\pard\pardeftab560\ql\qnatural
+\cf0 	pan = \cf5 PinkNoise\cf0 .ar;//\cf2 MouseX\cf0 .kr(-1, 1);\
+	env = \cf2 EnvGen\cf0 .kr(\
+		\cf2 Env\cf0 ([0, 1, 0], [1, 1], \cf4 \\sin\cf0 , 1),\
+		gate,\
+		levelScale: amp,\
+		doneAction: 2);\
+	\cf2 Out\cf0 .ar(0,\
+		\cf2 GrainIn\cf0 .ar(2, \cf2 Impulse\cf0 .kr(\cf2 MouseY\cf0 .kr(1,1000)), \cf2 0.03\cf0 ,\cf6 AudioIn\cf0 .ar(1), pan, envbuf) * env)\
+	\}).send(s);\
+\
+)\
+\
+\pard\pardeftab560\ql\qnatural
+\cf7 // use built-in env\
+\pard\pardeftab560\ql\qnatural
+\cf0 x = \cf8 Synth\cf0 (\cf9 \\in_grain_test\cf0 , [\cf9 \\envbuf\cf0 , -1])\cf9 \
+}
