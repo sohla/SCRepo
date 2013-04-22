@@ -1,17 +1,17 @@
-{\rtf1\ansi\ansicpg1252\cocoartf1038\cocoasubrtf350
-{\fonttbl\f0\fnil\fcharset0 Monaco;\f1\fnil\fcharset0 LucidaGrande;}
+{\rtf1\ansi\ansicpg1252\cocoartf1187\cocoasubrtf340
+\cocoascreenfonts1{\fonttbl\f0\fnil\fcharset0 Monaco;\f1\fnil\fcharset0 LucidaGrande;}
 {\colortbl;\red255\green255\blue255;\red0\green0\blue191;\red0\green115\blue0;\red191\green0\blue0;
 \red96\green96\blue96;\red17\green41\blue162;}
-\vieww9000\viewh8400\viewkind0
 \deftab560
-\pard\pardeftab560\ql\qnatural
+\pard\pardeftab560
 
 \f0\fs18 \cf0 (\
 \
+\pard\pardeftab560
 \cf2 SynthDef\cf0 (\cf3 \\warp\cf0 , \{\cf2 arg\cf0  buffer = 0, envbuf = -1, ws = 5, pch = 0.8,pos=0.0,ol=2,rd=0,amp=0.5;\
-\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab560\ql\qnatural\pardirnatural
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab560\pardirnatural
 \cf0 	\cf2 var\cf0  mx,my;\
-\pard\pardeftab560\ql\qnatural
+\pard\pardeftab560
 \cf0 \
 	my = 0.02;//\cf2 MouseY\cf0 .kr(0.001,0.5 );\cf4 //splay\cf0 \
 	\
@@ -33,20 +33,20 @@
 //	\cf2 var\cf0  path = \cf5 "sounds/
 \f1\fs24 \cf0 stadium1.wav
 \f0\fs18 \cf5 "\cf0 ;\
-\pard\pardeftab560\ql\qnatural
+\pard\pardeftab560
 \cf4 //	var path = "sounds/\cf5 alleg.1\cf4 ";\cf0 \
-\cf4 	var path = "sounds/\cf5 SFX_1020_44.wav\cf4 ";\cf0 \
+\cf4 	var path = "sounds/\cf5 pad_autumn.wav\cf4 ";\cf0 \
 	\
 	\
 w = \cf2 SCWindow\cf0 .new(\cf5 "soundfile test"\cf0 , \cf2 Rect\cf0 (200, 500, 800, 100));\
 a = \cf2 SCSoundFileView\cf0 .new(w, \cf2 Rect\cf0 (20,20, 700, 60));\
 \
 c = SCSlider.new(w,Rect(20, 80, 700, 11))\
-\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab560\ql\qnatural\pardirnatural
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab560\pardirnatural
 \cf0 	.action_\{|v|\
 		x.set(\cf3 \\amp\cf0 , v.value); \
 	\};\
-\pard\pardeftab560\ql\qnatural
+\pard\pardeftab560
 \cf0 \
 b = \cf2 Buffer\cf0 .read(s, path);\
 \
@@ -93,9 +93,9 @@ a.mouseMoveAction = \{ \
 \
 x = \cf2 Synth\cf0 (\cf3 \\warp\cf0 ,[\cf3 \\buffer\cf0 ,b,\cf3 \\ws\cf0 ,3.3]);\
 \
-\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab560\ql\qnatural\pardirnatural
+\pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardeftab560\pardirnatural
 \cf0 w.onClose = \{\
-\pard\pardeftab560\ql\qnatural
+\pard\pardeftab560
 \cf0 \
 	x.free;\
 \}\
