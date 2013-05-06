@@ -1,12 +1,14 @@
 
 
 (
-	var path = "data/data.sc";
-	var file = CSVFileReader.read(path, true);
+	var name = "data2.sc";
+	var fullpath = File.realpath(Platform.userConfigDir+/+".."+/+".."+/+".."+/+"Develop"+/+"SuperCollider"+/+"SCRepo"+/+"urbancoccoon"+/+"data"+/+name);
+
+	var file = CSVFileReader.read(fullpath, true);
 	var cues = Array.new(file.size);
 	var cueNames = Array.new(file.size);
 
-	var window,cuesListView,goButton;
+	var window,cuesListView,goButton,nextText;
 
 	var a = ["a","b"];
 	
@@ -19,7 +21,7 @@
 	});
 
 	cues.do({|o|
-		cueNames.add(o.at("cue"));
+		cueNames.add(o.at("q"));
 	});
 	
 
@@ -37,11 +39,14 @@
 			var o = file.at(v.value);
 			var msg = Array.newFrom(o.copyToEnd(2));
 			var raw = Array.new(o.size);
+			var next = o[1];
+
+			
 
 			// need to turn any numbers into floats for raw OSC messgaing
 			msg.do({|a|
 //				(a+"::"+("^[0-9]+(\.[0-9]{1,2})?$").matchRegexp(a)).postln;
-				if( ("^[0-9]+(\.[0-9]{1,2})?$").matchRegexp(a) ,{
+				if( ("^[0-9\-]+(\.[0-9]{1,2})?$").matchRegexp(a) ,{
 					raw.add(a.asFloat);
 				},{
 					raw.add(a.replace("\"",""));
@@ -52,13 +57,26 @@
 			if(msg.size == 0,{
 				"nothing".postln
 			},{
-				s.sendRaw(raw.asRawOSC);	
+//				s.sendRaw(raw.asRawOSC);
+				
+				s.sendMsg(*raw);	
 			});
+			
+			
+			if( next == "|" ,{
+				cuesListView.valueAction = cuesListView.value + 1;
+		});
+			
+			
+//			nextText.string_(v.items[v.value+1]);
 			
 //			("["+cueNames.at(v.value)+"]").postln;
 //			v.items[v.value].postln;
 		};
-
+//	nextText = SCTextView.new(window,Rect(700-260, 10, 250, 20))
+//			.font_(Font.sansSerif(16))
+//			.backColor_(Color.gray)
+//			.string_("hello");
 
 //	goButton = SCButton.new(window,Rect(700-110, 440-110, 100, 100))
 //			.font_(Font.sansSerif(16))
@@ -78,4 +96,4 @@
 )
 
 
-			
+				

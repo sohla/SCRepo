@@ -41,7 +41,7 @@
 		syn.set(\amp,slider.x);
 		syn.set(\density,slider.y * 10.0);
 		});
-	g.setXYActive(0.0,0.2);
+	g.setXYActive(1.0,0.2);
 
 	w.onClose = {
 		syn.free;
