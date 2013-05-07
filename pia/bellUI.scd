@@ -19,6 +19,9 @@
 	).send(s);
 )
 
+
+s.sendMsg("/s_new", "piaBell", -1, 1, 1,"amp",1.0,"density",0.5,"note",68);
+
 (
 	var syn;
 	

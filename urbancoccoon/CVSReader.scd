@@ -1,8 +1,10 @@
 
 
 (
-	var name = "data2.sc";
-	var fullpath = File.realpath(Platform.userConfigDir+/+".."+/+".."+/+".."+/+"Develop"+/+"SuperCollider"+/+"SCRepo"+/+"urbancoccoon"+/+"data"+/+name);
+	var name = "data.sc";
+	var fullpath = File.realpath(Platform.userConfigDir
+				+/+".."+/+".."+/+".."+/+"Develop"+/+"SuperCollider"+/+"SCRepo"
+				+/+"urbancoccoon"+/+"data"+/+name);
 
 	var file = CSVFileReader.read(fullpath, true);
 	var cues = Array.new(file.size);
@@ -32,14 +34,15 @@
 
 	cuesListView = SCListView.new(window,Rect(10, 10, 400, 420))
 		.font_(Font.sansSerif(16))
-		.hiliteColor_(Color.green(1.0,0.2))
+		.hiliteColor_(Color.grey(1.0,0.1))
+		.selectedStringColor_(Color.black)
 		.items_(cueNames)
 		.action_{|v| 
 
-			var o = file.at(v.value);
+			var o = file.at(v.value-1);
 			var msg = Array.newFrom(o.copyToEnd(2));
 			var raw = Array.new(o.size);
-			var next = o[1];
+			var next = file.at(v.value)[1];
 
 			
 

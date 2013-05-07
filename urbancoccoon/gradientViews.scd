@@ -22,19 +22,19 @@
 		Color(r,g,b);
 	});
 	
+	var changeViewAtIndexWithValue = ({ |i,v|
+		changeViewWithRGB.value(w.view.children[i],colorForValue.value(v) );
+		
+	});
 	
 	//------------------------------------------------------
 	// UPDATE
 	//------------------------------------------------------
 	var updateCell = ({ |tick|
 
-		// update ui
-		20.do({|i|
-			changeViewWithRGB.value(w.view.children[i],Color(0,0,0));
-		});
 		20.do({|i|
 			v = degrees + (i*2);
-			changeViewWithRGB.value(w.view.children[i],colorForValue.value(v) );
+			changeViewAtIndexWithValue.value(i,v);
 		});
 			
 		("running["+tick+"]").postln;
@@ -42,7 +42,7 @@
 	
 	//------------------------------------------------------
 
-	w = Window.new("hello",Rect(5,240,325,500)).front;
+	w = Window.new("hello",Rect(250,240,325,500)).front;
 	w.view.decorator = FlowLayout( w.view.bounds, 0@0, 0@0 );
 
 	// build some views	

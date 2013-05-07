@@ -34,7 +34,7 @@ b = Synth(\piaAmbcymbs,[\amp,0.5,\density,10.0,\note,76	]);
 	q = w.addFlowLayout( 10@10, 20@5 );
 	g = Slider2D( w.view,140@140 ).background_( Color.rand );
 		
-	a = #[64];
+	a = #[63];
 	b = #[0,2,4,5,7,9,11];
 	c = a.choose + b.choose;
 	w.name = "ACYMBS" + c;
