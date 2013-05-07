@@ -1,4 +1,4 @@
-
+q,Send MIDI note,"/midi",0,60,60
 q,Play Sound and Sample,"/s_new","pulsop",2003,1,1,"freq",110,"rate",1
 q,|,"/b_allocRead",111,"sounds/SC_130306_133611.aiff"
 q,|,"/s_new","samplePlayer",2004,1,1,"bufnum",111,"attack",1

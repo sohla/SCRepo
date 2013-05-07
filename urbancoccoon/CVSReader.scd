@@ -9,10 +9,13 @@
 	var file = CSVFileReader.read(fullpath, true);
 	var cues = Array.new(file.size);
 	var cueNames = Array.new(file.size);
-
+	
 	var window,cuesListView,goButton,nextText;
 
-	var a = ["a","b"];
+	
+	var netAddress = NetAddr.localAddr;
+	var oscResponder;
+		
 	
 
 	//------------------------------------------------------
@@ -26,7 +29,24 @@
 		cueNames.add(o.at("q"));
 	});
 	
+	//------------------------------------------------------
+	// MIDI / OSCResponder
+	//------------------------------------------------------
 
+	MIDIClient.init;
+	MIDIClient.destinations;
+
+
+	oscResponder = OSCresponderNode.new(n, "/midi", { |time, resp, msg| 
+		
+		[time,resp,msg].postln; 
+
+		// basic example of sending a singe midi note
+		MIDIOut(0).noteOn(msg[1],msg[2],msg[3]);
+	
+	}).add; 
+	
+	
 	//------------------------------------------------------
 	// GUI
 	//------------------------------------------------------
@@ -44,11 +64,8 @@
 			var raw = Array.new(o.size);
 			var next = file.at(v.value)[1];
 
-			
-
-			// need to turn any numbers into floats for raw OSC messgaing
 			msg.do({|a|
-//				(a+"::"+("^[0-9]+(\.[0-9]{1,2})?$").matchRegexp(a)).postln;
+			// need to turn any numbers into floats for raw OSC messgaing
 				if( ("^[0-9\-]+(\.[0-9]{1,2})?$").matchRegexp(a) ,{
 					raw.add(a.asFloat);
 				},{
@@ -56,13 +73,14 @@
 				});
 			});
 
-			
 			if(msg.size == 0,{
 				"nothing".postln
 			},{
-//				s.sendRaw(raw.asRawOSC);
-				
-				s.sendMsg(*raw);	
+				if(raw[0] == "/midi",{
+					netAddress.sendMsg(*raw);
+				},{	
+					s.sendMsg(*raw);	
+				});
 			});
 			
 			
@@ -94,6 +112,8 @@
 	window.onClose = ({
 		s.sendMsg("/g_freeAll",1);
 		s.queryAllNodes;
+		netAddress.disconnect;
+		oscResponder.remove;
 	});
 
 )
