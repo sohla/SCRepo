@@ -4,7 +4,7 @@
 	var z=0.0;
 	var ptchs = Array.geom(p, root, 2);
 	var vlms = Array.geom(p, 0.5, 0.12);
-	var amps = Array.rand(p, 4,50);
+	var amps = Array.rand(p, 4,10);
 	var pans = Array.rand(p, -0.8,0.8);
 	
 	root = MouseX.kr(50,200);
