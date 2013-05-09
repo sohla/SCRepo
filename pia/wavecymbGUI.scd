@@ -34,7 +34,7 @@ a = Synth(\piaWavecymb,[\amp,0.5,\density,1.1,\note,52]);
 	g = Slider2D( w.view,140@140 ).background_( Color.rand );
 		
 	a = #[100];
-	b = #[0];
+	b = #[0,4,7,9];
 	c = a.choose + b.choose;
 	w.name = "WAVE" + c;
 	w.refresh();
@@ -56,4 +56,4 @@ a = Synth(\piaWavecymb,[\amp,0.5,\density,1.1,\note,52]);
 	
 
 
-)
+ )

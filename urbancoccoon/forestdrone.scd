@@ -1,9 +1,9 @@
-//[40,52,64,76,88,100]
+//[52,64,76,88,100,112,124]
 (
 {
 var n, p;
 var exciter, spec,scale,root,out;
-		root = #[52,64,76,88,100];
+		root = #[40,52,64,76];
 		scale = #[0,2,4,5,7];
 
 		p = 50;
@@ -23,3 +23,4 @@ var exciter, spec,scale,root,out;
 }.play;
 )
 
+ 

@@ -62,7 +62,7 @@
 	w = SCWindow.new("city-wind-scape").front;	
 	w.view.decorator = FlowLayout( w.view.bounds, 5@5, 10@10 );
 	w.view.background = Gradient(Color(0.9, 0.83, 0.3),Color(0.9, 0.36, 0.3),\v);
-	
+		
 	g = ControlSpec(100.0, 15000, \exp, 1, 15000, "Hz");
 	a = EZSlider(w,390@20,"frq",g,initAction:true,)
 		.action_({|ez|

@@ -6,7 +6,7 @@ var exciter, spec,scale,root,out;
 		root = #[52,64,76,88,100];
 		scale = #[0,2,4,5,7];
 
-		p = 50;
+		p = 150;
 		exciter = Decay.ar(PinkNoise.ar(0.0001), 9.1);
 		spec = Array.fill(2, {
 			`[
@@ -23,3 +23,4 @@ var exciter, spec,scale,root,out;
 }.play;
 )
 
+ 

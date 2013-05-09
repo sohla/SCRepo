@@ -1,29 +1,27 @@
 (
 	SynthDef(
-		"piaBell",{
-			arg amp=0.0,density=1.0,note = 64;
+		"forestbells",{
+			arg amp=0.0,density=1.0,note = 64,exc,trig;
 
-			var trig, p, exc, x, s;
-	
-			b = #[0,2,4,5,7,9,11];
-		
-			trig = Impulse.kr(density, 0, [0.04,0.03]);
-
+			b = #[0,5,7,14,19];
+			trig = Dust.kr(density, 0.04);
 			exc = BrownNoise.ar(Decay2.kr(trig,5.5,0.01));
-			s = (DynKlank.ar(
-				`[Array.fill(1, {note.midicps}),nil,
-				Array.fill(16, {rrand(0.1,2.0)})], 
-				exc) * 0.001 * amp).softclip;
-
-			Out.ar(0,[s,s])
+			p = 15;	
+			z = `[	
+					Array.fill(p, {(note + b.choose).midicps} ),					Array.fill(p, { 0.1.rand2 }), 						Array.fill(p, {rrand(0.1,2.0)} )		
+				];
+			Out.ar(0,Pan2.ar(
+				Klank.ar(z, exc),
+				1.0.rand2)
+			)
 			
 		}
 	).send(s);
 )
 
 
-s.sendMsg("/s_new", "piaBell", -1, 1, 1,"amp",1.0,"density",0.5,"note",68);
-
+s.sendMsg("/s_new", "forestbells", -1, 1, 1,"amp",1.0,"density",2.5,"note",90);
+	
 (
 	var syn;
 	
@@ -31,18 +29,13 @@ s.sendMsg("/s_new", "piaBell", -1, 1, 1,"amp",1.0,"density",0.5,"note",68);
 	q = w.addFlowLayout( 10@10, 20@5 );
 	g = Slider2D( w.view,140@140 ).background_( Color.rand );
 		
-	a = #[94];
+	a = #[82];
 	b = #[0,2,4,5,7,9,11];
 	c = a.choose + b.choose;
 	w.name = "BELL" + c;
 	w.refresh();
 	
-	10.do({
-
-
 		syn = Synth(\piaBell,[\amp,0.0,\density,8.0,\note,a]);
-		
-	});
 	
 	
 	
