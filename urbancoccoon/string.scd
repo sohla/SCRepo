@@ -6,7 +6,7 @@ var root, scale;
 			// bowed string
 		var trig, p, s, exc, x, freq;
 		root = rrand(3,126);
-		root = 	28;
+		root = 	52;
 		scale = #[0,4,7];
 			freq =  root.midicps;
 			exc = BrownNoise.ar([0.007,0.007]) * max(0, LFNoise1.kr(exprand(0.125,0.5), 0.6, 0.4));

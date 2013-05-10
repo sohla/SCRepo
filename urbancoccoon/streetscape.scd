@@ -1,7 +1,7 @@
 (
 
 	SynthDef("streetscape", { |out=0,bufnum,gate = 1 ,attack = 0.001, release = 0.001, 
-						frq=15000, amp = 1.0, decaytime = 0.01,chaosfreq=0,chaosamp=400|
+						filterfrq=15000, filteramp = 1.0, decaytime = 0.01,chaosfreq=0,chaosamp=400|
 	
 		var envelope = EnvGen.kr(Env.asr(attack,1.0,release, curve: \sin), gate, doneAction:2);
 		var buf = PlayBuf.ar(bufnum.numChannels, bufnum, BufRateScale.kr(bufnum));
@@ -19,16 +19,17 @@
 				        relaxTime: 0.01
 				    );
 
-		4.do({
-			verb = AllpassL.ar(
-					comp, 
-					0.3, 	
-	 				[rrand(0.01,0.3),rrand(0.01,0.3)],
-	 				decaytime
-	 			)
-		});
+		eq = MoogFF.ar(comp,Lag.ar(LorenzL.ar(chaosfreq),3e-3)*chaosamp+filterfrq, filteramp);
 
-		eq = MoogFF.ar(verb,Lag.ar(LorenzL.ar(chaosfreq),3e-3)*chaosamp+frq, amp);
+//		4.do({
+//			verb = AllpassL.ar(
+//					eq, 
+//					0.3, 	
+//	 				[rrand(0.01,0.3),rrand(0.01,0.3)],
+//	 				decaytime
+//	 			)
+//		});
+
 	    Out.ar( out, eq);
 
 	}).send(s);
@@ -42,7 +43,7 @@
 	var w;
 	var nodeID = 2000;
 	var bufferID = 111;
-	var frq = 10000,amp = 1.0;
+	var filterfrq = 10000,filteramp = 1.0;
 
 
 	//------------------------------------------------------
@@ -64,16 +65,16 @@
 	w.view.background = Gradient(Color(0.9, 0.83, 0.3),Color(0.9, 0.36, 0.3),\v);
 		
 	g = ControlSpec(100.0, 15000, \exp, 1, 15000, "Hz");
-	a = EZSlider(w,390@20,"frq",g,initAction:true,)
+	a = EZSlider(w,390@20,"filterfrq",g,initAction:true,)
 		.action_({|ez|
-			s.sendMsg("n_set",nodeID,\frq,ez.value);
+			s.sendMsg("n_set",nodeID,\filterfrq,ez.value);
 		});
 	a.setColors(Color.clear,numBackground:Color.clear);
 
 	g = ControlSpec(1, 3, \linear, 0.01, 1);
-	b = EZSlider(w,390@20,"amp",g,initAction:true)
+	b = EZSlider(w,390@20,"filteramp",g,initAction:true)
 		.action_({|ez|
-			s.sendMsg("n_set",nodeID,\amp,ez.value);
+			s.sendMsg("n_set",nodeID,\filteramp,ez.value);
 		});
 	b.setColors(Color.clear,numBackground:Color.clear);
 
@@ -103,8 +104,8 @@
 		.states_([["out"]])
 		.action_({|b|
 			[
-				"\"frq\"",a.value,
-				"\"amp\"",b.value,
+				"\"filterfrq\"",a.value,
+				"\"filteramp\"",b.value,
 				"\"decaytime\"",c.value,
 				"\"chaosfreq\"",d.value,
 				"\"chaosamp\"",e.value].postln;
