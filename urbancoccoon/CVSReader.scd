@@ -2,8 +2,11 @@
 
 (
 	var name = "show1.sc";
+//	var fullpath = File.realpath(Platform.userConfigDir
+//				+/+".."+/+".."+/+".."+/+"Develop"+/+"SuperCollider"+/+"SCRepo"
+//				+/+"urbancoccoon"+/+"data"+/+name);
 	var fullpath = File.realpath(Platform.userConfigDir
-				+/+".."+/+".."+/+".."+/+"Develop"+/+"SuperCollider"+/+"SCRepo"
+				+/+".."+/+".."+/+".."+/+"Documents"+/+"cocoon"+/+"SCRepo"
 				+/+"urbancoccoon"+/+"data"+/+name);
 
 	var file = CSVFileReader.read(fullpath, true);
