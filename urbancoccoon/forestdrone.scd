@@ -1,9 +1,9 @@
-//[52,64,76,88,100,112,124]
+// 38,50,62,74,86,98,110,122
 (
 {
 var n, p;
 var exciter, spec,scale,root,out;
-		root = #[64,76,88];
+		root = #[98,110,122];
 		scale = #[0,2,4,5,7];
 
 		p = 50;
@@ -18,7 +18,7 @@ var exciter, spec,scale,root,out;
 		out = Klank.ar(spec, exciter);
 		
 	60.do({ out = AllpassN.ar(out, 0.04, [0.04.rand, 0.04.rand], 2) });
-		out = LeakDC.ar(out);
+		out = LeakDC.ar(out*0.5);
 
 }.play;
 )
