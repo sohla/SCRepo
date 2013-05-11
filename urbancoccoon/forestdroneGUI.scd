@@ -31,7 +31,7 @@
 
 )
 
-x = Synth(\forestdrone,[\octave,3,\note,0]);
+x = Synth(\forestdrone,[\octave,1,\note,0]);
 x.free;
 
 

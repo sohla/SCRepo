@@ -3,7 +3,7 @@
 {
 var n, p;
 var exciter, spec,scale,root,out;
-		root = #[40,52,64,76];
+		root = #[64,76,88];
 		scale = #[0,2,4,5,7];
 
 		p = 50;
