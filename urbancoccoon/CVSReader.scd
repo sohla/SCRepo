@@ -20,7 +20,11 @@
 	var oscResponder;
 		
 	
-
+	s.boot;
+	s.loadSynthDef("monoSamplePlayer");
+	s.loadSynthDef("monoSamplePlayer");
+	s.loadSynthDef("streetscape");
+	
 	//------------------------------------------------------
 	// DATA
 	//------------------------------------------------------
@@ -118,6 +122,7 @@
 		s.queryAllNodes;
 		netAddress.disconnect;
 		oscResponder.remove;
+		s.quit;
 	});
 
 )
