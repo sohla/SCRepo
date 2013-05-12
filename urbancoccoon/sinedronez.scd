@@ -1,6 +1,6 @@
 {  
 	var p=10;
-	var root = 190;
+	var root = 50.midicps;
 	var z=0.0;
 	var ptchs = Array.geom(p, root, 2);
 	var vlms = Array.geom(p, 0.5, 0.12);
