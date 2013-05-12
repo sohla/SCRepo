@@ -4,13 +4,14 @@
 {
 var root, scale;
 			// bowed string
-		var trig, p, s, exc, x, freq,notes,mx,notesBuffer;
+		var trig, p, s, exc, x, freq,notes,mx,my,notesBuffer;
 		
 
 		root = rrand(3,126);
-		root = 	38;
+		root = 	28;
 		scale = #[0];
 		mx = MouseX.kr(0, 15);
+		my = 0.2-MouseY.kr(0.001, 0.2,0.9);
 		notes = FloatArray[0,2,3,5,7,8,10];
 		notesBuffer = Buffer.alloc(s,notes.size,1,{|b|b.setnMsg(0,notes)});
 
@@ -22,7 +23,8 @@ var root, scale;
 				Array.series(12, Lag.kr(freq,0.8), Lag.kr(freq,0.9)),
 				Array.geom(12,1,rrand(0.7,0.9)),
 				Array.fill(12, {rrand(1.0,3.0)})
-			], exc) * 0.1).softclip;
+			], exc) * 0.1 * my).softclip;
 }.play;
 )
 
+a

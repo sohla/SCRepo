@@ -9,7 +9,7 @@ SynthDef(\warp, {arg buffer = 0, envbuf = -1, ws = 0.5, pch = 0.5;
 	var mx,my;
 	var sp,verb;
 
-	mx = LFSaw.kr( (1.0/6.0) * MouseX.kr(0.01, 1.0) ,1,0.5,0.5);
+	mx = LFSaw.kr( (1.0/54.0) * MouseX.kr(0.01, 1.0) ,1,0.5,0.5);
 		
 	my = MouseY.kr(0.001,1,1.0);//splay
 	
@@ -18,7 +18,7 @@ SynthDef(\warp, {arg buffer = 0, envbuf = -1, ws = 0.5, pch = 0.5;
 			1,
 			1,
 			0
-		) * 0.5;
+		) * 0.25;
 		
 	verb = GVerb.ar(
 Ê Ê Ê Ê Ê Ê Ê Ê sp,
@@ -39,7 +39,7 @@ SynthDef(\warp, {arg buffer = 0, envbuf = -1, ws = 0.5, pch = 0.5;
 
 )
 
-c = Buffer.read(s, "sounds/darkforest.wav");
+c = Buffer.read(s, "sounds/story.aif");
 x = Synth(\warp,[\buffer,c,\ws,0.3,\pch,1.0]);
 	
 x.free;
