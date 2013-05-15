@@ -1,7 +1,7 @@
 (
 	SynthDef(
 		"piaBell",{
-			arg amp=0.0,density=1.0,note = 64;
+			arg amp=1.0,density=1.0,note = 64,release=0.5;
 
 			var trig, p, exc, x, s;
 	
@@ -9,7 +9,7 @@
 		
 			trig = Impulse.kr(density, 0, [0.04,0.03]);
 
-			exc = BrownNoise.ar(Decay2.kr(trig,5.5,0.01));
+			exc = BrownNoise.ar(Decay2.kr(trig,release,0.01));
 			s = (DynKlank.ar(
 				`[Array.fill(1, {note.midicps}),nil,
 				Array.fill(16, {rrand(0.1,2.0)})], 
@@ -31,16 +31,16 @@ s.sendMsg("/s_new", "piaBell", -1, 1, 1,"amp",1.0,"density",0.5,"note",68);
 	q = w.addFlowLayout( 10@10, 20@5 );
 	g = Slider2D( w.view,140@140 ).background_( Color.rand );
 		
-	a = #[94];
-	b = #[0,2,4,5,7,9,11];
+	a = #[28];
+	b = #[0,2,4,5,7];
 	c = a.choose + b.choose;
 	w.name = "BELL" + c;
 	w.refresh();
 	
-	10.do({
+	1.do({
 
 
-		syn = Synth(\piaBell,[\amp,0.0,\density,8.0,\note,a]);
+		syn = Synth(\piaBell,[\amp,1.0,\density,8.0,\note,c]);
 		
 	});
 	
@@ -50,10 +50,10 @@ s.sendMsg("/s_new", "piaBell", -1, 1, 1,"amp",1.0,"density",0.5,"note",68);
 	
 	g.action_({ 
 		|slider| 
-		syn.set(\amp,slider.x);
+		syn.set(\release,0.001+slider.x);
 		syn.set(\density,slider.y * 10.0);
 		});
-	g.setXYActive(1.0,0.2);
+	g.setXYActive(0.2,0.54/4);
 
 	w.onClose = {
 		syn.free;

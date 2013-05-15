@@ -12,7 +12,7 @@
 			out = (Klank.ar(
 				`[Array.fill(n, {note.midicps}),
 				nil,
-				Array.fill(n, {rrand(0.1,2.0)})], 
+				Array.fill(n, {rrand(0.1,0.3)})], 
 				exc) * 0.2 * amp).softclip;
 			
 			density.do({ out = AllpassN.ar(out, 0.05, [0.05.rand, 0.05.rand], 3) });
@@ -23,9 +23,10 @@
 	).send(s);
 )
 
-a = Synth(\piaAmbcymbs,[\amp,0.5,\density,10.0,\note,57]);
+a = Synth(\piaAmbcymbs,[\amp,1.0,\density,1.0,\note,86]);
 b = Synth(\piaAmbcymbs,[\amp,0.5,\density,10.0,\note,76	]);
 
+// 38,50,62,74,86,98,110,122
 
 (
 	var syn;
@@ -34,8 +35,8 @@ b = Synth(\piaAmbcymbs,[\amp,0.5,\density,10.0,\note,76	]);
 	q = w.addFlowLayout( 10@10, 20@5 );
 	g = Slider2D( w.view,140@140 ).background_( Color.rand );
 		
-	a = #[63];
-	b = #[0,2,4,5,7,9,11];
+	a = #[74];
+	b = #[0,2,4,5,7];
 	c = a.choose + b.choose;
 	w.name = "ACYMBS" + c;
 	w.refresh();

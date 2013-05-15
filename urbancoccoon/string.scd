@@ -8,7 +8,7 @@ var root, scale;
 		
 
 		root = rrand(3,126);
-		root = 	28;
+		root = 	28+(12*2);
 		scale = #[0];
 		mx = MouseX.kr(0, 15);
 		my = 0.2-MouseY.kr(0.001, 0.2,0.9);
@@ -27,4 +27,3 @@ var root, scale;
 }.play;
 )
 
-a

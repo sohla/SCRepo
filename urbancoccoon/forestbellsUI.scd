@@ -30,13 +30,13 @@ s.sendMsg("/s_new", "forestbells", -1, 1, 1,"amp",0.01,"density",2.5,"note",90);
 	q = w.addFlowLayout( 10@10, 20@5 );
 	g = Slider2D( w.view,140@140 ).background_( Color.rand );
 		
-	a = #[38];
+	a = #[50];
 	b = #[0,2,4,5,7];
 	c = a.choose + b.choose;
 	w.name = "BELL" + c;
 	w.refresh();
 	
-		syn = Synth(\forestbells,["amp",0.1,\density,0.1,\note,a,\pan,1.0.rand2]);
+		syn = Synth(\forestbells,["amp",0.1,\density,0.1,\note,c,\pan,1.0.rand2]);
 	
 	
 	
