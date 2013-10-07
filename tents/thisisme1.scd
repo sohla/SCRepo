@@ -9,11 +9,11 @@ SynthDef(\warp, {arg buffer = 0, envbuf = -1, ws = 0.5, pch = 0.5;
 	var mx,my;
 	var sp,verb;
 
-	mx = LFSaw.kr( (1.0/57.0) * MouseX.kr(0.01, 1.0) ,1,0.5,0.5);
+	mx = LFSaw.kr( (1.0/18.0) * MouseX.kr(0.01, 1.0) ,1,0.5,0.5);
 		
-	my = MouseY.kr(0.005,1,1.0);//splay
+	my = MouseY.kr(0.01,1,1.0);//splay
 	
-	sp = Splay.arFill(24,
+	sp = Splay.arFill(12,
 			{ |i| Warp1.ar(1, buffer, mx, pch,my, envbuf, 8, 0.1, 2)  },
 			1,
 			1,
@@ -33,16 +33,20 @@ SynthDef(\warp, {arg buffer = 0, envbuf = -1, ws = 0.5, pch = 0.5;
 Ê Ê Ê Ê Ê Ê Ê Ê 26, 0.5);
 		
 	Out.ar(0,
-		sp
+		sp * 0.5
 	);	
 }).send(s);
 
 )
 
-c = Buffer.read(s, "sounds/listentome.wav");
-x = Synth(\warp,[\buffer,c,\ws,0.3,\pch,69.midicps / 440.0]);
-y = Synth(\warp,[\buffer,c,\ws,0.3,\pch,(65-12).midicps / 440.0]);
-y = Synth(\warp,[\buffer,c,\ws,0.3,\pch,(72-12).midicps / 440.0]);
+c = Buffer.read(s, "sounds/thisisme.wav");
+z = Synth(\warp,[\buffer,c,\ws,0.3,\pch,(69).midicps / 440.0]);
+ y = Synth(\warp,[\buffer,c,\ws,0.3,\pch,(65).midicps / 440.0]);
+y = Synth(\warp,[\buffer,c,\ws,0.3,\pch,(72).midicps / 440.0]);
+
+
+c = Buffer.read(s, "sounds/pancake.wav");
+x = Synth(\warp,[\buffer,c,\ws,0.3,\pch,(69).midicps / 440.0]);
  	
 x.free;
 c.free;

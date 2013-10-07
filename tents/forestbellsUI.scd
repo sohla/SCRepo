@@ -30,7 +30,7 @@ s.sendMsg("/s_new", "forestbells", -1, 1, 1,"amp",0.01,"density",2.5,"note",90);
 	q = w.addFlowLayout( 10@10, 20@5 );
 	g = Slider2D( w.view,140@140 ).background_( Color.rand );
 		
-	a = #[26];
+	a = #[88];
 	b = #[0,2,4,5,7];
 	c = a.choose + b.choose;
 	w.name = "BELL" + c;

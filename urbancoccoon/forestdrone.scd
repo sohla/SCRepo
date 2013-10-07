@@ -3,8 +3,8 @@
 {
 var n, p;
 var exciter, spec,scale,root,out,eq;
-		root = #[74,86,98,110];
-		scale = #[0,2,4,5,7];
+		root = #[50,62,74,86,98,110];
+		scale = #[0,2,5,8];
 
 		p = 50;
 		exciter = Decay.ar(PinkNoise.ar(0.0001), 9.1);
@@ -21,7 +21,7 @@ var exciter, spec,scale,root,out,eq;
 
 		
 		
-	60.do({ out = AllpassN.ar(out, 0.04, [0.04.rand, 0.04.rand], 2) });
+	60.do({ out = AllpassN.ar(out+eq, 0.04, [0.04.rand, 0.04.rand], 2) });
 		out = LeakDC.ar(out*0.4);
 
 }.play;

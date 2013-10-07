@@ -48,7 +48,7 @@ b = Synth(\piaAmbcymbs,[\amp,0.5,\density,10.0,\note,76	]);
 	g.action_({ 
 		|slider| 
 		syn.set(\amp,slider.x);
-		syn.set(\density,slider.y * 10.0);
+		syn.set(\density,slider.y * 100.0);
 		});
 	g.setXYActive(0.5,0.5);
 

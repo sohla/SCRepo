@@ -1,3 +1,22 @@
+
+
+(
+
+	SynthDef(\warpSynth, {arg buffer = 0, envbuf = -1, ws = 0.5, pch = 1.0, xx = 0.2,yy = 0.2,vol=0.2;
+		
+		Out.ar(0,
+			Splay.arFill(10,
+				{ |i| Warp1.ar(1, buffer, xx+0.01, 1.0,0.4, envbuf, 4, 0.001, 4)  },
+				1,
+				1,
+				0
+			) * vol
+		);	
+	}).send(s);
+
+)
+
+
 //------------------------------------------------------------------------
 // 2 blobs
 //------------------------------------------------------------------------
@@ -11,16 +30,13 @@
 	var synths = Array.new(numOfBlobs);
 	
 	var paths = [
-		"52.wav",	
-		"34.wav",
-		"01 Orchestra Tuning.aif",
-		"23 Breathing Heavy.aif",
-		"alleg.wav",
-		"70986__jppi-stu__sw-countdownfrom10.wav",
-		"hurtfull.aif",
-		"gong  1.wav",
-		"BlenderRun1 -6M.wav"
-	
+	"darkforest.wav",
+	"MysticAlienClay04.wav",
+	"SFX_1021_15.wav",
+	"SFX_1021_23.wav",
+	"06-08ambDm7.wav",
+	"23875__Connum__spoon_in_cup.wav"
+
 	];
 	
 	var buffers = Array.new(paths.size);
@@ -71,8 +87,8 @@
 	
 		res = OSCresponderNode.new(nil, "/model"++i, { 
 			arg time, resp, msg; 
-			synths.at(i).set(\xx,msg[1]); 
-			synths.at(i).set(\ws,1.0 + msg[2]); 
+			synths.at(i).set(\xx,msg[2]); 
+			synths.at(i).set(\yy,0.75 + msg[1]); 
 		
 		} ).add; 
 
