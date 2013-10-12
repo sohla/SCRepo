@@ -31,8 +31,8 @@ s.sendMsg("/s_new", "piaBell", -1, 1, 1,"amp",1.0,"density",0.5,"note",68);
 	q = w.addFlowLayout( 10@10, 20@5 );
 	g = Slider2D( w.view,140@140 ).background_( Color.rand );
 		
-	a = #[28];
-	b = #[0,2,4,5,7];
+	a = #[65,77,89,101,113];
+	b = #[0,2,4,7];
 	c = a.choose + b.choose;
 	w.name = "BELL" + c;
 	w.refresh();
@@ -50,10 +50,10 @@ s.sendMsg("/s_new", "piaBell", -1, 1, 1,"amp",1.0,"density",0.5,"note",68);
 	
 	g.action_({ 
 		|slider| 
-		syn.set(\release,0.001+slider.x);
+		syn.set(\release,0.001+(slider.x*5));
 		syn.set(\density,slider.y * 10.0);
 		});
-	g.setXYActive(0.2,0.54/4);
+	g.setXYActive(0.9,0.05);
 
 	w.onClose = {
 		syn.free;
