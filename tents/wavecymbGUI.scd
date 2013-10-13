@@ -23,7 +23,7 @@
 	).send(s);
 )
 
-a = Synth(\piaWavecymb,[\amp,0.5,\density,1.1,\note,52]);
+a = Synth(\piaWavecymb,[\amp,0.05,\density,10.5,\note,50]);
 
 
 (

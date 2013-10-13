@@ -22,7 +22,7 @@
 		
 		out = Klank.ar(spec, exciter);
 			
-		60.do({ out = AllpassN.ar(out, 0.04, [0.04.rand, 0.04.rand], 2) });
+		2.do({ out = AllpassN.ar(out, 0.04, [0.04.rand, 0.04.rand], 2) });
 		out = LeakDC.ar(out);
 		
 		Out.ar(0,out);	
@@ -48,7 +48,7 @@ var exciter, spec,scale,root,out;
 		exciter = Decay.ar(PinkNoise.ar(0.0001), 9.1);
 		spec = Array.fill(2, {
 			`[
-				Array.fill(p, { arg i;  (scale.choose  + root.choose + 1).midicps} ),
+				Array.fill(p, { arg i;  (scale.choose  + root.choose -1).midicps} ),
 				nil,
 				Array.fill(p, { 0.2 + 0.1.linrand } )
 			]
