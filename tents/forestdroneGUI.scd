@@ -41,7 +41,7 @@ x.free;
 {
 var n, p;
 var exciter, spec,scale,root,out;
-		root = #[52,64,76,88];
+		root = #[76,88,100,112,124];
 		scale = #[0,2,4,5,7];
 
 		p = 10;
