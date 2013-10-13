@@ -1,9 +1,7 @@
 (
 
-	SynthDef("streetscape", { 
-		
-		|out=0,gate = 1 ,foh=0.5,head=0.5, attack = 0.001, release = 0.001,
-		bufnum, hpf=300.0f, filterfrq=15000, filteramp = 1.0, decaytime=0.01,chaosfreq=0,chaosamp=400|
+	SynthDef("streetscape", { |out=0,bufnum,gate = 1 ,attack = 0.001, release = 0.001, hpf=300.0f
+						filterfrq=15000, filteramp = 1.0, decaytime=0.01,chaosfreq=0,chaosamp=400|
 	
 		var envelope = EnvGen.kr(Env.asr(attack,1.0,release, curve: \sin), gate, doneAction:2);
 		var buf = PlayBuf.ar(1, bufnum, BufRateScale.kr(bufnum));
@@ -36,8 +34,8 @@
 
 s.sendMsg("/b_allocRead",111,"sounds/69865__duophonic__city-street-ambience-5-0.wav");
 s.sendMsg("/s_new", "streetscape", 2000, 1, 1,"bufnum",111);
-s.sendMsg("/n_set",2000, "filterfrq", 1375, "filteramp", 0, "decaytime", 0.01, "chaosfreq", 2.81, "chaosamp", 400, "hpf", 400);
-
+s.sendMsg("/n_set",2000, "filterfrq", 1375, "filteramp", 0, "decaytime", 0.01, "chaosfreq", 3.01, "chaosamp", 400, "hpf", 800);
+	
 
 (
 	var w;

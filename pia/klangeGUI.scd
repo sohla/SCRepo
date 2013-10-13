@@ -28,7 +28,7 @@ a = Synth(\piaKlang,[\amp,0.5,\density,1.0,\note,57]);
 	g = Slider2D( w.view,140@140 ).background_( Color.rand );
 		
 	a = #[58];
-	b = #[20];
+	b = #[64];
 	c = a.choose + b.choose;
 	w.name = "KLANG" + c;
 	w.refresh();

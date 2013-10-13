@@ -32,7 +32,7 @@
 
 
 c = Buffer.read(s, "sounds/alleg.wav");
-//c = Buffer.read(s, "sounds/SFX_1020_44.wav");
+//c = Buffer.read(s, "sounds/pad_autumn.wav");
 x = Synth(\warppadxy,[\buffer,c,\ws,3.3,\pch,1.0]);
 x.set(\xx,0.5);
 a = Synth(\simplesine);
