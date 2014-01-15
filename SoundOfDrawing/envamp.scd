@@ -1,88 +1,33 @@
 
-	d = Buffer.read(s,"sounds/adventure.wav");
 
 
 (
-// use input amplitude to control SinOsc frequency - use headphones to prevent feedback.
 {
 
-	var pb,sn,sc,cmp,si;
+	var pba,pbb,sn,sc,cmp,si,verb;
 	
+	d = Buffer.read(s,"sounds/STRNGD1.wav");
+
 	si = SoundIn.ar(0);
 	
-	pb = PlayBuf.ar(
-			2, 
-			d, 
-			BufRateScale.kr(d), 
-			loop: 1)
-		/*
-		 * 
+	pba = PlayBuf.ar(2,d,BufRateScale.kr(d)*2,loop: 1);
+	pbb = PlayBuf.ar(2,d,BufRateScale.kr(d)/4,loop: 1);
 	
-			Amplitude.kr(
-				si,
-				0.01,
-				0.01,
-				1,
-				0
-			)
-	*/
-	;
+	sn = PeakFollower.ar(si,0.01);
 	
-	sc = HenonC.ar(
-	
-		//MouseX.kr(20, SampleRate.ir)
-			Amplitude.kr(
-				si,
-				0.01,
-				0.01,
-				SampleRate.ir*20,
-				10
-			)
-		
-	) * 0.2;	
-
-	sn = SinOsc.ar(
-			Amplitude.kr(
-				si,
-				0.01,
-				0.01,
-				1000,
-				100
-			),
-			0,
-			Amplitude.kr(
-				si,
-				0.01,
-				0.01,
-				1,
-				0
-			)
-		);
-	
-/*
-	sn = SinOsc.ar(
-			Amplitude.kr(
-				si,
-				0.01,
-				0.01,
-				1200,
-				1000
-			),
-		0,
-		0.5
-		);
-		
-*/		
-	cmp = Compander.ar(pb, sn,
-		thresh: 0.04,
-		slopeBelow: 8,
+	cmp = Compander.ar(pbb, sn,
+		thresh: 0.09,
+		slopeBelow: 4.0,
 		slopeAbove: 1,
-		clampTime: 0.3,
-		relaxTime: 0.1
+		clampTime: 0.04,
+		relaxTime: 0.08
 	);
+	
+	
+	verb = FreeVerb2.ar(cmp,cmp,0.75,1.0,0.0);
 
 		
-	[cmp,cmp]
+	[verb,verb]
 	
 
 
@@ -92,5 +37,5 @@
 
 
 
-d.free;
+//d.free;
 
