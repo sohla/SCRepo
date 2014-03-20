@@ -60,7 +60,7 @@
 //		});
 
 
-		20.do({|i|
+	num.do({|i|
 			changeViewWithRGB.value(
 				w.view.children[cells.at(i).at(\index)],
 				colorForValue.value(degrees)
