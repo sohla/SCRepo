@@ -181,7 +181,7 @@
 		loop {
 
 			updateCell.value(cells,r.seconds);
-
+speed.postln;
 			 speed.yield;
 
 		}
