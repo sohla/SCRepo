@@ -36,22 +36,26 @@ SynthDef(\warp, {arg buffer = 0, envbuf = -1, ws = 0.5, pch = 0.5;
 
 )
 
-b= Buffer.alloc(s, 65536, 2);
+p = PathName.new("~/Music/SuperCollider Recordings");
+s.sendMsg("/b_alloc", 0, 65536, 2); // Buffer number is 0
+s.sendMsg("/b_write", 0, p.asAbsolutePath + "/test.aiff", "aiff", "int16", 0, 0, 1);
 
-c = Buffer.read(s, "sounds/celestesingle.aif");
-
-c = Buffer.read(s, "Applications/SuperColiider/sounds/overTheWvaes.wav");
+c = Buffer.read(s, "/Applications/SuperCollider3.6/sounds/overTheWaves.wav");
 z = Synth(\warp,[\buffer,c,\ws,0.3,\pch,(69).midicps / 440.0]);
- y = Synth(\warp,[\buffer,c,\ws,0.3,\pch,(57).midicps / 440.0]);
-n y = Synth(\warp,[\buffer,c,\ws,0.3,\pch,(72).midicps / 440.0]);
+s.sendMsg("/s_new", "help-Diskout", 99, 1, 1, "bufnum", 0);
 
 
-c = Buffer.read(s, "sounds/pancake.wav");
-x = Synth(\warp,[\buffer,c,\ws,0.3,\pch,(69).midicps / 440.0]);
-
-x.free;
-c.free;
+s.sendMsg("/b_close", 0);
+s.sendMsg("/b_free", 0);
 
 
 
-{LFSaw.kr(1.0,1,0.5,0.5)}.plot(1.0,minval:-1.0,maxval:1.0)
+"~/Music/Sounds".standardizePath.isFolder;
+
+
+(
+var myPath;
+myPath = PathName.new("~/Music/SuperCollider Recordings");
+myPath.isFolder.postln;
+myPath.asAbsolutePath;
+)
