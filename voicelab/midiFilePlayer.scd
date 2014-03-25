@@ -58,7 +58,7 @@ f.at(2)
 		a = Synth(\playBuffer,[\buffer,buf,\note,num]);
 		notesOn.put(num,a);
 
-	});
+},nil,nil,(0,20));
 
 
 	NoteOffResponder({ |src, chan, num, vel|

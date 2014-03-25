@@ -21,7 +21,7 @@ SynthDef(\convol, {|buffer = 0, root = 44, mix = 0.2, size = 80, time = 1|
 }).send(s);
 )
 
-c = Buffer.read(s, "Applications/SuperCollider3.6/sounds/darkforest.wav");
+c = Buffer.read(s, "/Applications/SuperCollider3.6/sounds/Original Intro and Questions.aif");
 c = Buffer.read(s, "Applications/SuperCollider3.6/sounds/memo1.wav");
 
 

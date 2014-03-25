@@ -1,11 +1,11 @@
 
 //load a json file
 (
-	g = File("data.json","r");
+
+	g = File("~/Music/VoiceLab/template.json".asAbsolutePath,"r");
 	a = g.readAllString;
 	b = a.parseYAML;
-	b.postln;
-	b["someData"][0]["item1"].postln;
+Dictionary.newFrom(b["keyPaths"]).keys.postln;
 	g.close;
 )
 
@@ -48,7 +48,7 @@ d.class.postln;
 
 (
 
-	p = "hell yea";
+	p = ("~/Music/VoiceLab").asAbsolutePath+/+"test";
 	d = Dictionary();
 	d["a"] = 123;
 	d["b"] = 456;
@@ -56,9 +56,9 @@ d.class.postln;
 
 	d.writeArchive(p);
 
-	e = Object.readArchive(p);
+e = Object.readArchive(p);
 
-	e["c"];
+e["c"];
 
 )
 

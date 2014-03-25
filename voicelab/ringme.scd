@@ -10,14 +10,14 @@ SynthDef(\ringme, {|buffer = 0, mix = 0.2|
 	player = PlayBuf.ar(1,buffer,BufRateScale.kr(buffer),loop: 1) ;
 	fol = (PeakFollower.ar(player,0.01) * 100).round;
 
-	modulator = SinOsc.ar( 30.midicps + fol.midicps,0,MouseY.kr(0,1));
+	modulator = SinOsc.ar( MouseX.kr(1,150).midicps + fol.midicps,0,MouseY.kr(0,1));
 
 	Out.ar(0,(player * modulator).dup);
 
 }).send(s);
 )
 
-c = Buffer.read(s, "Applications/SuperCollider3.6/sounds/darkforest.wav");
+c = Buffer.read(s, "/Applications/SuperCollider3.6/sounds/Original Intro and Questions.aif");
 c = Buffer.read(s, "Applications/SuperCollider3.6/sounds/memo1.wav");
 
 

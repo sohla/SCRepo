@@ -9,7 +9,7 @@ SynthDef(\vcstrech, {arg buffer = 0, envbuf = -1, ws = 0.5, pch = 0.5;
 	var mx=0,my=0;
 	var sp,verb;
 
-	mx = LFSaw.kr( (1.0/(6.0)) * MouseX.kr(0.01, 1.0) ,1,0.5,0.5);
+	mx = LFSaw.kr( (1.0/(160.0)) * MouseX.kr(0.01, 1.0) ,1,0.5,0.5);
 
 	my = 0.8;//MouseY.kr(0.5,1,1.0);//splay
 
@@ -30,7 +30,7 @@ SynthDef(\vcstrech, {arg buffer = 0, envbuf = -1, ws = 0.5, pch = 0.5;
 )
 
 
-c = Buffer.read(s, "Applications/SuperCollider3.6/sounds/darkforest.wav");
+c = Buffer.read(s, "/Applications/SuperCollider3.6/sounds/Original Intro and Questions.aif");
 z = Synth(\vcstrech,[\buffer,c,\ws,0.3,\pch,(69).midicps / 440.0]);
 
 

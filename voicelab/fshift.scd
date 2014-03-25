@@ -6,8 +6,8 @@ SynthDef(\fshift, {|buffer = 0, frq = 100, mul = 1, add = 0|
 	var player,voco,kernal;
 	var a = 0;
 
-	// player = PlayBuf.ar(1,buffer,BufRateScale.kr(buffer),loop: 1);
-	player = SoundIn.ar(0);
+	 player = PlayBuf.ar(1,buffer,BufRateScale.kr(buffer),loop: 1);
+	//player = SoundIn.ar(0);
 	kernal = LFTri.kr(frq,0,mul,add);
 
 	a= FreqShift.ar(player,kernal);
@@ -16,7 +16,7 @@ SynthDef(\fshift, {|buffer = 0, frq = 100, mul = 1, add = 0|
 }).send(s);
 )
 
-c = Buffer.read(s, "Applications/SuperCollider3.6/sounds/darkforest.wav");
+c = Buffer.read(s, "/Applications/SuperCollider3.6/sounds/Original Intro and Questions.aif");
 (
 x = Synth(\fshift,[\buffer,c]).autogui(specs:
 	(
