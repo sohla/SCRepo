@@ -28,7 +28,6 @@ SynthDef(\playBuffer, {|buffer = 0, note = 69|
 
 
 	var templateSounds = [];
-	var notesOn = Array.newClear(128);
 
 	// load a template (json)
 	var jsonFile = File(appPath.asAbsolutePath+/+"template.json","r");
@@ -69,22 +68,17 @@ SynthDef(\playBuffer, {|buffer = 0, note = 69|
 
 		//[src, chan, num, vel].postln;
 
-		t = sessionData["keyPaths"][num.asString];
-		t.postln;
+		t = sessionData["keyPaths"][num.asString].postln;
 		p = appPath.asAbsolutePath+/+sessionTitle+/+"Questions"+/+t;
+		a = Synth(\playBuffer,[\buffer,Buffer.read(s, p)]);
 
-		b = Buffer.read(s, p);
+	},nil,nil,{ |val|sessionData["keyPaths"].keys.includes(val.asString)});
 
-		a = Synth(\playBuffer,[\buffer,b]);
-		notesOn.put(num,a);
 
-},nil,nil,{ |val|sessionData["keyPaths"].keys.includes(val.asString)});
 
 	NoteOffResponder({ |src, chan, num, vel|
-		[src, chan, num, vel].postln;
+	//	[src, chan, num, vel].postln;
 
-	// a = notesOn.at(num);
-	// a.free;
 	});
 
 
