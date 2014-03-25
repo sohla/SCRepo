@@ -1,9 +1,7 @@
 
+
 (
 SynthDef(\playBuffer, {|buffer = 0, note = 69|
-
-
-
 	var player;
 	var pitch = (note.midicps / 440.0) * BufRateScale.kr(buffer);
 	 player = PlayBuf.ar(buffer.numChannels,buffer,(note.midicps / 440.0) * BufRateScale.kr(buffer), doneAction:2);
@@ -14,6 +12,11 @@ SynthDef(\playBuffer, {|buffer = 0, note = 69|
 
 
 (
+	//------------------------------------------------------
+	// INIT
+	//------------------------------------------------------
+
+	var window = Window.new("",Rect(50, 50, 700, 440)).front;
 
 	var appPath = PathName.new("~/Music/VoiceLab");
 
@@ -60,6 +63,9 @@ SynthDef(\playBuffer, {|buffer = 0, note = 69|
 
 	jsonFile.close;
 
+	//------------------------------------------------------
+	// MIDI
+	//------------------------------------------------------
 
 	MIDIClient.init;
 	MIDIIn.connectAll;
@@ -82,12 +88,57 @@ SynthDef(\playBuffer, {|buffer = 0, note = 69|
 	});
 
 
+
+
+	//------------------------------------------------------
+	// UI
+	//------------------------------------------------------
+
+	window.onClose = ({
+		NoteOnResponder.removeAll;
+		NoteOffResponder.removeAll;
+	});
+
+	window.view.decorator = FlowLayout( window.view.bounds, 10@10, 10@10 );
+g = EZListView.new(window,
+    400@400,
+    "Questions:",nil,
+    globalAction: { |a| ("this is a global action of "++a.asString ).postln },
+    initVal: 0,
+    initAction: false,
+    labelWidth: 120,
+    labelHeight: 32,
+    layout: \vert,
+    gap: 8@8,
+	margin: 16@16
+    );
+
+g.font = Font("Helvetica", 18);
+sessionData["keyPaths"].do({ |o|
+o.value.postln;
+	g.addItem(o.value);
+
+});
+
+
+b = Button(window, 50@50)
+        .states_([
+            ["PLAY", Color.black, Color.green]
+        ])
+        .action_({ arg butt;
+            g.value.postln;
+	t = sessionData["keyPaths"].asArray.at(g.value).postln;
+			p = appPath.asAbsolutePath+/+sessionTitle+/+"Questions"+/+t;
+			a = Synth(\playBuffer,[\buffer,Buffer.read(s, p)]);
+
+        });
+
 )
-(
-NoteOnResponder.removeAll;
-NoteOffResponder.removeAll;
-)
 
 
 
-a = [4,76,2,99,1].asSortedList.array.includes(1)
+a = [ \a->123,\b->345345]
+a.at(0)
+a.do({ |o|
+o.value.postln;
+})
