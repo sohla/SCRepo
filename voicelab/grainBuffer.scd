@@ -14,13 +14,13 @@ SynthDef(\grainBuffer, {arg buffer = 0, envbuf = -1;
 	pointer = Line.kr(0, 1, 15);
 
 
-	//player = PlayBuf.ar(1,buffer,BufRateScale.kr(buffer),loop: 1);
-	player = SoundIn.ar(0);
+	player = PlayBuf.ar(1,buffer,BufRateScale.kr(buffer),loop: 1);
+	//player = SoundIn.ar(0);
 
 		sp = Splay.arFill(24,{ |i|
 
 		var p = PitchShift.ar(player,0.1,px);
-		GrainIn.ar(2,Impulse.kr(mx), my,p,0.0,envbuf)
+		GrainIn.ar(2,Impulse.kr(mx), my,player,0.0,envbuf)
 
 		},
 			1.0.rand,
@@ -33,7 +33,7 @@ SynthDef(\grainBuffer, {arg buffer = 0, envbuf = -1;
 }).send(s);
 )
 g = SynthDefAutogui(\grainBuffer) ;
-c = Buffer.read(s, "Applications/SuperCollider3.6/sounds/darkforest.wav");
+c = Buffer.read(s, "Applications/SuperCollider3.6/sounds/Original Intro and Questions.aif");
 x = Synth(\grainBuffer,[\buffer,c]);
 
 var winenv;

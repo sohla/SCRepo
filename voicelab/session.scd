@@ -22,15 +22,15 @@
 	//------------------------------------------------------
 	var sessionData;
 	var date = Date.getDate;
-	var sessionTitle = date.format("%A_%d:%m:%Y_%R:%S");
 	var appPath = PathName.new("~/Music/VoiceLab");
+var sessionTitle;
 
 
 
 	//------------------------------------------------------
 	// FUNCTIONS
 	//------------------------------------------------------
-	var buildSession, initMidi, closeMidi, initGUI, refreshGUI;
+	var buildSession, loadSession, createSession, initMidi, closeMidi, initGUI, refreshGUI;
 
 
 
@@ -40,38 +40,16 @@
 	//------------------------------------------------------
 	buildSession = {
 
+	loadSession.value(createSession.value().postln);
 
-		// generate session dir name
-
-		// create all the dirs
-		var sessionDir = File.mkdir(appPath.asAbsolutePath+/+sessionTitle);
-		var quesiotnsDir = File.mkdir(appPath.asAbsolutePath+/+sessionTitle+/+"Questions");
-		var answersDir = File.mkdir(appPath.asAbsolutePath+/+sessionTitle+/+"Answers");
-
-
-	// var templateSounds = [];
-
-		// load a template (json)
-		var jsonFile = File(appPath.asAbsolutePath+/+"template.json","r");
-		var templateData = jsonFile.readAllString.parseYAML;
-
-		// save data as achive inside session dir
-		var sessionArchivePath = appPath.asAbsolutePath+/+sessionTitle+/+"session";
-
-		templateData.writeArchive(sessionArchivePath);
-
-		// re-read data into sessionData
-		sessionData = Object.readArchive(sessionArchivePath);
 
 		//sessionData["keyPaths"]["1"].postln;
 		// get list of template sounds
-		SoundFile.collect(appPath.asAbsolutePath+/+"templateQuestions/*").do{ |f,i|
+	SoundFile.collect(appPath.asAbsolutePath+/+"templateQuestions/*").do{ |f,i|
 
-			var newPath = appPath.asAbsolutePath+/+sessionTitle+/+"Questions";
-		// templateSounds = templateSounds.add(f.path);
-			//("\""++i++"\""+":"++"\""++f.path.basename++"\""++",").postln;
-			SoundFile.normalize(f.path,newPath+/+f.path.basename);
-		};
+		var newPath = appPath.asAbsolutePath+/+sessionTitle+/+"Questions";
+		SoundFile.normalize(f.path,newPath+/+f.path.basename);
+	};
 
 		// ready to play
 		"Ready to play!".postln;
@@ -79,8 +57,39 @@
 		//sessionData["keyPaths"][5.asString].postln;
 		//soundBuffers.postln;
 
-		jsonFile.close;
 	};
+
+
+loadSession = { |path|
+
+	sessionData = Object.readArchive(path);
+	sessionTitle = path.asRelativePath(appPath.absolutePath).dirname;
+	(sessionTitle ++ " session loaded").postln;
+	//sessionData["keyPaths"].postln;
+};
+
+createSession = {
+
+		var genTitle= date.format("%A_%d:%m:%Y_%R:%S");
+			// create all the dirs
+		var sessionDir = File.mkdir(appPath.asAbsolutePath+/+genTitle);
+		var quesiotnsDir = File.mkdir(appPath.asAbsolutePath+/+genTitle+/+"Questions");
+		var answersDir = File.mkdir(appPath.asAbsolutePath+/+genTitle+/+"Answers");
+
+	// load a template (json)
+		var jsonFile = File(appPath.asAbsolutePath+/+"template.json","r");
+		var templateData = jsonFile.readAllString.parseYAML;
+
+		// save data as achive inside session dir
+		var sessionArchivePath = appPath.asAbsolutePath+/+genTitle+/+"session";
+		templateData.writeArchive(sessionArchivePath);
+
+		jsonFile.close;
+
+		// return path
+		sessionArchivePath;
+};
+
 	//------------------------------------------------------
 	// MIDI
 	//------------------------------------------------------
@@ -230,8 +239,8 @@ importButton = Button(window, 150@50)
 
 
 	buildSession.value();
-	initGUI.value();
- 	initMidi.value();
+// initGUI.value();
+// initMidi.value();
 
 
 
@@ -275,3 +284,14 @@ a.at("foo".asSymbol);
 
 a = [ ("1.welcomeToVoiceLab.wav" -> 64), ("10.whatMakesYouLaugh.wav" -> 73)]
 
+
+
+
+
+f = { |a|
+	(a+7);
+};
+
+
+c = f.value(5)
+c
