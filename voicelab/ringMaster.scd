@@ -16,7 +16,7 @@ SynthDef(\warp, {arg buffer = 0, envbuf = -1, ws = 0.5, pch = 0.5;
 	var mx=0,my=0;
 	var sp,verb;
 
-	mx = LFSaw.kr( (1.0/(180.0)) * MouseX.kr(0.01, 1.0) ,1,0.5,0.5);
+	mx = LFSaw.kr( (1.0/(11.0)) * MouseX.kr(0.01, 1.0) ,1,0.5,0.5);
 
 	my = 0.8;//MouseY.kr(0.5,1,1.0);//splay
 
@@ -40,8 +40,8 @@ p = PathName.new("~/Music/SuperCollider Recordings");
 s.sendMsg("/b_alloc", 0, 65536, 2); // Buffer number is 0
 s.sendMsg("/b_write", 0, p.asAbsolutePath + "/test.aiff", "aiff", "int16", 0, 0, 1);
 
-c = Buffer.read(s, "/Applications/SuperCollider3.6/sounds/overTheWaves.wav");
-z = Synth(\warp,[\buffer,c,\ws,0.3,\pch,(69).midicps / 440.0]);
+c = Buffer.read(s, "/Applications/SuperCollider3.6/sounds/overTheWavesShort.wav");
+z = Synth(\warp,[\buffer,c,\ws,0.3,\pch,(64).midicps / 440.0]);
 s.sendMsg("/s_new", "help-Diskout", 99, 1, 1, "bufnum", 0);
 
 

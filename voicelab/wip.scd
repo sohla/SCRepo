@@ -5,7 +5,7 @@
 	g = File("~/Music/VoiceLab/template.json".asAbsolutePath,"r");
 	a = g.readAllString;
 	b = a.parseYAML;
-Dictionary.newFrom(b["keyPaths"]).keys.postln;
+Dictionary.newFrom(b["keyPaths"]).keys.asSortedList.postln;
 	g.close;
 )
 
