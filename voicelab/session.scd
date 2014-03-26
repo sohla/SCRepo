@@ -30,7 +30,7 @@
 	//------------------------------------------------------
 	// FUNCTIONS
 	//------------------------------------------------------
-	var buildSession, initMidi, closeMidi, initGUI;
+	var buildSession, initMidi, closeMidi, initGUI, refreshGUI;
 
 
 
@@ -49,7 +49,7 @@
 		var answersDir = File.mkdir(appPath.asAbsolutePath+/+sessionTitle+/+"Answers");
 
 
-		var templateSounds = [];
+	// var templateSounds = [];
 
 		// load a template (json)
 		var jsonFile = File(appPath.asAbsolutePath+/+"template.json","r");
@@ -63,12 +63,12 @@
 		// re-read data into sessionData
 		sessionData = Object.readArchive(sessionArchivePath);
 
-		sessionData["keyPaths"]["1"].postln;
+		//sessionData["keyPaths"]["1"].postln;
 		// get list of template sounds
 		SoundFile.collect(appPath.asAbsolutePath+/+"templateQuestions/*").do{ |f,i|
 
 			var newPath = appPath.asAbsolutePath+/+sessionTitle+/+"Questions";
-			templateSounds = templateSounds.add(f.path);
+		// templateSounds = templateSounds.add(f.path);
 			//("\""++i++"\""+":"++"\""++f.path.basename++"\""++",").postln;
 			SoundFile.normalize(f.path,newPath+/+f.path.basename);
 		};
@@ -91,19 +91,15 @@
 
 		NoteOnResponder({ |src, chan, num, vel|
 
-			//[src, chan, num, vel].postln;
-
-			t = sessionData["keyPaths"][num.asString].postln;
+			t = sessionData["keyPaths"].findKeyForValue(num.asString).postln;
 			p = appPath.asAbsolutePath+/+sessionTitle+/+"Questions"+/+t;
 			a = Synth(\playBuffer,[\buffer,Buffer.read(s, p)]);
 
-		},nil,nil,{ |val|sessionData["keyPaths"].keys.includes(val.asString)});
+		},nil,nil,{|val|sessionData["keyPaths"].values.asInteger.includes(val)});
 
 
 
 		NoteOffResponder({ |src, chan, num, vel|
-		//	[src, chan, num, vel].postln;
-
 		});
 
 	};
@@ -122,49 +118,110 @@
 
 	initGUI = {
 
-		var window = Window.new("",Rect(50, 50, 700, 440)).front;
-		var listview;
+		var window = Window.new("",Rect(50, 50, 600, 500)).front;
+		var listView, numberView,importButton;
 
 		window.onClose = ({
 			closeMidi.value();
 		});
 
 		window.view.decorator = FlowLayout( window.view.bounds, 10@10, 10@10 );
-		listview = EZListView.new(window,
-		    400@400,
+
+		listView = EZListView.new(window,
+		    550@400,
 		    "Questions:",nil,
-		    globalAction: { |a| ("this is a global action of "++a.asString ).postln },
+		globalAction:nil,
 		    initVal: 0,
-		    initAction: false,
-		   	labelWidth: 120,
-		    labelHeight: 32,
+		    initAction: true,
+		   	labelWidth: 100,
+		    labelHeight: 20,
 		    layout: \vert,
 		    gap: 8@8,
 			margin: 16@16
 	    );
 
-		listview.font = Font("Helvetica", 18);
-
-		sessionData["keyPaths"].do({ |o|
-			o.value.postln;
-			listview.addItem(o.value);
-
-		});
+		listView.font = Font("Helvetica", 18);
 
 
-		b = Button(window, 50@50)
+		numberView = EZNumber(window,
+             150@20,
+             "note",
+             ControlSpec(0, 127, \lin, 1, 64, "MidiNote"),
+             nil,
+		      64,
+             false
+		);
+
+
+		b = Button(window, 100@50)
 	        .states_([
 	            ["PLAY", Color.black, Color.green]
 	        ])
 	        .action_({ arg butt;
-	            listview.value.postln;
-		t = sessionData["keyPaths"].asArray.at(listview.value).postln;
+	            listView.value.postln;
+				t = listView.items.at(listView.value).key;
 				p = appPath.asAbsolutePath+/+sessionTitle+/+"Questions"+/+t;
 				a = Synth(\playBuffer,[\buffer,Buffer.read(s, p)]);
+	        });
+
+importButton = Button(window, 150@50)
+	        .states_([
+	            ["Import Question", Color.black, Color.grey]
+	        ])
+	        .action_({ arg butt;
+
+		File.openDialog("Select an awesome new question",{|path|
+
+
+			// copy this file to our questions dir
+			var newPath = appPath.asAbsolutePath+/+sessionTitle+/+"Questions";
+			SoundFile.normalize(path,newPath+/+path.basename);
+
+
+			//•••NOW WHAT?
+			// sessionData["keyPaths"].postln;
+			//refreshGUI.value(listView,numberView);
+			},{
+				// cancel;
+
+
+		});
 
 	        });
+
+
+
+	// finished building ui
+		refreshGUI.value(listView,numberView);
+
+		numberView.action_({ |ez|
+
+			t = listView.items.at(listView.value).key;
+			if( sessionData["keyPaths"].findKeyForValue(ez.value.asString) == nil ,{
+
+				sessionData["keyPaths"].removeAt(t.asString);
+				sessionData["keyPaths"].put(t.asString,ez.value.asString);
+			 	refreshGUI.value(listView,numberView);
+
+			},{
+				ez.value = sessionData["keyPaths"].at(t.asString);
+			});
+
+
+		});
 	};
 
+	refreshGUI = { |listView,numberView|
+
+		listView.items = Array.newClear;
+
+		sessionData["keyPaths"].values.asSortedList.do({ |val|
+			t = sessionData["keyPaths"].findKeyForValue(val.asString);
+			listView.addItem(t,{
+				numberView.value_(val);
+			});
+		});
+	};
 
 	//------------------------------------------------------
 	// BUILD
@@ -174,16 +231,47 @@
 
 	buildSession.value();
 	initGUI.value();
-	initMidi.value();
+ 	initMidi.value();
 
 
 
 )
 
 
+c="5"
+c.asInteger
+a = [34,5,76,9];
+a.includes(5)
+
+
+b = ["34","5","76","9"].asInteger.includes(6);
+b = b.asInteger
+b.includes(5)
+
+
+a.asSortedList
 
 a = [ \a->123,\b->345345]
 a.at(0)
 a.do({ |o|
 o.value.postln;
 })
+
+
+
+
+d = [(\robot->99),(\robot2->29)];
+d.class
+d.associationAt(\robot);    // Get the value associated with key
+
+
+a = Dictionary.new(); // return a new Event.
+b = \foo ->2.718
+a.add(b);
+b = \foo2 ->24.718
+a.add(b);
+a.at("foo".asSymbol);
+
+
+a = [ ("1.welcomeToVoiceLab.wav" -> 64), ("10.whatMakesYouLaugh.wav" -> 73)]
+
