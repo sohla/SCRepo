@@ -177,9 +177,16 @@
 					var newPath = appPath.asAbsolutePath+/+sessionTitle+/+"Questions";
 					SoundFile.normalize(path,newPath+/+path.basename);
 
-					// we have to copy the dict since parseYAML returns a unmutable collection!!
+					// we have to copy the dict since parseYAML returns an unmutable collection!!
 					n = Dictionary.newFrom(sessionData["keyPaths"]);
-					n.put(path.basename,1.asString);
+
+					// generate a unique note number
+					a = (1..127);
+					b = sessionData["keyPaths"].collect(_.asInteger);
+					c = difference(a,b).choose;
+
+					// insert new question into datastore
+					n.put(path.basename,c.asString);
 					sessionData["keyPaths"]  = n;
 
 					p = appPath.asAbsolutePath+/+sessionTitle+/+"session";
@@ -197,6 +204,23 @@
 	        .states_([["Delete Question", Color.black, Color.red]])
 	        .action_({ arg butt;
 
+				var key = listView.items.at(listView.value).key;
+				var path = appPath.asAbsolutePath+/+sessionTitle+/+"Questions"+/+key;
+
+		if(File.exists(path),{
+
+			File.delete(path);
+
+			sessionData["keyPaths"].removeAt(key.asString);
+			p = appPath.asAbsolutePath+/+sessionTitle+/+"session";
+			sessionData.writeArchive(p);
+			sessionData = Object.readArchive(p);
+
+			refreshGUI.value(listView,numberView);
+
+		},{
+				("Error : Can't find Question to delete").postln;
+		});
 
 				// we have to copy the dict since parseYAML returns a unmutable collection!!
 				// n = Dictionary.newFrom(sessionData["keyPaths"]);
@@ -309,3 +333,16 @@ f = { |a|
 
 c = f.value(5)
 c
+a = (1..127); b = [2, 3, 4, 5];
+difference(a, b);
+
+differnce((0..127),[1,2,3])
+
+
+(1..127)
+
+a = (1..127)
+a.flat
+
+["4", 12, 4, 22, 51, 63, 2, 6, 73, 2 ].collect(_.asInteger)
+
