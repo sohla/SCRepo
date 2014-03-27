@@ -19,6 +19,7 @@ m.free;
 
 
 )
+
 NoteOnResponder.removeAll;
 
 (
@@ -40,3 +41,15 @@ CCResponder.removeAll
 MIDIIn.connectAll;
 MIDIFunc.cc({"foot".postln}, 64);
 )
+
+
+
+
+
+MIDIdef.noteOn(\test4, {arg ...args; args.postln},(64..68)); // match any
+MIDIdef.freeAll;      // free all registered MIDIdefs
+
+
+a = [64,66,67,69];
+MIDIdef.noteOn(\noteOnPlayMode, {arg ...args; args[1].postln},a);
+MIDIdef.noteOn(\noteOnPlayMode, {arg ...args; args.postln},argTemplate:{arg...args;[54,64,65].includes(args[1])}); // match any

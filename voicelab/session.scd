@@ -24,12 +24,14 @@
 	var date = Date.getDate;
 	var appPath = PathName.new("~/Music/VoiceLab");
 	var sessionTitle,broadcaster;
+	var recordMode = 0;
 
 
 	//------------------------------------------------------
 	// FUNCTIONS
 	//------------------------------------------------------
 	var buildSession, loadSession, createSession, loadTemplate, initMidi, closeMidi, initGUI, refreshGUI;
+var playModeState,recordModeState;
 
 	broadcaster = NetAddr("127.0.0.1", NetAddr.langPort);
 
@@ -43,8 +45,8 @@
 	//------------------------------------------------------
 	buildSession = {
 
-//		loadSession.value(loadTemplate.value(createSession.value()));
-		loadSession.value(createSession.value());
+		loadSession.value(loadTemplate.value(createSession.value()));
+//		loadSession.value(createSession.value());
 
 
 
@@ -120,18 +122,14 @@
 		MIDIClient.init;
 		MIDIIn.connectAll;
 
-		NoteOnResponder({ |src, chan, num, vel|
-			t = sessionData["keyPaths"].findKeyForValue(num.asString).postln;
-			p = appPath.asAbsolutePath+/+sessionTitle+/+"Questions"+/+t;
-			a = Synth(\playBuffer,[\buffer,Buffer.read(s, p)]);
-
-		},nil,nil,{|val|sessionData["keyPaths"].values.asInteger.includes(val)});
+		playModeState.value();
 
 		NoteOffResponder({ |src, chan, num, vel|
 		});
 
 		CCResponder({ |src,chan,num,value|
-			broadcaster.sendMsg("/onRecordMsg",value);
+			recordMode = recordMode.even.asInteger;
+			broadcaster.sendMsg("/onRecordMsg",recordMode);
     	},num:64,value:127);
 	};
 
@@ -141,9 +139,29 @@
 		NoteOffResponder.removeAll;
 		CCResponder.removeAll;
 
+		MIDIdef.freeAll;
+
 	};
 
+playModeState = {
+	// NoteOnResponder({ |src, chan, num, vel|
+	// 	t = sessionData["keyPaths"].findKeyForValue(num.asString).postln;
+	// 	p = appPath.asAbsolutePath+/+sessionTitle+/+"Questions"+/+t;
+	// 	a = Synth(\playBuffer,[\buffer,Buffer.read(s, p)]);
+	//
+	// },nil,nil,{|val|sessionData["keyPaths"].values.asInteger.includes(val)});
 
+	MIDIdef.noteOn(\noteOnPlayMode, {arg ...args;
+		t = sessionData["keyPaths"].findKeyForValue(args[1].asString).postln;
+		p = appPath.asAbsolutePath+/+sessionTitle+/+"Questions"+/+t;
+		a = Synth(\playBuffer,[\buffer,Buffer.read(s, p)]);
+
+	},sessionData["keyPaths"].values.asInteger);
+
+};
+
+recordModeState = {
+};
 	//------------------------------------------------------
 	// UI
 	//------------------------------------------------------
@@ -282,7 +300,7 @@
 			});
 		});
 		onRecordMsg = OSCFunc({|msg, time, addr, recvPort|
-		{recordButton.valueAction = recordButton.value.even.asInteger;}.defer;
+		{recordButton.valueAction = msg[1];}.defer;
 		// {AppClock.sched(0, {recordButton.valueAction(recordButton.valueAction)})}
 	}, '/onRecordMsg');
 
@@ -313,9 +331,9 @@
 	//------------------------------------------------------
 
  	initGUI.value();
-// buildSession.value();
+ buildSession.value();
 	initMidi.value();
-// refreshGUI.value();
+ refreshGUI.value();
 
 
 )
