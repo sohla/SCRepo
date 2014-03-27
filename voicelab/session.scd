@@ -30,7 +30,7 @@
 	//------------------------------------------------------
 	// FUNCTIONS
 	//------------------------------------------------------
-	var buildSession, loadSession, createSession, initMidi, closeMidi, initGUI, refreshGUI;
+	var buildSession, loadSession, createSession, loadTemplate, initMidi, closeMidi, initGUI, refreshGUI;
 
 
 
@@ -40,7 +40,8 @@
 	//------------------------------------------------------
 	buildSession = {
 
-		loadSession.value(createSession.value().postln);
+		loadSession.value(loadTemplate.value(createSession.value()));
+
 
 
 		// ready to play
@@ -59,6 +60,27 @@
 	};
 
 	//------------------------------------------------------
+	loadTemplate = { |path|
+
+		// load a template (json)
+		var jsonFile = File(appPath.asAbsolutePath+/+"template.json","r");
+		var templateData = jsonFile.readAllString.parseYAML;
+
+		jsonFile.close;
+
+		templateData.writeArchive(path);
+
+		//get list of template sounds
+		SoundFile.collect(appPath.asAbsolutePath+/+"templateQuestions/*").do{ |f,i|
+
+			var newPath = appPath.asAbsolutePath+/+path.asRelativePath(appPath.absolutePath).dirname+/+"Questions";
+			SoundFile.normalize(f.path,newPath+/+f.path.basename,threaded:true);
+		};
+		// return
+		path;
+
+	};
+	//------------------------------------------------------
 	createSession = {
 
 		var genTitle= date.format("%A_%d:%m:%Y_%R:%S");
@@ -66,23 +88,18 @@
 		var sessionDir = File.mkdir(appPath.asAbsolutePath+/+genTitle);
 		var quesiotnsDir = File.mkdir(appPath.asAbsolutePath+/+genTitle+/+"Questions");
 		var answersDir = File.mkdir(appPath.asAbsolutePath+/+genTitle+/+"Answers");
+		var sessionArchivePath = appPath.asAbsolutePath+/+genTitle+/+"session";
 
-	// load a template (json)
-		var jsonFile = File(appPath.asAbsolutePath+/+"template.json","r");
-		var templateData = jsonFile.readAllString.parseYAML;
+
+		// create empty datastore
+		var templateData = Dictionary.new;
+		templateData.put("keyPaths",Dictionary.new);
 
 		// save data as achive inside session dir
-		var sessionArchivePath = appPath.asAbsolutePath+/+genTitle+/+"session";
 		templateData.writeArchive(sessionArchivePath);
 
-		jsonFile.close;
 
-		// get list of template sounds
-		SoundFile.collect(appPath.asAbsolutePath+/+"templateQuestions/*").do{ |f,i|
 
-			var newPath = appPath.asAbsolutePath+/+genTitle+/+"Questions";
-			SoundFile.normalize(f.path,newPath+/+f.path.basename);
-		};
 
 		// return path
 		sessionArchivePath;
