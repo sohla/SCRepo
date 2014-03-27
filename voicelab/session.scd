@@ -23,7 +23,7 @@
 	var sessionData;
 	var date = Date.getDate;
 	var appPath = PathName.new("~/Music/VoiceLab");
-var sessionTitle;
+	var sessionTitle;
 
 
 
@@ -40,50 +40,26 @@ var sessionTitle;
 	//------------------------------------------------------
 	buildSession = {
 
-	loadSession.value(createSession.value().postln);
-
-	// sessionData["keyPaths"]["8.ok.wav"] = 98;
-	// p = appPath.asAbsolutePath+/+sessionTitle+/+"session";
-	// sessionData.writeArchive(p);
-	//
-	// n = Dictionary.newFrom(sessionData["keyPaths"]);
-	//
-	// n.put("PLEASE",999);
-	//
-	// sessionData["keyPaths"] = n;
-	// sessionData["keyPaths"]["PLEASE"].postln;
-	// sessionData.writeArchive(p);
-	//
-	// sessionData = Object.readArchive(p);
-	// sessionData["keyPaths"]["PLEASE"].postln;
-	// sessionData["keyPaths"]["8.ok.wav"].postln;
-
-
-	// ("::"++sessionData["keyPaths"]["COMEON"]).postln;
-
-	//sessionData["keyPaths"]["1"].postln;
-
-
+		loadSession.value(createSession.value().postln);
 
 
 		// ready to play
 		"Ready to play!".postln;
 
-		//sessionData["keyPaths"][5.asString].postln;
-		//soundBuffers.postln;
-
 	};
 
 
-loadSession = { |path|
+	//------------------------------------------------------
+	loadSession = { |path|
 
-	sessionData = Object.readArchive(path);
-	sessionTitle = path.asRelativePath(appPath.absolutePath).dirname;
-	(sessionTitle ++ " session loaded").postln;
-	//sessionData["keyPaths"].postln;
-};
+		sessionData = Object.readArchive(path);
+		sessionTitle = path.asRelativePath(appPath.absolutePath).dirname;
+		(sessionTitle ++ " session loaded").postln;
+		//sessionData["keyPaths"].postln;
+	};
 
-createSession = {
+	//------------------------------------------------------
+	createSession = {
 
 		var genTitle= date.format("%A_%d:%m:%Y_%R:%S");
 			// create all the dirs
@@ -110,7 +86,7 @@ createSession = {
 
 		// return path
 		sessionArchivePath;
-};
+	};
 
 	//------------------------------------------------------
 	// MIDI
@@ -128,13 +104,12 @@ createSession = {
 
 		},nil,nil,{|val|sessionData["keyPaths"].values.asInteger.includes(val)});
 
-
-
 		NoteOffResponder({ |src, chan, num, vel|
 		});
 
 	};
 
+	//------------------------------------------------------
 	closeMidi = {
 		NoteOnResponder.removeAll;
 		NoteOffResponder.removeAll;
@@ -150,7 +125,7 @@ createSession = {
 	initGUI = {
 
 		var window = Window.new("",Rect(50, 50, 600, 500)).front;
-		var listView, numberView,importButton;
+		var listView, numberView,playButton,importButton, deleteButton;
 
 		window.onClose = ({
 			closeMidi.value();
@@ -161,7 +136,7 @@ createSession = {
 		listView = EZListView.new(window,
 		    550@400,
 		    "Questions:",nil,
-		globalAction:nil,
+			globalAction:nil,
 		    initVal: 0,
 		    initAction: true,
 		   	labelWidth: 100,
@@ -173,7 +148,6 @@ createSession = {
 
 		listView.font = Font("Helvetica", 18);
 
-
 		numberView = EZNumber(window,
              150@20,
              "note",
@@ -184,10 +158,8 @@ createSession = {
 		);
 
 
-		b = Button(window, 100@50)
-	        .states_([
-	            ["PLAY", Color.black, Color.green]
-	        ])
+		playButton = Button(window, 100@50)
+	        .states_([["PLAY", Color.black, Color.green]])
 	        .action_({ arg butt;
 	            listView.value.postln;
 				t = listView.items.at(listView.value).key;
@@ -195,36 +167,49 @@ createSession = {
 				a = Synth(\playBuffer,[\buffer,Buffer.read(s, p)]);
 	        });
 
-		importButton = Button(window, 150@50)
-	        .states_([
-	            ["Import Question", Color.black, Color.grey]
-	        ])
+		importButton = Button(window, 120@50)
+	        .states_([["Import Question", Color.black, Color.grey]])
 	        .action_({ arg butt;
 
 				File.openDialog("Select an awesome new question",{|path|
 
-				// copy this file to our questions dir
-				var newPath = appPath.asAbsolutePath+/+sessionTitle+/+"Questions";
-				SoundFile.normalize(path,newPath+/+path.basename);
+					// copy this file to our questions dir
+					var newPath = appPath.asAbsolutePath+/+sessionTitle+/+"Questions";
+					SoundFile.normalize(path,newPath+/+path.basename);
+
+					// we have to copy the dict since parseYAML returns a unmutable collection!!
+					n = Dictionary.newFrom(sessionData["keyPaths"]);
+					n.put(path.basename,1.asString);
+					sessionData["keyPaths"]  = n;
+
+					p = appPath.asAbsolutePath+/+sessionTitle+/+"session";
+					sessionData.writeArchive(p);
+					sessionData = Object.readArchive(p);
+
+					refreshGUI.value(listView,numberView);
+				},{
+					// cancel file open dialog
+				});
+			});
+
+
+		deleteButton = Button(window, 120@50)
+	        .states_([["Delete Question", Color.black, Color.red]])
+	        .action_({ arg butt;
+
 
 				// we have to copy the dict since parseYAML returns a unmutable collection!!
-				n = Dictionary.newFrom(sessionData["keyPaths"]);
-				n.put(path.basename,1.asString);
-				sessionData["keyPaths"]  = n;
+				// n = Dictionary.newFrom(sessionData["keyPaths"]);
+				// n.put(path.basename,1.asString);
+				// sessionData["keyPaths"]  = n;
+				//
+				// p = appPath.asAbsolutePath+/+sessionTitle+/+"session";
+				// sessionData.writeArchive(p);
+				// sessionData = Object.readArchive(p);
+				//
+				// refreshGUI.value(listView,numberView);
+			});
 
-				p = appPath.asAbsolutePath+/+sessionTitle+/+"session";
-				sessionData.writeArchive(p);
-				sessionData = Object.readArchive(p);
-
-				refreshGUI.value(listView,numberView);
-			},{
-
-				// cancel;
-
-
-		});
-
-	        });
 
 
 
@@ -243,15 +228,18 @@ createSession = {
 			},{
 				ez.value = sessionData["keyPaths"].at(t.asString);
 			});
-
-
 		});
+
+
 	};
 
+	//------------------------------------------------------
 	refreshGUI = { |listView,numberView|
 
+		// clear listView
 		listView.items = Array.newClear;
 
+		// repopulate in order of assigned midi note
 		sessionData["keyPaths"].values.asSortedList.do({ |val|
 			t = sessionData["keyPaths"].findKeyForValue(val.asString);
 			listView.addItem(t,{
@@ -264,11 +252,9 @@ createSession = {
 	// BUILD
 	//------------------------------------------------------
 
-
-
 	buildSession.value();
- initGUI.value();
- initMidi.value();
+ 	initGUI.value();
+ 	initMidi.value();
 
 
 
