@@ -20,11 +20,10 @@
 	//------------------------------------------------------
 	// GLOBALS
 	//------------------------------------------------------
-	var sessionData;
+	var sessionData = Dictionary.new;
 	var date = Date.getDate;
 	var appPath = PathName.new("~/Music/VoiceLab");
 	var sessionTitle;
-
 
 
 	//------------------------------------------------------
@@ -32,6 +31,8 @@
 	//------------------------------------------------------
 	var buildSession, loadSession, createSession, loadTemplate, initMidi, closeMidi, initGUI, refreshGUI;
 
+	// setup
+	sessionData.put("keyPaths",Dictionary.new);
 
 
 
@@ -40,7 +41,8 @@
 	//------------------------------------------------------
 	buildSession = {
 
-		loadSession.value(loadTemplate.value(createSession.value()));
+//		loadSession.value(loadTemplate.value(createSession.value()));
+		loadSession.value(createSession.value());
 
 
 
@@ -74,7 +76,10 @@
 		SoundFile.collect(appPath.asAbsolutePath+/+"templateQuestions/*").do{ |f,i|
 
 			var newPath = appPath.asAbsolutePath+/+path.asRelativePath(appPath.absolutePath).dirname+/+"Questions";
-			SoundFile.normalize(f.path,newPath+/+f.path.basename,threaded:true);
+
+		SoundFile.normalize(f.path,newPath+/+f.path.basename,threaded:true);
+
+
 		};
 		// return
 		path;
@@ -170,7 +175,7 @@
              "note",
              ControlSpec(0, 127, \lin, 1, 64, "MidiNote"),
              nil,
-		      64,
+		      0,
              false
 		);
 
@@ -210,7 +215,7 @@
 					sessionData.writeArchive(p);
 					sessionData = Object.readArchive(p);
 
-					refreshGUI.value(listView,numberView);
+					refreshGUI.value();
 				},{
 					// cancel file open dialog
 				});
@@ -233,29 +238,19 @@
 			sessionData.writeArchive(p);
 			sessionData = Object.readArchive(p);
 
-			refreshGUI.value(listView,numberView);
+			refreshGUI.value();
 
 		},{
 				("Error : Can't find Question to delete").postln;
 		});
 
-				// we have to copy the dict since parseYAML returns a unmutable collection!!
-				// n = Dictionary.newFrom(sessionData["keyPaths"]);
-				// n.put(path.basename,1.asString);
-				// sessionData["keyPaths"]  = n;
-				//
-				// p = appPath.asAbsolutePath+/+sessionTitle+/+"session";
-				// sessionData.writeArchive(p);
-				// sessionData = Object.readArchive(p);
-				//
-				// refreshGUI.value(listView,numberView);
 			});
 
 
 
 
 	// finished building ui
-		refreshGUI.value(listView,numberView);
+		refreshGUI.value();
 
 		numberView.action_({ |ez|
 
@@ -264,39 +259,43 @@
 
 				sessionData["keyPaths"].removeAt(t.asString);
 				sessionData["keyPaths"].put(t.asString,ez.value.asString);
-			 	refreshGUI.value(listView,numberView);
+			 	refreshGUI.value();
 
 			},{
 				ez.value = sessionData["keyPaths"].at(t.asString);
 			});
 		});
 
-
-	};
-
 	//------------------------------------------------------
-	refreshGUI = { |listView,numberView|
+	refreshGUI = {
 
 		// clear listView
 		listView.items = Array.newClear;
-
+sessionData["keyPaths"].values.collect(_.asInteger).asSortedList.postln;
 		// repopulate in order of assigned midi note
-		sessionData["keyPaths"].values.asSortedList.do({ |val|
+		sessionData["keyPaths"].values.asSortedList.collect(_.asInteger).do({ |val|
 			t = sessionData["keyPaths"].findKeyForValue(val.asString);
 			listView.addItem(t,{
-				numberView.value_(val);
+				numberView.value = val;
 			});
 		});
+		t = listView.items.at(listView.value).key;
+		numberView.value = sessionData["keyPaths"].at(t.asString);
 	};
+
+	};
+
+
+
 
 	//------------------------------------------------------
 	// BUILD
 	//------------------------------------------------------
 
-	buildSession.value();
  	initGUI.value();
+	buildSession.value();
  	initMidi.value();
-
+refreshGUI.value();
 
 
 )
@@ -362,4 +361,17 @@ a = (1..127)
 a.flat
 
 ["4", 12, 4, 22, 51, 63, 2, 6, 73, 2 ].collect(_.asInteger)
+(
+f = {
+	var test = "oh yes";
+	"f".postln;
+	g = {
+	test.postln;
+	};
 
+};
+)
+
+
+f.value()
+g.value()
