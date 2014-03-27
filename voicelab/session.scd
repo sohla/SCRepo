@@ -42,14 +42,29 @@ var sessionTitle;
 
 	loadSession.value(createSession.value().postln);
 
+	// sessionData["keyPaths"]["8.ok.wav"] = 98;
+	// p = appPath.asAbsolutePath+/+sessionTitle+/+"session";
+	// sessionData.writeArchive(p);
+	//
+	// n = Dictionary.newFrom(sessionData["keyPaths"]);
+	//
+	// n.put("PLEASE",999);
+	//
+	// sessionData["keyPaths"] = n;
+	// sessionData["keyPaths"]["PLEASE"].postln;
+	// sessionData.writeArchive(p);
+	//
+	// sessionData = Object.readArchive(p);
+	// sessionData["keyPaths"]["PLEASE"].postln;
+	// sessionData["keyPaths"]["8.ok.wav"].postln;
 
-		//sessionData["keyPaths"]["1"].postln;
-		// get list of template sounds
-	SoundFile.collect(appPath.asAbsolutePath+/+"templateQuestions/*").do{ |f,i|
 
-		var newPath = appPath.asAbsolutePath+/+sessionTitle+/+"Questions";
-		SoundFile.normalize(f.path,newPath+/+f.path.basename);
-	};
+	// ("::"++sessionData["keyPaths"]["COMEON"]).postln;
+
+	//sessionData["keyPaths"]["1"].postln;
+
+
+
 
 		// ready to play
 		"Ready to play!".postln;
@@ -85,6 +100,13 @@ createSession = {
 		templateData.writeArchive(sessionArchivePath);
 
 		jsonFile.close;
+
+		// get list of template sounds
+		SoundFile.collect(appPath.asAbsolutePath+/+"templateQuestions/*").do{ |f,i|
+
+			var newPath = appPath.asAbsolutePath+/+genTitle+/+"Questions";
+			SoundFile.normalize(f.path,newPath+/+f.path.basename);
+		};
 
 		// return path
 		sessionArchivePath;
@@ -173,24 +195,30 @@ createSession = {
 				a = Synth(\playBuffer,[\buffer,Buffer.read(s, p)]);
 	        });
 
-importButton = Button(window, 150@50)
+		importButton = Button(window, 150@50)
 	        .states_([
 	            ["Import Question", Color.black, Color.grey]
 	        ])
 	        .action_({ arg butt;
 
-		File.openDialog("Select an awesome new question",{|path|
+				File.openDialog("Select an awesome new question",{|path|
 
+				// copy this file to our questions dir
+				var newPath = appPath.asAbsolutePath+/+sessionTitle+/+"Questions";
+				SoundFile.normalize(path,newPath+/+path.basename);
 
-			// copy this file to our questions dir
-			var newPath = appPath.asAbsolutePath+/+sessionTitle+/+"Questions";
-			SoundFile.normalize(path,newPath+/+path.basename);
+				// we have to copy the dict since parseYAML returns a unmutable collection!!
+				n = Dictionary.newFrom(sessionData["keyPaths"]);
+				n.put(path.basename,1.asString);
+				sessionData["keyPaths"]  = n;
 
+				p = appPath.asAbsolutePath+/+sessionTitle+/+"session";
+				sessionData.writeArchive(p);
+				sessionData = Object.readArchive(p);
 
-			//•••NOW WHAT?
-			// sessionData["keyPaths"].postln;
-			//refreshGUI.value(listView,numberView);
+				refreshGUI.value(listView,numberView);
 			},{
+
 				// cancel;
 
 
@@ -239,8 +267,8 @@ importButton = Button(window, 150@50)
 
 
 	buildSession.value();
-// initGUI.value();
-// initMidi.value();
+ initGUI.value();
+ initMidi.value();
 
 
 
@@ -281,7 +309,7 @@ b = \foo2 ->24.718
 a.add(b);
 a.at("foo".asSymbol);
 
-
+a.gui
 a = [ ("1.welcomeToVoiceLab.wav" -> 64), ("10.whatMakesYouLaugh.wav" -> 73)]
 
 
