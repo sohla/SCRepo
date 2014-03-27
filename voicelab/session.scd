@@ -23,13 +23,15 @@
 	var sessionData = Dictionary.new;
 	var date = Date.getDate;
 	var appPath = PathName.new("~/Music/VoiceLab");
-	var sessionTitle;
+	var sessionTitle,broadcaster;
 
 
 	//------------------------------------------------------
 	// FUNCTIONS
 	//------------------------------------------------------
 	var buildSession, loadSession, createSession, loadTemplate, initMidi, closeMidi, initGUI, refreshGUI;
+
+	broadcaster = NetAddr("127.0.0.1", NetAddr.langPort);
 
 	// setup
 	sessionData.put("keyPaths",Dictionary.new);
@@ -119,7 +121,6 @@
 		MIDIIn.connectAll;
 
 		NoteOnResponder({ |src, chan, num, vel|
-
 			t = sessionData["keyPaths"].findKeyForValue(num.asString).postln;
 			p = appPath.asAbsolutePath+/+sessionTitle+/+"Questions"+/+t;
 			a = Synth(\playBuffer,[\buffer,Buffer.read(s, p)]);
@@ -129,12 +130,16 @@
 		NoteOffResponder({ |src, chan, num, vel|
 		});
 
+		CCResponder({ |src,chan,num,value|
+			broadcaster.sendMsg("/onRecordMsg",value);
+    	},num:64,value:127);
 	};
 
 	//------------------------------------------------------
 	closeMidi = {
 		NoteOnResponder.removeAll;
 		NoteOffResponder.removeAll;
+		CCResponder.removeAll;
 
 	};
 
@@ -146,17 +151,20 @@
 
 	initGUI = {
 
-		var window = Window.new("",Rect(50, 50, 600, 500)).front;
+		var window = Window.new("",Rect(50, 100, 800, 550)).front;
 		var listView, numberView,playButton,importButton, deleteButton;
+		var recordButton;
+		var onRecordMsg;
 
 		window.onClose = ({
 			closeMidi.value();
+			onRecordMsg.free;
 		});
 
 		window.view.decorator = FlowLayout( window.view.bounds, 10@10, 10@10 );
 
 		listView = EZListView.new(window,
-		    550@400,
+		    750@400,
 		    "Questions:",nil,
 			globalAction:nil,
 		    initVal: 0,
@@ -164,8 +172,8 @@
 		   	labelWidth: 100,
 		    labelHeight: 20,
 		    layout: \vert,
-		    gap: 8@8,
-			margin: 16@16
+		    gap: 10@10,
+			margin: 10@10
 	    );
 
 		listView.font = Font("Helvetica", 18);
@@ -229,27 +237,35 @@
 				var key = listView.items.at(listView.value).key;
 				var path = appPath.asAbsolutePath+/+sessionTitle+/+"Questions"+/+key;
 
-		if(File.exists(path),{
+				if(File.exists(path),{
 
-			File.delete(path);
+					File.delete(path);
 
-			sessionData["keyPaths"].removeAt(key.asString);
-			p = appPath.asAbsolutePath+/+sessionTitle+/+"session";
-			sessionData.writeArchive(p);
-			sessionData = Object.readArchive(p);
+					sessionData["keyPaths"].removeAt(key.asString);
+					p = appPath.asAbsolutePath+/+sessionTitle+/+"session";
+					sessionData.writeArchive(p);
+					sessionData = Object.readArchive(p);
 
-			refreshGUI.value();
+					refreshGUI.value();
 
-		},{
-				("Error : Can't find Question to delete").postln;
-		});
+				},{
+						("Error : Can't find Question to delete").postln;
+				});
 
+			});
+
+		recordButton = Button(window, 80@80)
+	        .states_([
+					["REC", Color.black, Color.grey],
+					["REC", Color.black, Color.red]
+					])
+	        .action_({ arg butt;
+				butt.value.postln;
 			});
 
 
 
-
-	// finished building ui
+		// finished building ui
 		refreshGUI.value();
 
 		numberView.action_({ |ez|
@@ -265,6 +281,10 @@
 				ez.value = sessionData["keyPaths"].at(t.asString);
 			});
 		});
+		onRecordMsg = OSCFunc({|msg, time, addr, recvPort|
+		{recordButton.valueAction = recordButton.value.even.asInteger;}.defer;
+		// {AppClock.sched(0, {recordButton.valueAction(recordButton.valueAction)})}
+	}, '/onRecordMsg');
 
 	//------------------------------------------------------
 	refreshGUI = {
@@ -293,12 +313,19 @@
 	//------------------------------------------------------
 
  	initGUI.value();
-	buildSession.value();
- 	initMidi.value();
-	refreshGUI.value();
+// buildSession.value();
+	initMidi.value();
+// refreshGUI.value();
 
 
 )
+
+//------------------------------------------------------
+// WORKBENCH
+//------------------------------------------------------
+
+
+
 
 
 c="5"
@@ -375,3 +402,13 @@ f = {
 
 f.value()
 g.value()
+
+
+
+
+
+//------------------------------------------------------
+// IDEAS
+//------------------------------------------------------
+
+pedal as record state : turns on rec button

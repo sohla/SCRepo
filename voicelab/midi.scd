@@ -22,6 +22,10 @@ m.free;
 NoteOnResponder.removeAll;
 
 (
+MIDIClient.init;
+MIDIIn.connectAll;
+MIDIFunc.cc({"foot".postln}, 64);
+
 
 c = CCResponder({ |src,chan,num,value|
         [src,chan,num,value].postln;
@@ -30,3 +34,9 @@ c = CCResponder({ |src,chan,num,value|
 )
 
 CCResponder.removeAll
+
+
+(
+MIDIIn.connectAll;
+MIDIFunc.cc({"foot".postln}, 64);
+)
