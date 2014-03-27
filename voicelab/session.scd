@@ -271,7 +271,7 @@
 
 		// clear listView
 		listView.items = Array.newClear;
-sessionData["keyPaths"].values.collect(_.asInteger).asSortedList.postln;
+		sessionData["keyPaths"].values.collect(_.asInteger).asSortedList.postln;
 		// repopulate in order of assigned midi note
 		sessionData["keyPaths"].values.asSortedList.collect(_.asInteger).do({ |val|
 			t = sessionData["keyPaths"].findKeyForValue(val.asString);
@@ -295,7 +295,7 @@ sessionData["keyPaths"].values.collect(_.asInteger).asSortedList.postln;
  	initGUI.value();
 	buildSession.value();
  	initMidi.value();
-refreshGUI.value();
+	refreshGUI.value();
 
 
 )
