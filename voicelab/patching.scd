@@ -1,5 +1,17 @@
 (
+	// MICINPUT
+	SynthDef(
+		"micInput",
+		{
+			var sig;
+			sig = SoundIn.ar(0);
+		Out.ar(0,[sig,sig])
+		}
+	).send(s);
 
+
+
+	// SIN IMPULSE
 	SynthDef(
 		"simpleSine",
 		{
@@ -14,15 +26,13 @@
 		}
 	).send(s);
 
-)
-(
-// define an echo effect
-SynthDef("echo", { arg delay = 0.2, decay = 4;
-	var in;
-	in = In.ar(0,2);
-	// use ReplaceOut to overwrite the previous contents of the bus.
-	ReplaceOut.ar(0, CombN.ar(in, 0.5, delay, decay, 1, in));
-}).send(s);
+	// ECHO
+	SynthDef("echo", { arg delay = 0.2, decay = 4;
+		var in;
+		in = In.ar(0,2);
+		// use ReplaceOut to overwrite the previous contents of the bus.
+		ReplaceOut.ar(0, CombN.ar(in, 0.5, delay, decay, 1, in));
+	}).send(s);
 )
 
 
@@ -105,8 +115,15 @@ s.listSendBundle(0.01,
 	["/s_new", "echo", y = s.nextNodeID, 1, 1, "delay", 0.3, "decay", 3]]
 	);
 
+
+
+
+
 // simple
 s.sendMsg("/s_new", "simpleSine", x = s.nextNodeID, 1, 1, "freq", 440, "amp", 0.2);
+
+s.sendMsg("/s_new", "micInput", x = s.nextNodeID, 1, 1);
+
 s.sendMsg("/s_new", "echo", y = s.nextNodeID, 1, 1, "delay", 0.3, "decay", 3);
 
 

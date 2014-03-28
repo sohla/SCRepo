@@ -12,6 +12,26 @@
 		Out.ar(0,[player,player]);
 
 	}).send(s);
+
+	SynthDef(\micin, {|buffer = 0|
+	var player = SoundIn.ar(0);
+		Out.ar(0,[player,player]);
+
+	}).send(s);
+
+	// sin impulse for testing
+	SynthDef(\sinImpulse,{|freq=440,amp=0.8|
+			var trg = Decay2.ar(Impulse.ar(2,0,0.3), 0.01, 0.3);
+			var sig = SinOsc.ar(freq,0,trg*amp);
+			Out.ar(0,[sig,sig])
+		}
+	).send(s);
+
+	// simple disk out
+	SynthDef(\diskOut, {arg bufnum;
+	    DiskOut.ar(bufnum, In.ar(0,1));
+	}).send(s);
+
 )
 
 
@@ -24,14 +44,17 @@
 	var date = Date.getDate;
 	var appPath = PathName.new("~/Music/VoiceLab");
 	var sessionTitle,broadcaster;
-	var recordMode = 0;
-
+	var micInputSynth,playerSynth,recorderSynth;
+		var recordMode = 0;
 
 	//------------------------------------------------------
 	// FUNCTIONS
 	//------------------------------------------------------
 	var buildSession, loadSession, createSession, loadTemplate, initMidi, closeMidi, initGUI, refreshGUI;
-var playModeState,recordModeState;
+	var addQuestion;
+	var playModeState,recordModeState;
+
+var noteOnResponder;
 
 	broadcaster = NetAddr("127.0.0.1", NetAddr.langPort);
 
@@ -45,8 +68,8 @@ var playModeState,recordModeState;
 	//------------------------------------------------------
 	buildSession = {
 
-		loadSession.value(loadTemplate.value(createSession.value()));
-//		loadSession.value(createSession.value());
+//		loadSession.value(loadTemplate.value(createSession.value()));
+		loadSession.value(createSession.value());
 
 
 
@@ -92,7 +115,7 @@ var playModeState,recordModeState;
 	//------------------------------------------------------
 	createSession = {
 
-		var genTitle= date.format("%A_%d:%m:%Y_%R:%S");
+		var genTitle= date.format("%A_%d:%m:%Y_%H_%M_%S");
 			// create all the dirs
 		var sessionDir = File.mkdir(appPath.asAbsolutePath+/+genTitle);
 		var quesiotnsDir = File.mkdir(appPath.asAbsolutePath+/+genTitle+/+"Questions");
@@ -119,6 +142,7 @@ var playModeState,recordModeState;
 	//------------------------------------------------------
 
 	initMidi = {
+
 		MIDIClient.init;
 		MIDIIn.connectAll;
 
@@ -130,6 +154,9 @@ var playModeState,recordModeState;
 		CCResponder({ |src,chan,num,value|
 			recordMode = recordMode.even.asInteger;
 			broadcaster.sendMsg("/onRecordMsg",recordMode);
+
+
+
     	},num:64,value:127);
 	};
 
@@ -144,23 +171,77 @@ var playModeState,recordModeState;
 	};
 
 playModeState = {
-	// NoteOnResponder({ |src, chan, num, vel|
-	// 	t = sessionData["keyPaths"].findKeyForValue(num.asString).postln;
-	// 	p = appPath.asAbsolutePath+/+sessionTitle+/+"Questions"+/+t;
-	// 	a = Synth(\playBuffer,[\buffer,Buffer.read(s, p)]);
-	//
-	// },nil,nil,{|val|sessionData["keyPaths"].values.asInteger.includes(val)});
+	MIDIdef(\noteOnRecordMode).free;
+	MIDIdef(\noteOffRecordMode).free;
 
-	MIDIdef.noteOn(\noteOnPlayMode, {arg ...args;
-		t = sessionData["keyPaths"].findKeyForValue(args[1].asString).postln;
-		p = appPath.asAbsolutePath+/+sessionTitle+/+"Questions"+/+t;
-		a = Synth(\playBuffer,[\buffer,Buffer.read(s, p)]);
+	micInputSynth.free;
 
-	},sessionData["keyPaths"].values.asInteger);
+	noteOnResponder = NoteOnResponder({ |src, chan, num, vel|
+			t = sessionData["keyPaths"].findKeyForValue(num.asString).postln;
+			p = appPath.asAbsolutePath+/+sessionTitle+/+"Questions"+/+t;
+			a = Synth(\playBuffer,[\buffer,Buffer.read(s, p)]);
+
+		},nil,nil,{|val|sessionData["keyPaths"].values.asInteger.includes(val)});
 
 };
 
+
 recordModeState = {
+
+	var buffer,newPath;
+
+noteOnResponder.remove;
+	playerSynth.free;
+
+	// micInputSynth = Synth.new(\sinImpulse);//tester
+		micInputSynth = Synth.new(\micInput);//tester
+		MIDIdef.noteOn(\noteOnRecordMode, {arg ...args;
+
+		{
+		buffer = Buffer.alloc(s,65536,1);
+			//create file and start recording
+			g = Date.getDate.format("%H_%M_%S");
+			t = "Question_"++g++".wav";
+			p = appPath.asAbsolutePath+/+sessionTitle+/+"Questions"+/+t;
+			buffer.write(p,"wav","int16",startFrame:65536,leaveOpen:true);
+		recorderSynth = Synth.tail(nil,\diskOut,[\bufnum,buffer.bufnum]);
+		("Recording "++t).postln;
+		newPath = p;
+		}.defer;
+
+		});
+
+		MIDIdef.noteOff(\noteOffRecordMode, {arg ...args;
+		{
+		buffer.close;
+		recorderSynth.free;
+		buffer.free;
+			addQuestion.value(newPath,args[1]);
+		("Finished recording "++t).postln;
+		}.defer(1);
+
+
+		});
+
+};
+
+
+addQuestion = { |path,num|
+
+					// we have to copy the dict since parseYAML returns an unmutable collection!!
+					n = Dictionary.newFrom(sessionData["keyPaths"]);
+
+
+					// insert new question into datastore
+					n.put(path.basename,num.asString);
+					sessionData["keyPaths"]  = n;
+
+					p = appPath.asAbsolutePath+/+sessionTitle+/+"session";
+					sessionData.writeArchive(p);
+					sessionData = Object.readArchive(p);
+
+					refreshGUI.value();
+
 };
 	//------------------------------------------------------
 	// UI
@@ -169,7 +250,7 @@ recordModeState = {
 
 	initGUI = {
 
-		var window = Window.new("",Rect(50, 100, 800, 550)).front;
+		var window = Window.new("Voicelab",Rect(50, 100, 800, 550)).front;
 		var listView, numberView,playButton,importButton, deleteButton;
 		var recordButton;
 		var onRecordMsg;
@@ -180,7 +261,7 @@ recordModeState = {
 		});
 
 		window.view.decorator = FlowLayout( window.view.bounds, 10@10, 10@10 );
-
+	window.view.background = Color.new255(230,230,230);
 		listView = EZListView.new(window,
 		    750@400,
 		    "Questions:",nil,
@@ -197,8 +278,8 @@ recordModeState = {
 		listView.font = Font("Helvetica", 18);
 
 		numberView = EZNumber(window,
-             150@20,
-             "note",
+             150@50,
+             "Note",
              ControlSpec(0, 127, \lin, 1, 64, "MidiNote"),
              nil,
 		      0,
@@ -207,7 +288,7 @@ recordModeState = {
 
 
 		playButton = Button(window, 100@50)
-	        .states_([["PLAY", Color.black, Color.green]])
+	        .states_([["Play", Color.black, Color.green(alpha:0.2)]])
 	        .action_({ arg butt;
 	            listView.value.postln;
 				t = listView.items.at(listView.value).key;
@@ -216,7 +297,7 @@ recordModeState = {
 	        });
 
 		importButton = Button(window, 120@50)
-	        .states_([["Import Question", Color.black, Color.grey]])
+	.states_([["Import Question", Color.black, Color.blue(alpha:0.2)]])
 	        .action_({ arg butt;
 
 				File.openDialog("Select an awesome new question",{|path|
@@ -224,24 +305,12 @@ recordModeState = {
 					// copy this file to our questions dir
 					var newPath = appPath.asAbsolutePath+/+sessionTitle+/+"Questions";
 					SoundFile.normalize(path,newPath+/+path.basename);
-
-					// we have to copy the dict since parseYAML returns an unmutable collection!!
-					n = Dictionary.newFrom(sessionData["keyPaths"]);
-
 					// generate a unique note number
 					a = (1..127);
 					b = sessionData["keyPaths"].collect(_.asInteger);
 					c = difference(a,b).choose;
 
-					// insert new question into datastore
-					n.put(path.basename,c.asString);
-					sessionData["keyPaths"]  = n;
-
-					p = appPath.asAbsolutePath+/+sessionTitle+/+"session";
-					sessionData.writeArchive(p);
-					sessionData = Object.readArchive(p);
-
-					refreshGUI.value();
+					addQuestion.value(path,c);
 				},{
 					// cancel file open dialog
 				});
@@ -249,7 +318,7 @@ recordModeState = {
 
 
 		deleteButton = Button(window, 120@50)
-	        .states_([["Delete Question", Color.black, Color.red]])
+	        .states_([["Delete Question", Color.black, Color.red(alpha:0.2)]])
 	        .action_({ arg butt;
 
 				var key = listView.items.at(listView.value).key;
@@ -272,13 +341,15 @@ recordModeState = {
 
 			});
 
-		recordButton = Button(window, 80@80)
+		recordButton = Button(window, 80@50)
 	        .states_([
-					["REC", Color.black, Color.grey],
+					["REC", Color.black, Color.grey(alpha:0.2)],
 					["REC", Color.black, Color.red]
 					])
 	        .action_({ arg butt;
 				butt.value.postln;
+		recordMode = butt.value;
+		broadcaster.sendMsg("/onRecordMsg",butt.value);
 			});
 
 
@@ -300,7 +371,14 @@ recordModeState = {
 			});
 		});
 		onRecordMsg = OSCFunc({|msg, time, addr, recvPort|
-		{recordButton.valueAction = msg[1];}.defer;
+		{
+			recordButton.value = msg[1];
+			switch(msg[1],
+				0,{playModeState.value();},
+				1,{recordModeState.value();
+			});
+
+		}.defer;
 		// {AppClock.sched(0, {recordButton.valueAction(recordButton.valueAction)})}
 	}, '/onRecordMsg');
 
@@ -333,7 +411,7 @@ recordModeState = {
  	initGUI.value();
  buildSession.value();
 	initMidi.value();
- refreshGUI.value();
+// refreshGUI.value();
 
 
 )
@@ -430,3 +508,6 @@ g.value()
 //------------------------------------------------------
 
 pedal as record state : turns on rec button
+
+
+rename question files

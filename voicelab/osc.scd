@@ -11,5 +11,5 @@ m.disconnect;
 
 
 
-a = 1
+a = 0
 a = a.even.asInteger
