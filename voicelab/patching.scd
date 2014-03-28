@@ -117,10 +117,17 @@ s.listSendBundle(0.01,
 
 
 
+a = Synth(\simpleSine,[\freq,440,\amp,0.8]);
+a.nodeID
+a.free
 
 
 // simple
+
 s.sendMsg("/s_new", "simpleSine", x = s.nextNodeID, 1, 1, "freq", 440, "amp", 0.2);
+
+
+
 
 s.sendMsg("/s_new", "micInput", x = s.nextNodeID, 1, 1);
 

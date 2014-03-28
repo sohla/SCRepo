@@ -168,79 +168,79 @@ var noteOnResponder;
 
 	};
 
-playModeState = {
-	MIDIdef(\noteOnRecordMode).free;
-	MIDIdef(\noteOffRecordMode).free;
+	playModeState = {
+		
+		MIDIdef(\noteOnRecordMode).free;
+		MIDIdef(\noteOffRecordMode).free;
 
-	micInputSynth.free;
+		micInputSynth.free;
 
-	noteOnResponder = NoteOnResponder({ |src, chan, num, vel|
+		// use NoteOnResponder to filter for note num
+		noteOnResponder = NoteOnResponder({ |src, chan, num, vel|
 			t = sessionData["keyPaths"].findKeyForValue(num.asString).postln;
 			p = appPath.asAbsolutePath+/+sessionTitle+/+"Questions"+/+t;
 			a = Synth(\playBuffer,[\buffer,Buffer.read(s, p)]);
-
 		},nil,nil,{|val|sessionData["keyPaths"].values.asInteger.includes(val)});
 
-};
+	};
 
 
-recordModeState = {
+	recordModeState = {
 
-	var buffer,newPath;
+		var buffer,newPath;
 
-noteOnResponder.remove;
-	playerSynth.free;
+		noteOnResponder.remove;
+		playerSynth.free;
 
-	// micInputSynth = Synth.new(\sinImpulse);//tester
-		micInputSynth = Synth.new(\micInput);//tester
+		// micInputSynth = Synth.new(\sinImpulse);//tester
+		micInputSynth = Synth.new(\micInput);
+		
 		MIDIdef.noteOn(\noteOnRecordMode, {arg ...args;
 
-		{
-		buffer = Buffer.alloc(s,65536,1);
-			//create file and start recording
-			g = Date.getDate.format("%H_%M_%S");
-			t = "Question_"++g++".wav";
-			p = appPath.asAbsolutePath+/+sessionTitle+/+"Questions"+/+t;
-			buffer.write(p,"wav","int16",startFrame:65536,leaveOpen:true);
-		recorderSynth = Synth.tail(nil,\diskOut,[\bufnum,buffer.bufnum]);
-		("Recording "++t).postln;
-		newPath = p;
-		}.defer;
-
+			{
+				//create buffer and write to disk
+				buffer = Buffer.alloc(s,65536,1);
+				g = Date.getDate.format("%H_%M_%S");
+				t = "Question_"++g++".wav";
+				p = appPath.asAbsolutePath+/+sessionTitle+/+"Questions"+/+t;
+				buffer.write(p,"wav","int16",startFrame:65536,leaveOpen:true);
+				recorderSynth = Synth.tail(nil,\diskOut,[\bufnum,buffer.bufnum]);
+				("Recording "++t).postln;
+				newPath = p;
+			}.defer;
 		});
 
 		MIDIdef.noteOff(\noteOffRecordMode, {arg ...args;
-		{
-		buffer.close;
-		recorderSynth.free;
-		buffer.free;
-			addQuestion.value(newPath,args[1]);
-		("Finished recording "++t).postln;
-		}.defer(1);
+			{
+			buffer.close;
+			recorderSynth.free;
+			buffer.free;
+				addQuestion.value(newPath,args[1]);
+			("Finished recording "++t).postln;
+			}.defer(1);
 
 
-		});
+			});
 
-};
-
-
-addQuestion = { |path,num|
-
-					// we have to copy the dict since parseYAML returns an unmutable collection!!
-					n = Dictionary.newFrom(sessionData["keyPaths"]);
+	};
 
 
-					// insert new question into datastore
-					n.put(path.basename,num.asString);
-					sessionData["keyPaths"]  = n;
+	addQuestion = { |path,num|
 
-					p = appPath.asAbsolutePath+/+sessionTitle+/+"session";
-					sessionData.writeArchive(p);
-					sessionData = Object.readArchive(p);
+		// we have to copy the dict since parseYAML returns an unmutable collection!!
+		n = Dictionary.newFrom(sessionData["keyPaths"]);
 
-					refreshGUI.value();
 
-};
+		// insert new question into datastore
+		n.put(path.basename,num.asString);
+		sessionData["keyPaths"]  = n;
+
+		p = appPath.asAbsolutePath+/+sessionTitle+/+"session";
+		sessionData.writeArchive(p);
+		sessionData = Object.readArchive(p);
+
+		refreshGUI.value();
+	};
 	//------------------------------------------------------
 	// UI
 	//------------------------------------------------------
@@ -260,7 +260,8 @@ addQuestion = { |path,num|
 		});
 
 		window.view.decorator = FlowLayout( window.view.bounds, 10@10, 10@10 );
-	window.view.background = Color.new255(230,230,230);
+		window.view.background = Color.new255(230,230,230);
+		
 		listView = EZListView.new(window,
 		    750@400,
 		    "Questions:",nil,
@@ -296,7 +297,7 @@ addQuestion = { |path,num|
 	        });
 
 		importButton = Button(window, 120@50)
-	.states_([["Import Question", Color.black, Color.blue(alpha:0.2)]])
+			.states_([["Import Question", Color.black, Color.blue(alpha:0.2)]])
 	        .action_({ arg butt;
 
 				File.openDialog("Select an awesome new question",{|path|
@@ -346,7 +347,7 @@ addQuestion = { |path,num|
 					["REC", Color.black, Color.red]
 					])
 	        .action_({ arg butt;
-		broadcaster.sendMsg("/onRecordMsg");
+				broadcaster.sendMsg("/onRecordMsg");
 			});
 
 
@@ -367,10 +368,10 @@ addQuestion = { |path,num|
 				ez.value = sessionData["keyPaths"].at(t.asString);
 			});
 		});
+		
 		onRecordMsg = OSCFunc({|msg, time, addr, recvPort|
 		{
 			recordMode = recordMode.even.asInteger;
-
 			recordButton.value = recordMode;
 			switch(recordMode,
 				0,{playModeState.value();},
@@ -378,7 +379,6 @@ addQuestion = { |path,num|
 			});
 
 		}.defer;
-		// {AppClock.sched(0, {recordButton.valueAction(recordButton.valueAction)})}
 	}, '/onRecordMsg');
 
 	//------------------------------------------------------
@@ -408,7 +408,7 @@ addQuestion = { |path,num|
 	//------------------------------------------------------
 
  	initGUI.value();
- buildSession.value();
+ 	buildSession.value();
 	initMidi.value();
 // refreshGUI.value();
 
