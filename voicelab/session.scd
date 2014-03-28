@@ -45,7 +45,7 @@
 	var appPath = PathName.new("~/Music/VoiceLab");
 	var sessionTitle,broadcaster;
 	var micInputSynth,playerSynth,recorderSynth;
-		var recordMode = 0;
+
 
 	//------------------------------------------------------
 	// FUNCTIONS
@@ -142,7 +142,6 @@ var noteOnResponder;
 	//------------------------------------------------------
 
 	initMidi = {
-
 		MIDIClient.init;
 		MIDIIn.connectAll;
 
@@ -152,8 +151,7 @@ var noteOnResponder;
 		});
 
 		CCResponder({ |src,chan,num,value|
-			recordMode = recordMode.even.asInteger;
-			broadcaster.sendMsg("/onRecordMsg",recordMode);
+			broadcaster.sendMsg("/onRecordMsg");
 
 
 
@@ -254,6 +252,7 @@ addQuestion = { |path,num|
 		var listView, numberView,playButton,importButton, deleteButton;
 		var recordButton;
 		var onRecordMsg;
+		var recordMode=0;
 
 		window.onClose = ({
 			closeMidi.value();
@@ -347,9 +346,7 @@ addQuestion = { |path,num|
 					["REC", Color.black, Color.red]
 					])
 	        .action_({ arg butt;
-				butt.value.postln;
-		recordMode = butt.value;
-		broadcaster.sendMsg("/onRecordMsg",butt.value);
+		broadcaster.sendMsg("/onRecordMsg");
 			});
 
 
@@ -372,8 +369,10 @@ addQuestion = { |path,num|
 		});
 		onRecordMsg = OSCFunc({|msg, time, addr, recvPort|
 		{
-			recordButton.value = msg[1];
-			switch(msg[1],
+			recordMode = recordMode.even.asInteger;
+
+			recordButton.value = recordMode;
+			switch(recordMode,
 				0,{playModeState.value();},
 				1,{recordModeState.value();
 			});
