@@ -13,7 +13,7 @@
 
 	}).send(s);
 
-	SynthDef(\micin, {|buffer = 0|
+	SynthDef(\micInput, {|buffer = 0|
 	var player = SoundIn.ar(0);
 		Out.ar(0,[player,player]);
 
@@ -169,7 +169,7 @@ var noteOnResponder;
 	};
 
 	playModeState = {
-		
+
 		MIDIdef(\noteOnRecordMode).free;
 		MIDIdef(\noteOffRecordMode).free;
 
@@ -194,7 +194,7 @@ var noteOnResponder;
 
 		// micInputSynth = Synth.new(\sinImpulse);//tester
 		micInputSynth = Synth.new(\micInput);
-		
+
 		MIDIdef.noteOn(\noteOnRecordMode, {arg ...args;
 
 			{
@@ -261,7 +261,7 @@ var noteOnResponder;
 
 		window.view.decorator = FlowLayout( window.view.bounds, 10@10, 10@10 );
 		window.view.background = Color.new255(230,230,230);
-		
+
 		listView = EZListView.new(window,
 		    750@400,
 		    "Questions:",nil,
@@ -368,7 +368,7 @@ var noteOnResponder;
 				ez.value = sessionData["keyPaths"].at(t.asString);
 			});
 		});
-		
+
 		onRecordMsg = OSCFunc({|msg, time, addr, recvPort|
 		{
 			recordMode = recordMode.even.asInteger;
