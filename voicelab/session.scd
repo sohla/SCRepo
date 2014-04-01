@@ -51,7 +51,7 @@
 	// FUNCTIONS
 	//------------------------------------------------------
 	var buildSession, loadSession, createSession, loadTemplate, initMidi, closeMidi, initGUI, refreshGUI;
-	var addQuestion;
+	var addQuestion, getNextNoteNumber;
 	var playModeState,recordModeState;
 
 var noteOnResponder;
@@ -180,6 +180,8 @@ var noteOnResponder;
 			t = sessionData["keyPaths"].findKeyForValue(num.asString).postln;
 			p = appPath.asAbsolutePath+/+sessionTitle+/+"Questions"+/+t;
 			a = Synth(\playBuffer,[\buffer,Buffer.read(s, p)]);
+
+
 		},nil,nil,{|val|sessionData["keyPaths"].values.asInteger.includes(val)});
 
 	};
@@ -212,18 +214,31 @@ var noteOnResponder;
 
 		MIDIdef.noteOff(\noteOffRecordMode, {arg ...args;
 			{
-			buffer.close;
-			recorderSynth.free;
-			buffer.free;
-				addQuestion.value(newPath,args[1]);
-			("Finished recording "++t).postln;
+				buffer.close;
+				recorderSynth.free;
+				buffer.free;
+
+				p = newPath.dirname+/+newPath.basename.splitext[0]++"Norm."++newPath.basename.splitext[1];
+
+				SoundFile.normalize(newPath,p,threaded:false);
+				File.delete(newPath);
+				addQuestion.value(p,args[1]);
+				("Finished recording "++t).postln;
+
 			}.defer(1);
 
 
-			});
+		});
 
 	};
 
+
+	getNextNoteNumber = {
+		a = (60..127);
+		b = sessionData["keyPaths"].collect(_.asInteger);
+		difference(a,b).first;
+
+	};
 
 	addQuestion = { |path,num|
 
@@ -306,11 +321,8 @@ var noteOnResponder;
 					var newPath = appPath.asAbsolutePath+/+sessionTitle+/+"Questions";
 					SoundFile.normalize(path,newPath+/+path.basename);
 					// generate a unique note number
-					a = (1..127);
-					b = sessionData["keyPaths"].collect(_.asInteger);
-					c = difference(a,b).choose;
 
-					addQuestion.value(path,c);
+					addQuestion.value(path,getNextNoteNumber.value());
 				},{
 					// cancel file open dialog
 				});
@@ -483,6 +495,14 @@ a = (1..127)
 a.flat
 
 ["4", 12, 4, 22, 51, 63, 2, 6, 73, 2 ].collect(_.asInteger)
+
+
+
+a = (1..10);
+b = [1,2,5,8].collect(_.asInteger);
+c = difference(a,b).first;
+b = b.add(difference(a,b).first);
+
 (
 f = {
 	var test = "oh yes";
@@ -501,7 +521,8 @@ g.value()
 
 
 
-
+	a = ("~/Music/VoiceLab/x.wav");
+a.dirname+/+a.basename.splitext[0]++"Norm."++a.basename.splitext[1]
 //------------------------------------------------------
 // IDEAS
 //------------------------------------------------------
