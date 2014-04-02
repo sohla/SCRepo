@@ -1,65 +1,4 @@
 
-
-(
-	SynthDef(\playBuffer, {|buffer = 0, note = 69|
-		var pitch = (note.midicps / 440.0) * BufRateScale.kr(buffer);
-		var player = PlayBuf.ar(
-			buffer.numChannels,
-			buffer,
-		pitch,
-			doneAction:4//free both this synth and the following node
-		);
-	    var imp = Impulse.kr(10);
-	    var delimp = Delay1.kr(imp);
-	    SendReply.kr(imp, '/onPlayLevel', [0,Amplitude.kr(player), K2A.ar(Peak.ar(player, delimp).lag(0, 1))]);
-
-		Out.ar(0,[player,player]);
-
-	}).send(s);
-
-	SynthDef(\micInput, {|buffer = 0|
-		var player = SoundIn.ar(0);
-	    var imp = Impulse.kr(10);
-	    var delimp = Delay1.kr(imp);
-		 SendReply.kr(imp, '/onPlayLevel', [1,Amplitude.kr(player), K2A.ar(Peak.ar(player, delimp).lag(0, 1))]);
-
-		Out.ar(0,[player,player]);
-
-	}).send(s);
-
-	// sin impulse for testing
-	SynthDef(\sinImpulse,{|freq=440,amp=0.8|
-			var trg = Decay2.ar(Impulse.ar(2,0,0.3), 0.01, 0.3);
-			var sig = SinOsc.ar(freq,0,trg*amp);
-			Out.ar(0,[sig,sig])
-		}
-	).send(s);
-
-	SynthDef(\freqShift, {|frq = 189, mul = 76, add = 232|
-
-		var in,voco,kernal;
-		var a = 0;
-
-
-		in = In.ar(0,2);
-
-		kernal = LFTri.kr(frq,0,mul,add);
-
-		a= FreqShift.ar(in,kernal);
-		// use ReplaceOut to overwrite the previous contents of the bus.
-		ReplaceOut.ar(0, a);
-
-	}).send(s);
-
-
-	// simple disk out
-	SynthDef(\diskOut, {arg bufnum;
-	    DiskOut.ar(bufnum, In.ar(0,1));
-	}).send(s);
-
-)
-
-
 (
 
 	//------------------------------------------------------
@@ -70,7 +9,7 @@
 	var appPath = PathName.new("~/Music/VoiceLab");
 	var sessionTitle,broadcaster;
 	var micInputSynth,playerSynth,recorderSynth,pluginSynth;
-	var arduino = 0,arduinoTask;
+	var arduino,arduinoTask;
 
 	//------------------------------------------------------
 	// FUNCTIONS
@@ -176,14 +115,13 @@ initArduino = {
 
 closeArduino = {
 
+	// turn everything off
+	(2..13).do{ | i | arduino.mode_(i,1) };
+	(2..13).do{ | i | arduino.bit_(i,0) };
 
-		// turn everything off
-		(2..13).do{ | i | arduino.mode_(i,1) };
-		(2..13).do{ | i | arduino.bit_(i,0) };
-
-		arduino.close;
-
+	arduino.close;
 };
+
 	//------------------------------------------------------
 	// MIDI
 	//------------------------------------------------------
@@ -228,13 +166,13 @@ closeArduino = {
 			p = appPath.asAbsolutePath+/+sessionTitle+/+"Questions"+/+t;
 			a = Synth(\playBuffer,[\buffer,Buffer.read(s, p)]);
 
-			pluginSynth = Synth.tail(nil,\freqShift);
+			pluginSynth = Synth.tail(nil,\fshift);
 
-		a.onFree({
-			// pluginSynth.free;
-			arduino.pw_(9,0);
+			a.onFree({
+				pluginSynth.free;
+				arduino.pw_(9,0);
 
-		});
+			});
 
 
 
@@ -396,11 +334,6 @@ closeArduino = {
 				t = listView.items.at(listView.value).key;
 				p = appPath.asAbsolutePath+/+sessionTitle+/+"Questions"+/+t;
 				a = Synth(\playBuffer,[\buffer,Buffer.read(s, p)]);
-			pluginSynth = Synth.tail(nil,\freqShift);
-
-		pluginSynth.onFree({
-			arduino.pw_(9,0);
-		});
 	        });
 
 		importButton = Button(window, 120@50)
@@ -451,8 +384,7 @@ closeArduino = {
 					["REC", Color.black, Color.red]
 					])
 	        .action_({ arg butt;
-				broadcaster.
-		("/onRecordMsg");
+				broadcaster.sendMsg("/onRecordMsg");
 			});
 
 
@@ -492,11 +424,11 @@ closeArduino = {
 				playLevelView.value = msg[4].ampdb.linlin(-40, 0, 0, 1);
 				playLevelView.peakLevel = msg[5].ampdb.linlin(-40, 0, 0, 1);
 
-					if( msg[5].ampdb.linlin(-40, 0, 0, 1) > 0.3,{
-						arduino.pw_(9,msg[5].ampdb.linexp(-40, 0, 5, 127));
-						},{
-							arduino.pw_(9,0);
-					});
+				if( msg[5].ampdb.linlin(-40, 0, 0, 1) > 0.3,{
+					 arduino.pw_(9,msg[5].ampdb.linexp(-40, 0, 5, 127));
+				},{
+						 arduino.pw_(9,0);
+				});
   			}.defer;
 
 		}, '/onPlayLevel');
@@ -533,7 +465,7 @@ closeArduino = {
 	// BUILD
 	//------------------------------------------------------
 
-	//initArduino.value();
+	initArduino.value();
  	initGUI.value();
  	buildSession.value();
 	initMidi.value();
@@ -542,108 +474,3 @@ closeArduino = {
 
 
 )
-
-//------------------------------------------------------
-// WORKBENCH
-//------------------------------------------------------
-
-
-
-
-
-c="5"
-c.asInteger
-a = [34,5,76,9];
-a.includes(5)
-
-
-b = ["34","5","76","9"].asInteger.includes(6);
-b = b.asInteger
-b.includes(5)
-
-
-a.asSortedList
-
-a = [ \a->123,\b->345345]
-a.at(0)
-a.do({ |o|
-o.value.postln;
-})
-
-
-
-
-d = [(\robot->99),(\robot2->29)];
-d.class
-d.associationAt(\robot);    // Get the value associated with key
-
-
-a = Dictionary.new(); // return a new Event.
-b = \foo ->2.718
-a.add(b);
-b = \foo2 ->24.718
-a.add(b);
-a.at("foo".asSymbol);
-
-a.gui
-a = [ ("1.welcomeToVoiceLab.wav" -> 64), ("10.whatMakesYouLaugh.wav" -> 73)]
-
-
-
-
-
-f = { |a|
-	(a+7);
-};
-
-
-c = f.value(5)
-c
-a = (1..127); b = [2, 3, 4, 5];
-difference(a, b);
-
-differnce((0..127),[1,2,3])
-
-
-(1..127)
-
-a = (1..127)
-a.flat
-
-["4", 12, 4, 22, 51, 63, 2, 6, 73, 2 ].collect(_.asInteger)
-
-
-
-a = (1..10);
-b = [1,2,5,8].collect(_.asInteger);
-c = difference(a,b).first;
-b = b.add(difference(a,b).first);
-
-(
-f = {
-	var test = "oh yes";
-	"f".postln;
-	g = {
-	test.postln;
-	};
-
-};
-)
-
-
-f.value()
-g.value()
-
-
-
-
-	a = ("~/Music/VoiceLab/x.wav");
-a.dirname+/+a.basename.splitext[0]++"Norm."++a.basename.splitext[1]
-//------------------------------------------------------
-// IDEAS
-//------------------------------------------------------
-
-pedal as record state : turns on rec button
-
-
-rename question files

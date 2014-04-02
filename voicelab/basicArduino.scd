@@ -83,3 +83,12 @@ a.close
 	arduino.pw_(9,127);
 	{arduino.pw_(9,0)}.defer(1.0);
 )
+
+
+a = 0;
+
+if((a!=0)asBoolean,{"a".postln})
+a = Rduino(SerialPort.devices.last,115200);
+
+
+

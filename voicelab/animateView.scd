@@ -19,6 +19,7 @@ CmdPeriod.doOnce({win.close});
 )
 
 
+
 (
 var width= 400, height= 400;
 var win= Window("bouncing ball", Rect(100, 200, width, height));
