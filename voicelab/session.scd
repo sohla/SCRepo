@@ -69,7 +69,7 @@
 	var date = Date.getDate;
 	var appPath = PathName.new("~/Music/VoiceLab");
 	var sessionTitle,broadcaster;
-	var micInputSynth,playerSynth,recorderSynth,pluginSynth;
+	var micInputSynth,playerSynth,recorderSynth,pluginSynth,pluginName=\freqShift;
 	var arduino = 0,arduinoTask;
 
 	//------------------------------------------------------
@@ -217,6 +217,9 @@ closeArduino = {
 
 	playModeState = {
 
+
+		"PLAY MODE".postln;
+
 		MIDIdef(\noteOnRecordMode).free;
 		MIDIdef(\noteOffRecordMode).free;
 
@@ -228,7 +231,7 @@ closeArduino = {
 			p = appPath.asAbsolutePath+/+sessionTitle+/+"Questions"+/+t;
 			a = Synth(\playBuffer,[\buffer,Buffer.read(s, p)]);
 
-			pluginSynth = Synth.tail(nil,\freqShift);
+			pluginSynth = Synth.tail(nil,pluginName);
 
 		a.onFree({
 			// pluginSynth.free;
@@ -252,6 +255,8 @@ closeArduino = {
 	recordModeState = {
 
 		var buffer,newPath;
+
+		"RECORD MODE".postln;
 
 		noteOnResponder.remove;
 		MIDIdef(\noteOffPlayMode).free;
@@ -396,7 +401,7 @@ closeArduino = {
 				t = listView.items.at(listView.value).key;
 				p = appPath.asAbsolutePath+/+sessionTitle+/+"Questions"+/+t;
 				a = Synth(\playBuffer,[\buffer,Buffer.read(s, p)]);
-			pluginSynth = Synth.tail(nil,\freqShift);
+			pluginSynth = Synth.tail(nil,pluginName);
 
 		pluginSynth.onFree({
 			arduino.pw_(9,0);
@@ -451,8 +456,7 @@ closeArduino = {
 					["REC", Color.black, Color.red]
 					])
 	        .action_({ arg butt;
-				broadcaster.
-		("/onRecordMsg");
+				broadcaster.sendMsg("/onRecordMsg");
 			});
 
 
