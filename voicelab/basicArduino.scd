@@ -25,6 +25,8 @@ a.atodCallback = Array.fill(a.atodCallback.size, f);
 a.readAnalog(1)
 a.atods
 
+(2..13).do{ | i | a.mode_(i,1) };
+(2..13).do{ | i | a.bit_(i,0) };
 a.close
 
 
@@ -32,7 +34,7 @@ a.close
 (
 	a = Rduino(SerialPort.devices.last,115200);
 	i = 0;
-	d = 1;
+	d = 4;
 	r = Task.new({ inf.do({
 
 		i = i + d;
@@ -42,10 +44,42 @@ a.close
 		i.postln;
 		a.pw_(9,i);
 
-        0.4.wait;
-	})
+        0.01.wait;
+		})
 
 	});
 
 	r.play;
+)
+
+
+
+
+(
+	a = Rduino(SerialPort.devices.last,115200);
+	i = 0;
+	d = 4;
+	r = Task.new({ inf.do({
+
+		i = i + d;
+
+		if(i>127,{d = d * -1; i = 127;});
+		if(i<0,{d = d * -1; i = 0; r.stop;});
+		i.postln;
+		a.pw_(9,i);
+
+        0.01.wait;
+		})
+
+	});
+
+	r.play;
+)
+
+(
+	 var arduino = Rduino(SerialPort.devices.last,115200);
+
+
+	arduino.pw_(9,127);
+	{arduino.pw_(9,0)}.defer(1.0);
 )

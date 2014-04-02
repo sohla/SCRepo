@@ -9,12 +9,20 @@
 			pitch,
 			doneAction:2
 		);
+	    var imp = Impulse.kr(10);
+	    var delimp = Delay1.kr(imp);
+	    SendReply.kr(imp, '/onPlayLevel', [0,Amplitude.kr(player), K2A.ar(Peak.ar(player, delimp).lag(0, 1))]);
+
 		Out.ar(0,[player,player]);
 
 	}).send(s);
 
 	SynthDef(\micInput, {|buffer = 0|
-	var player = SoundIn.ar(0);
+		var player = SoundIn.ar(0);
+	    var imp = Impulse.kr(10);
+	    var delimp = Delay1.kr(imp);
+		 SendReply.kr(imp, '/onPlayLevel', [1,Amplitude.kr(player), K2A.ar(Peak.ar(player, delimp).lag(0, 1))]);
+
 		Out.ar(0,[player,player]);
 
 	}).send(s);
@@ -45,16 +53,17 @@
 	var appPath = PathName.new("~/Music/VoiceLab");
 	var sessionTitle,broadcaster;
 	var micInputSynth,playerSynth,recorderSynth;
-
+	var arduino,arduinoTask;
 
 	//------------------------------------------------------
 	// FUNCTIONS
 	//------------------------------------------------------
-	var buildSession, loadSession, createSession, loadTemplate, initMidi, closeMidi, initGUI, refreshGUI;
+	var buildSession, loadSession, createSession, loadTemplate;
+	var initMidi, closeMidi, initGUI, refreshGUI, initArduino,closeArduino;
 	var addQuestion, getNextNoteNumber;
 	var playModeState,recordModeState;
 
-var noteOnResponder;
+	var noteOnResponder;
 
 	broadcaster = NetAddr("127.0.0.1", NetAddr.langPort);
 
@@ -68,8 +77,8 @@ var noteOnResponder;
 	//------------------------------------------------------
 	buildSession = {
 
-//		loadSession.value(loadTemplate.value(createSession.value()));
-		loadSession.value(createSession.value());
+		loadSession.value(loadTemplate.value(createSession.value()));
+//		loadSession.value(createSession.value());
 
 
 
@@ -136,7 +145,42 @@ var noteOnResponder;
 		// return path
 		sessionArchivePath;
 	};
+	//------------------------------------------------------
+	// ARDUINO
+	//------------------------------------------------------
+initArduino = {
 
+	arduino = Rduino(SerialPort.devices.last,115200);
+	arduino.pw_(9,127);
+	{arduino.pw_(9,0)}.defer(1.0);
+
+	// arduinoTask = Task.new({ inf.do({
+	//
+	// 	i = i + d;
+	//
+	// 	if(i>127,{d = d * -1; i = 127;});
+	// 	if(i<0,{d = d * -1; i = 0;});
+	// 	i.postln;
+	// 	arduino.pw_(9,i);
+	//
+	// 	0.01.wait;
+	// 	})
+	//
+	// });
+	//
+	//
+};
+
+
+
+closeArduino = {
+
+	// turn everything off
+	(2..13).do{ | i | arduino.mode_(i,1) };
+	(2..13).do{ | i | arduino.bit_(i,0) };
+
+	arduino.close;
+};
 	//------------------------------------------------------
 	// MIDI
 	//------------------------------------------------------
@@ -184,6 +228,12 @@ var noteOnResponder;
 
 		},nil,nil,{|val|sessionData["keyPaths"].values.asInteger.includes(val)});
 
+		MIDIdef.noteOff(\noteOffPlayMode, {arg ...args;
+		{
+		}.defer(0.01);
+
+		});
+
 	};
 
 
@@ -192,6 +242,8 @@ var noteOnResponder;
 		var buffer,newPath;
 
 		noteOnResponder.remove;
+		MIDIdef(\noteOffPlayMode).free;
+
 		playerSynth.free;
 
 		// micInputSynth = Synth.new(\sinImpulse);//tester
@@ -265,17 +317,24 @@ var noteOnResponder;
 
 		var window = Window.new("Voicelab",Rect(50, 100, 800, 550)).front;
 		var listView, numberView,playButton,importButton, deleteButton;
+
+		var playLevelView,circleView;
 		var recordButton;
 		var onRecordMsg;
+		var onPlayLevel;
 		var recordMode=0;
+		var scale = 1.0;
 
 		window.onClose = ({
 			closeMidi.value();
 			onRecordMsg.free;
+			closeArduino.value();
+
 		});
 
 		window.view.decorator = FlowLayout( window.view.bounds, 10@10, 10@10 );
 		window.view.background = Color.new255(230,230,230);
+
 
 		listView = EZListView.new(window,
 		    750@400,
@@ -291,6 +350,21 @@ var noteOnResponder;
 	    );
 
 		listView.font = Font("Helvetica", 18);
+		playLevelView = LevelIndicator(window, Rect(0, 0, 10, 100));
+		playLevelView.background=Color.grey;
+		playLevelView.warning = 0.8;
+		playLevelView.critical = 0.9;
+
+
+		circleView = UserView(window, Rect(0, 0, 100, 100));
+		circleView.drawFunc= {
+			Pen.fillColor_( Color.black( 0.3, 0.1 ));
+			Pen.fillRect( Rect( 0, 0, 100, 100));
+			Pen.fillColor= Color.new255(226, 49, 140);
+			Pen.fillOval(Rect.aboutPoint(Point(50, 50), 20*scale, 20*scale));
+		};
+		circleView.animate= true;
+		circleView.clearOnRefresh = false;
 
 		numberView = EZNumber(window,
              150@50,
@@ -382,16 +456,31 @@ var noteOnResponder;
 		});
 
 		onRecordMsg = OSCFunc({|msg, time, addr, recvPort|
-		{
-			recordMode = recordMode.even.asInteger;
-			recordButton.value = recordMode;
-			switch(recordMode,
-				0,{playModeState.value();},
-				1,{recordModeState.value();
-			});
+			{
+				recordMode = recordMode.even.asInteger;
+				recordButton.value = recordMode;
+				switch(recordMode,
+				0,{playModeState.value();playLevelView.background=Color.grey;},
+				1,{recordModeState.value();playLevelView.background=Color.red(1,0.5);}
+				);
 
-		}.defer;
-	}, '/onRecordMsg');
+			}.defer;
+		}, '/onRecordMsg');
+
+		onPlayLevel = OSCFunc({|msg, time, addr, recvPort|
+    		{
+				scale = msg[4].ampdb.linexp(-40, 0, 1, 0.3);
+				playLevelView.value = msg[4].ampdb.linlin(-40, 0, 0, 1);
+				playLevelView.peakLevel = msg[5].ampdb.linlin(-40, 0, 0, 1);
+
+				if( msg[5].ampdb.linlin(-40, 0, 0, 1) > 0.3,{
+					 arduino.pw_(9,msg[5].ampdb.linexp(-40, 0, 5, 127));
+				},{
+						 arduino.pw_(9,0);
+				});
+  			}.defer;
+
+		}, '/onPlayLevel');
 
 	//------------------------------------------------------
 	refreshGUI = {
@@ -410,6 +499,8 @@ var noteOnResponder;
 		numberView.value = sessionData["keyPaths"].at(t.asString);
 	};
 
+	//CmdPeriod.doOnce({window.close});
+
 	};
 
 
@@ -419,10 +510,12 @@ var noteOnResponder;
 	// BUILD
 	//------------------------------------------------------
 
+	initArduino.value();
  	initGUI.value();
  	buildSession.value();
 	initMidi.value();
-// refreshGUI.value();
+
+	refreshGUI.value();
 
 
 )
