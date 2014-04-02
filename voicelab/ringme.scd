@@ -1,5 +1,5 @@
 (
-SynthDef(\ringme, {|buffer = 0, mix = 0.2|
+SynthDef(\ringme, {|buffer = 0, pitch = 40, range = 100|
 
 	var player,sel,fol;
 	var modulator;
@@ -8,11 +8,11 @@ SynthDef(\ringme, {|buffer = 0, mix = 0.2|
 
 	//player = SoundIn.ar(0);
 	player = PlayBuf.ar(1,buffer,BufRateScale.kr(buffer),loop: 1) ;
-	fol = (PeakFollower.ar(player,0.01) * 100).round;
+	fol = (PeakFollower.ar(player,0.01) * range).lag(0,0.1);
 
-	modulator = SinOsc.ar( MouseX.kr(1,150).midicps + fol.midicps,0,MouseY.kr(0,1));
+	modulator = SinOsc.ar( pitch.midicps + fol.midicps,0,player) ;
 
-	Out.ar(0,(player * modulator).dup);
+	Out.ar(0,(modulator).dup);
 
 }).send(s);
 )
@@ -22,8 +22,7 @@ c = Buffer.read(s, "Applications/SuperCollider3.6/sounds/memo1.wav");
 
 
 (
-x = Synth(\ringme,[\buffer,c]).autogui(specs:
-	(
-		\mix: [0,1.0,\lin,0.01,0.2],
-));
+x = Synth(\ringme,[\pitch,34,\range,60]);
+
+
 )

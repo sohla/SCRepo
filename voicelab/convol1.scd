@@ -10,7 +10,7 @@ SynthDef(\convol, {|buffer = 0, root = 44, mix = 0.2, size = 80, time = 1|
 	var sel;
 
 	//player = SoundIn.ar(0);
-	 player = PlayBuf.ar(1,buffer,BufRateScale.kr(buffer),loop: 1)*0.01;
+	 player = PlayBuf.ar(1,buffer,BufRateScale.kr(buffer),loop: 1)*0.1;
 	kernal = Saw.ar((root+notes).midicps,0.5).dup;
 	verb = GVerb.ar(player,16,time,0.41,0.19,15,-48,-9,-11);
 	// comb = CombN.ar(player,dlys,dlys,dcys);

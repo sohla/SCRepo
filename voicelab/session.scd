@@ -35,6 +35,23 @@
 		}
 	).send(s);
 
+SynthDef(\fshift, {|frq = 189, mul = 76, add = 232|
+
+	var in,voco,kernal;
+	var a = 0;
+
+
+			in = In.ar(0,2);
+		// use ReplaceOut to overwrite the previous contents of the bus.
+
+	kernal = LFTri.kr(frq,0,mul,add);
+
+	a= FreqShift.ar(in,kernal);
+		ReplaceOut.ar(0, a);
+
+}).send(s);
+)
+
 	// simple disk out
 	SynthDef(\diskOut, {arg bufnum;
 	    DiskOut.ar(bufnum, In.ar(0,1));
@@ -52,7 +69,7 @@
 	var date = Date.getDate;
 	var appPath = PathName.new("~/Music/VoiceLab");
 	var sessionTitle,broadcaster;
-	var micInputSynth,playerSynth,recorderSynth;
+	var micInputSynth,playerSynth,recorderSynth,pluginSynth;
 	var arduino,arduinoTask;
 
 	//------------------------------------------------------
@@ -153,22 +170,6 @@ initArduino = {
 	arduino = Rduino(SerialPort.devices.last,115200);
 	arduino.pw_(9,127);
 	{arduino.pw_(9,0)}.defer(1.0);
-
-	// arduinoTask = Task.new({ inf.do({
-	//
-	// 	i = i + d;
-	//
-	// 	if(i>127,{d = d * -1; i = 127;});
-	// 	if(i<0,{d = d * -1; i = 0;});
-	// 	i.postln;
-	// 	arduino.pw_(9,i);
-	//
-	// 	0.01.wait;
-	// 	})
-	//
-	// });
-	//
-	//
 };
 
 
@@ -225,6 +226,15 @@ closeArduino = {
 			p = appPath.asAbsolutePath+/+sessionTitle+/+"Questions"+/+t;
 			a = Synth(\playBuffer,[\buffer,Buffer.read(s, p)]);
 
+			pluginSynth = Synth.tail(nil,\fshift);
+
+			a.onFree({
+				pluginSynth.free;
+				arduino.pw_(9,0);
+
+			});
+
+
 
 		},nil,nil,{|val|sessionData["keyPaths"].values.asInteger.includes(val)});
 
@@ -258,7 +268,7 @@ closeArduino = {
 				t = "Question_"++g++".wav";
 				p = appPath.asAbsolutePath+/+sessionTitle+/+"Questions"+/+t;
 				buffer.write(p,"wav","int16",startFrame:65536,leaveOpen:true);
-				recorderSynth = Synth.tail(nil,\diskOut,[\bufnum,buffer.bufnum]);
+				recorderSynth = Synth.tail(nil,\diskOut,[\frq,189,\mul,76,\add,232]);
 				("Recording "++t).postln;
 				newPath = p;
 			}.defer;
@@ -358,9 +368,10 @@ closeArduino = {
 
 		circleView = UserView(window, Rect(0, 0, 100, 100));
 		circleView.drawFunc= {
-			Pen.fillColor_( Color.black( 0.3, 0.1 ));
+			Pen.fillColor_( Color.grey( 0.0, 0.1 ));
 			Pen.fillRect( Rect( 0, 0, 100, 100));
 			Pen.fillColor= Color.new255(226, 49, 140);
+			Pen.strokeColor= Color.new255(226, 49, 140);
 			Pen.fillOval(Rect.aboutPoint(Point(50, 50), 20*scale, 20*scale));
 		};
 		circleView.animate= true;
@@ -469,7 +480,7 @@ closeArduino = {
 
 		onPlayLevel = OSCFunc({|msg, time, addr, recvPort|
     		{
-				scale = msg[4].ampdb.linexp(-40, 0, 1, 0.3);
+				scale = msg[4].ampdb.linexp(-40, 0, 1, 1.5);
 				playLevelView.value = msg[4].ampdb.linlin(-40, 0, 0, 1);
 				playLevelView.peakLevel = msg[5].ampdb.linlin(-40, 0, 0, 1);
 
@@ -499,7 +510,11 @@ closeArduino = {
 		numberView.value = sessionData["keyPaths"].at(t.asString);
 	};
 
-	//CmdPeriod.doOnce({window.close});
+	CmdPeriod.doOnce({
+
+		closeArduino.value();
+		window.close;
+	});
 
 	};
 
