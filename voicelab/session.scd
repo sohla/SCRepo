@@ -217,14 +217,12 @@
 
 			pluginSynth = Synth.tail(nil,pluginName);
 
-		a.onFree({
-			// pluginSynth.free;
-			arduino.pw_(9,0);
-
-		});
-
-
-
+			s.queryAllNodes;
+			a.onFree({
+				// pluginSynth.free;
+				arduino.pw_(9,0);
+				s.queryAllNodes;
+			});
 		},nil,nil,{|val|sessionData["keyPaths"].values.asInteger.includes(val)});
 
 		MIDIdef.noteOff(\noteOffPlayMode, {arg ...args;
@@ -249,7 +247,10 @@
 
 		// micInputSynth = Synth.new(\sinImpulse);//tester
 		micInputSynth = Synth.new(\micInput);
-		pluginSynth = Synth.tail(nil,pluginName);
+		//pluginSynth = Synth.tail(nil,pluginName);
+
+		s.queryAllNodes;
+
 
 		MIDIdef.noteOn(\noteOnRecordMode, {arg ...args;
 
@@ -262,6 +263,7 @@
 				buffer.write(p,"wav","int16",startFrame:65536,leaveOpen:true);
 				recorderSynth = Synth.tail(nil,\diskOut,[\frq,189,\mul,76,\add,232]);
 				("Recording "++t).postln;
+				s.queryAllNodes;
 
 				newPath = p;
 			}.defer;
@@ -273,13 +275,14 @@
 				recorderSynth.free;
 				buffer.free;
 
-				p = newPath.dirname+/+newPath.basename.splitext[0]++"Norm."++newPath.basename.splitext[1];
-
-				SoundFile.normalize(newPath,p,threaded:false);
-				File.delete(newPath);
-				addQuestion.value(p,args[1]);
+			// p = newPath.dirname+/+newPath.basename.splitext[0]++"Norm."++newPath.basename.splitext[1];
+			//
+			// SoundFile.normalize(newPath,p,threaded:false);
+			// File.delete(newPath);
+				addQuestion.value(newPath,args[1]);
 				("Finished recording "++t).postln;
 
+				s.queryAllNodes;
 			}.defer(1);
 		});
 	};
@@ -386,10 +389,12 @@
 				a = Synth(\playBuffer,[\buffer,Buffer.read(s, p)]);
 			pluginSynth = Synth.tail(nil,pluginName);
 
-		pluginSynth.onFree({
-			arduino.pw_(9,0);
+			s.queryAllNodes;
+			a.onFree({
+				arduino.pw_(9,0);
+				s.queryAllNodes;
+			});
 		});
-	        });
 
 		importButton = Button(window, 120@50)
 			.states_([["Import Question", Color.black, Color.blue(alpha:0.2)]])
