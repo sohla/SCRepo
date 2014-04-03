@@ -75,7 +75,7 @@
 	// contect locally so we can send msgs
 	broadcaster = NetAddr("127.0.0.1", NetAddr.langPort);
 
-	// setup dummy datastore 
+	// setup dummy datastore
 	sessionData.put("keyPaths",Dictionary.new);
 
 
@@ -154,6 +154,8 @@
 	// ARDUINO
 	//------------------------------------------------------
 	initArduino = {
+
+	SerialPort.devices.last.postln;
 		arduino = Rduino(SerialPort.devices.last,115200);
 		arduino.pw_(9,127);
 		{arduino.pw_(9,0)}.defer(1.0);
@@ -247,6 +249,7 @@
 
 		// micInputSynth = Synth.new(\sinImpulse);//tester
 		micInputSynth = Synth.new(\micInput);
+		pluginSynth = Synth.tail(nil,pluginName);
 
 		MIDIdef.noteOn(\noteOnRecordMode, {arg ...args;
 
@@ -259,6 +262,7 @@
 				buffer.write(p,"wav","int16",startFrame:65536,leaveOpen:true);
 				recorderSynth = Synth.tail(nil,\diskOut,[\frq,189,\mul,76,\add,232]);
 				("Recording "++t).postln;
+
 				newPath = p;
 			}.defer;
 		});
@@ -323,6 +327,7 @@
 		window.onClose = ({
 			closeMidi.value();
 			onRecordMsg.free;
+			onPlayLevel.free;
 			closeArduino.value();
 
 		});
@@ -460,9 +465,24 @@
 			{
 				recordMode = recordMode.even.asInteger;
 				recordButton.value = recordMode;
+
+				playLevelView.value = 0;
+				playLevelView.peakLevel = 0;
+				scale = 1.0;
+				arduino.pw_(9,0);
+
 				switch(recordMode,
-				0,{playModeState.value();playLevelView.background=Color.grey;},
-				1,{recordModeState.value();playLevelView.background=Color.red(1,0.5);}
+				0,{
+					playModeState.value();
+					playLevelView.background=Color.grey;
+
+
+				},
+				1,{
+					recordModeState.value();
+					playLevelView.background=Color.red(1,0.5);
+
+				}
 				);
 
 			}.defer;
@@ -511,7 +531,7 @@
 	// BUILD
 	//------------------------------------------------------
 
-	//initArduino.value();
+	initArduino.value();
  	initGUI.value();
  	buildSession.value();
 	initMidi.value();

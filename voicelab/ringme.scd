@@ -6,13 +6,13 @@ SynthDef(\ringme, {|buffer = 0, pitch = 40, range = 100|
 	var notes = #[0,4,7];
 	var root = 42;
 
-	//player = SoundIn.ar(0);
-	player = PlayBuf.ar(1,buffer,BufRateScale.kr(buffer),loop: 1) ;
+	player = SoundIn.ar(0);
+	//player = PlayBuf.ar(1,buffer,BufRateScale.kr(buffer),loop: 1) ;
 	fol = (PeakFollower.ar(player,0.01) * range).lag(0,0.1);
 
 	modulator = SinOsc.ar( pitch.midicps + fol.midicps,0,player) ;
 
-	Out.ar(0,(modulator).dup);
+	Out.ar(0,(player).dup);
 
 }).send(s);
 )
