@@ -22,7 +22,6 @@
 	    var imp = Impulse.kr(10);
 	    var delimp = Delay1.kr(imp);
 		 SendReply.kr(imp, '/onPlayLevel', [1,Amplitude.kr(player), K2A.ar(Peak.ar(player, delimp).lag(0, 1))]);
-
 		Out.ar(0,[player,player]);
 
 	}).send(s);
@@ -32,23 +31,14 @@
 			var trg = Decay2.ar(Impulse.ar(2,0,0.3), 0.01, 0.3);
 			var sig = SinOsc.ar(freq,0,trg*amp);
 			Out.ar(0,[sig,sig])
-		}
-	).send(s);
+	}).send(s);
 
 	SynthDef(\freqShift, {|frq = 189, mul = 76, add = 232|
-
-		var in,voco,kernal;
-		var a = 0;
-
-
-		in = In.ar(0,2);
-
-		kernal = LFTri.kr(frq,0,mul,add);
-
-		a= FreqShift.ar(in,kernal);
+		var in = In.ar(0,2);
+		var kernal = LFTri.kr(frq,0,mul,add);
+		var a= FreqShift.ar(in,kernal);
 		// use ReplaceOut to overwrite the previous contents of the bus.
 		ReplaceOut.ar(0, a);
-
 	}).send(s);
 
 
@@ -68,8 +58,9 @@
 	var sessionData = Dictionary.new;
 	var date = Date.getDate;
 	var appPath = PathName.new("~/Music/VoiceLab");
-	var sessionTitle,broadcaster;
-	var micInputSynth,playerSynth,recorderSynth,pluginSynth,pluginName=\freqShift;
+	var sessionTitle,broadcaster,noteOnResponder;
+	var micInputSynth,playerSynth,recorderSynth,pluginSynth;
+	var pluginName=\freqShift;
 	var arduino = 0,arduinoTask;
 
 	//------------------------------------------------------
@@ -80,13 +71,12 @@
 	var addQuestion, getNextNoteNumber;
 	var playModeState,recordModeState;
 
-	var noteOnResponder;
 
+	// contect locally so we can send msgs
 	broadcaster = NetAddr("127.0.0.1", NetAddr.langPort);
 
-	// setup
+	// setup dummy datastore 
 	sessionData.put("keyPaths",Dictionary.new);
-
 
 
 	//------------------------------------------------------
@@ -96,8 +86,6 @@
 
 		loadSession.value(loadTemplate.value(createSession.value()));
 //		loadSession.value(createSession.value());
-
-
 
 		// ready to play
 		"Ready to play!".postln;
@@ -165,25 +153,19 @@
 	//------------------------------------------------------
 	// ARDUINO
 	//------------------------------------------------------
-initArduino = {
+	initArduino = {
+		arduino = Rduino(SerialPort.devices.last,115200);
+		arduino.pw_(9,127);
+		{arduino.pw_(9,0)}.defer(1.0);
+	};
 
-	arduino = Rduino(SerialPort.devices.last,115200);
-	arduino.pw_(9,127);
-	{arduino.pw_(9,0)}.defer(1.0);
-};
+	closeArduino = {
+			// turn everything off
+			(2..13).do{ | i | arduino.mode_(i,1) };
+			(2..13).do{ | i | arduino.bit_(i,0) };
 
-
-
-closeArduino = {
-
-
-		// turn everything off
-		(2..13).do{ | i | arduino.mode_(i,1) };
-		(2..13).do{ | i | arduino.bit_(i,0) };
-
-		arduino.close;
-
-};
+			arduino.close;
+	};
 	//------------------------------------------------------
 	// MIDI
 	//------------------------------------------------------
@@ -295,10 +277,7 @@ closeArduino = {
 				("Finished recording "++t).postln;
 
 			}.defer(1);
-
-
 		});
-
 	};
 
 
@@ -313,7 +292,6 @@ closeArduino = {
 
 		// we have to copy the dict since parseYAML returns an unmutable collection!!
 		n = Dictionary.newFrom(sessionData["keyPaths"]);
-
 
 		// insert new question into datastore
 		n.put(path.basename,num.asString);
@@ -498,40 +476,36 @@ closeArduino = {
 
 					if( msg[5].ampdb.linlin(-40, 0, 0, 1) > 0.3,{
 						arduino.pw_(9,msg[5].ampdb.linexp(-40, 0, 5, 127));
-						},{
-							arduino.pw_(9,0);
+					},{
+						arduino.pw_(9,0);
 					});
   			}.defer;
 
 		}, '/onPlayLevel');
 
-	//------------------------------------------------------
-	refreshGUI = {
+		//------------------------------------------------------
+		refreshGUI = {
 
-		// clear listView
-		listView.items = Array.newClear;
-		sessionData["keyPaths"].values.collect(_.asInteger).asSortedList.postln;
-		// repopulate in order of assigned midi note
-		sessionData["keyPaths"].values.asSortedList.collect(_.asInteger).do({ |val|
-			t = sessionData["keyPaths"].findKeyForValue(val.asString);
-			listView.addItem(t,{
-				numberView.value = val;
+			// clear listView
+			listView.items = Array.newClear;
+			sessionData["keyPaths"].values.collect(_.asInteger).asSortedList.postln;
+			// repopulate in order of assigned midi note
+			sessionData["keyPaths"].values.asSortedList.collect(_.asInteger).do({ |val|
+				t = sessionData["keyPaths"].findKeyForValue(val.asString);
+				listView.addItem(t,{
+					numberView.value = val;
+				});
 			});
+			t = listView.items.at(listView.value).key;
+			numberView.value = sessionData["keyPaths"].at(t.asString);
+		};
+
+		CmdPeriod.doOnce({
+			closeArduino.value();
+			window.close;
 		});
-		t = listView.items.at(listView.value).key;
-		numberView.value = sessionData["keyPaths"].at(t.asString);
-	};
-
-	CmdPeriod.doOnce({
-
-		closeArduino.value();
-		window.close;
-	});
 
 	};
-
-
-
 
 	//------------------------------------------------------
 	// BUILD
