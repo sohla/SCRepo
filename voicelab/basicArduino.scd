@@ -85,9 +85,9 @@ a.close
 )
 
 
-a = 0;
+a = 1;
 
-if((a!=0)asBoolean,{"a".postln})
+if((a!=0),{"a".postln})
 a = Rduino(SerialPort.devices.last,115200);
 
 
