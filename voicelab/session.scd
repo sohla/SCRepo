@@ -156,7 +156,7 @@
 	initArduino = {
 
 	SerialPort.devices.last.postln;
-		arduino = Rduino(SerialPort.devices.last,115200);
+		arduino = RduinoDMX(SerialPort.devices.last,115200);
 		arduino.pw_(9,127);
 		{arduino.pw_(9,0)}.defer(1.0);
 	};

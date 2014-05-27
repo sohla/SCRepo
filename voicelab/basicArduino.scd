@@ -8,7 +8,7 @@ a.pw_(9, 32)
 
 
 
-SerialPort.device0
+SerialPort.devices
 a = Rduino(SerialPort.devices.last,115200);
 (2..13).do{ | i | a.mode_(i,1) };
 (2..13).do{ | i | a.bit_(i,0) };
@@ -92,3 +92,40 @@ a = Rduino(SerialPort.devices.last,115200);
 
 
 
+
+
+a = RduinoDMX(SerialPort.devices.last,115200);
+
+a.dmxc_(0,0,0)
+a.dmx_(1,255)
+a.dmx_(2,0)
+a.dmx_(3,0)
+
+(
+	a = RduinoDMX(SerialPort.devices.last,115200);
+	i = 1;
+	f = 1;
+	m = 20;
+r = Task.new({ inf.do({ |i|
+
+
+	// if(i>=m,{i=1; f = f * -1;});
+
+	u = i/m;
+	t = u * pi;
+
+	b = (127 * cos(t)) + 127;
+	c = (127 * cos(t + 2.0 * pi / 3.0)) + 127;
+	d = (127 * cos(t + 3.0 * pi / 3.0)) + 127;
+
+	a.dmxc_(b,c,d);
+
+	//(u+":"+b+"."+c+"."+d).postln;
+
+        0.01.wait;
+		})
+
+	});
+
+	r.play;
+)
