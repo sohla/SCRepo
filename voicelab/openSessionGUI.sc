@@ -1,21 +1,7 @@
-(
-var w;
-
-w = Window("~",);
-w.layout_(
-	VLayout(
-		StaticText().string_("Welcome to Voice Lab").align_(\center).font_(Font(size:24)),
-		Button().maxHeight_(100).states_([["New Session"]]),
-		Button().maxHeight_(100).states_([["Open Session"]]),
-		Button().maxHeight_(100).states_([["Template Session"]]))
-	);
-w.front;
-w.onClose = {  };
-)
 
 (
 	
-var stack;
+var window,mainView;
 var loadView,sessionView;
 
 loadView = ({
@@ -24,7 +10,7 @@ loadView = ({
 		
 		[Button()
 			.states_([["New Session"]])
-			.action_({|b| stack.index = 1})
+			.action_({|b| mainView.index = 1})
 			.minWidth_(400)
 			.minHeight_(70)
 			, align:\center],
@@ -52,18 +38,21 @@ loadView = ({
 sessionView = ({
 	
 	var btnHeight = 180;
-	
+	var listView;
 	View().layout_( HLayout(
-		ListView()
+		listView = ListView()
 			.maxHeight_(340)
-			.items_([ "SinOsc", "Saw", "LFSaw", "WhiteNoise", "PinkNoise", "BrownNoise", "Osc" ])
+			.items_([ "SinOsc", "Saw", "LFSaw", "WhiteNoise", "PinkNoise", "BrownNoise", "Osc", "BOsc", "SOsc" , "FOsc" ])
 			.font_(Font("Helvetica", 44)),
 			
 		View().layout_( GridLayout.rows([
 			
 			Button()
 				.maxHeight_(btnHeight)
-				.states_([["PREV"]]),
+				.states_([["PREV"]])
+				.action_({|v|
+					if(listView.value > 0,{listView.value = listView.value - 1});
+				}),
 
 			Button()
 				.maxHeight_(btnHeight)
@@ -76,6 +65,11 @@ sessionView = ({
 			Button()
 				.maxHeight_(btnHeight)
 				.states_([["NEXT"]])
+				.action_({|v|
+					listView.value.postln;
+					listView.items.size.postln;
+					if(listView.value + 1 < listView.items.size,{listView.value = listView.value + 1});
+				})
 
 			],[
 
@@ -109,7 +103,7 @@ sessionView = ({
 			Button()
 				.maxHeight_(btnHeight)
 				.states_([["Exit"]])
-				.action_({|b| stack.index = 0})
+				.action_({|b| mainView.index = 0})
 			])
 		
 		
@@ -117,35 +111,16 @@ sessionView = ({
 
 	))
 
-/*	View().layout_( VLayout(
-		
-		Button()
-			.maxHeight_(100)
-			.states_([["a"]]),
-		
-		Button()
-			.maxHeight_(100)
-			.states_([["b"]]),
-		
-		
-		
-		Button()
-			.maxHeight_(100)
-			.states_([["c"]]))
-		)
-*/});
+});
 
 
 
-w = Window("",Rect(50, 100, 1000, 400)).layout_( VLayout(
-stack = StackLayout(
+window = Window("",Rect(50, 100, 1000, 400)).layout_( VLayout(
+mainView = StackLayout(
 	
 		loadView.value(),
-		sessionView.value(),
-        TextView().string_("This is a chunk of text..."),
-        TextView().string_("...and this is another..."),
-        TextView().string_("...and another.")
-    );
+		sessionView.value()
+		);
 )).front;
 
 )
