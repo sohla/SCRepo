@@ -1,57 +1,4 @@
 
-s.boot;
-
-(
-	
-	SynthDef(\playBuffer, {|buffer = 0, note = 69|
-		var pitch = (note.midicps / 440.0) * BufRateScale.kr(buffer);
-		var player = PlayBuf.ar(
-			buffer.numChannels,
-			buffer,
-		pitch,
-			doneAction:4//free both this synth and the following node
-		);
-	    var imp = Impulse.kr(10);
-	    var delimp = Delay1.kr(imp);
-	    SendReply.kr(imp, '/onPlayLevel', [0,Amplitude.kr(player), K2A.ar(Peak.ar(player, delimp).lag(0, 1))]);
-
-		Out.ar(0,[player,player]);
-
-	}).send(s);
-
-	SynthDef(\micInput, {|buffer = 0|
-		var player = SoundIn.ar(0);
-	    var imp = Impulse.kr(10);
-	    var delimp = Delay1.kr(imp);
-		 SendReply.kr(imp, '/onPlayLevel', [1,Amplitude.kr(player), K2A.ar(Peak.ar(player, delimp).lag(0, 1))]);
-		Out.ar(0,[player,player]);
-
-	}).send(s);
-
-	// sin impulse for testing
-	SynthDef(\sinImpulse,{|freq=440,amp=0.8|
-			var trg = Decay2.ar(Impulse.ar(2,0,0.3), 0.01, 0.3);
-			var sig = SinOsc.ar(freq,0,trg*amp);
-			Out.ar(0,[sig,sig])
-	}).send(s);
-
-	SynthDef(\freqShift, {|frq = 189, mul = 76, add = 232|
-		var in = In.ar(0,2);
-		var kernal = LFTri.kr(frq,0,mul,add);
-		var a= FreqShift.ar(in,kernal);
-		// use ReplaceOut to overwrite the previous contents of the bus.
-		ReplaceOut.ar(0, a);
-	}).send(s);
-
-
-	// simple disk out
-	SynthDef(\diskOut, {arg bufnum;
-	    DiskOut.ar(bufnum, In.ar(0,1));
-	}).send(s);
-
-)
-
-
 (
 
 	//------------------------------------------------------
@@ -85,8 +32,8 @@ s.boot;
 	//------------------------------------------------------
 	buildSession = {
 
-		loadSession.value(loadTemplate.value(createSession.value()));
-//		loadSession.value(createSession.value());
+//		loadSession.value(loadTemplate.value(createSession.value()));
+		loadSession.value(createSession.value());
 
 		// ready to play
 		"Ready to play!".postln;
@@ -326,14 +273,13 @@ s.boot;
 			globalAction:nil,
 		    initVal: 0,
 		    initAction: true,
-		   	labelWidth: 100,
-		    labelHeight: 20,
+		   	labelWidth: 20,
+		    labelHeight: 70,
 		    layout: \vert,
 		    gap: 10@10,
 			margin: 10@10
 	    );
-
-		listView.font = Font("Helvetica", 18);
+		listView.font = Font("Helvetica", 44);
 		playLevelView = LevelIndicator(window, Rect(0, 0, 10, 100));
 		playLevelView.background=Color.grey;
 		playLevelView.warning = 0.8;
@@ -364,6 +310,8 @@ s.boot;
 		playButton = Button(window, 100@50)
 	        .states_([["Play", Color.black, Color.green(alpha:0.2)]])
 	        .action_({ arg butt;
+				window.view.enabled = false;
+				
 	            listView.value.postln;
 				t = listView.items.at(listView.value).key;
 				p = appPath.asAbsolutePath+/+sessionTitle+/+"Questions"+/+t;
@@ -373,6 +321,10 @@ s.boot;
 			s.queryAllNodes;
 			a.onFree({
 				s.queryAllNodes;
+				{
+					listView.value = listView.value + 1;
+					window.view.enabled = true;
+				}.defer;
 			});
 		});
 
@@ -520,107 +472,3 @@ s.boot;
 
 )
 
-//------------------------------------------------------
-// WORKBENCH
-//------------------------------------------------------
-
-
-
-
-
-c="5"
-c.asInteger
-a = [34,5,76,9];
-a.includes(5)
-
-
-b = ["34","5","76","9"].asInteger.includes(6);
-b = b.asInteger
-b.includes(5)
-
-
-a.asSortedList
-
-a = [ \a->123,\b->345345]
-a.at(0)
-a.do({ |o|
-o.value.postln;
-})
-
-
-
-
-d = [(\robot->99),(\robot2->29)];
-d.class
-d.associationAt(\robot);    // Get the value associated with key
-
-
-a = Dictionary.new(); // return a new Event.
-b = \foo ->2.718
-a.add(b);
-b = \foo2 ->24.718
-a.add(b);
-a.at("foo".asSymbol);
-
-a.gui
-a = [ ("1.welcomeToVoiceLab.wav" -> 64), ("10.whatMakesYouLaugh.wav" -> 73)]
-
-
-
-
-
-f = { |a|
-	(a+7);
-};
-
-
-c = f.value(5)
-c
-a = (1..127); b = [2, 3, 4, 5];
-difference(a, b);
-
-differnce((0..127),[1,2,3])
-
-
-(1..127)
-
-a = (1..127)
-a.flat
-
-["4", 12, 4, 22, 51, 63, 2, 6, 73, 2 ].collect(_.asInteger)
-
-
-
-a = (1..10);
-b = [1,2,5,8].collect(_.asInteger);
-c = difference(a,b).first;
-b = b.add(difference(a,b).first);
-
-(
-f = {
-	var test = "oh yes";
-	"f".postln;
-	g = {
-	test.postln;
-	};
-
-};
-)
-
-
-f.value()
-g.value()
-
-
-
-
-	a = ("~/Music/VoiceLab/x.wav");
-a.dirname+/+a.basename.splitext[0]++"Norm."++a.basename.splitext[1]
-//------------------------------------------------------
-// IDEAS
-//------------------------------------------------------
-
-pedal as record state : turns on rec button
-
-
-rename question files
