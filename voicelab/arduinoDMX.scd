@@ -11,6 +11,7 @@ a.dmx_(3,0)
 
 // basic example controlling hue and satuation
 (
+	
 
 	a = RduinoDMX(SerialPort.devices.last,115200);
 	w = Window.new.front;
