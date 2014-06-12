@@ -14,7 +14,7 @@
 	//------------------------------------------------------
 	// FUNCTIONS
 	//------------------------------------------------------
-	var buildSession, loadSession, createSession, loadTemplate;
+	var buildSession, initSession, createSession, loadTemplate,loadSession, saveSession;
 	var initMidi, closeMidi, initGUI, refreshGUI, initArduino,closeArduino;
 	var addQuestion, getNextNoteNumber;
 	var playModeState,recordModeState;
@@ -32,8 +32,8 @@
 	//------------------------------------------------------
 	buildSession = {
 
-//		loadSession.value(loadTemplate.value(createSession.value()));
-		loadSession.value(createSession.value());
+//		initSession.value(loadTemplate.value(createSession.value()));
+		initSession.value(createSession.value());
 
 		// ready to play
 		"Ready to play!".postln;
@@ -42,7 +42,7 @@
 
 
 	//------------------------------------------------------
-	loadSession = { |path|
+	initSession = { |path|
 
 		sessionData = Object.readArchive(path);
 		sessionTitle = path.asRelativePath(appPath.absolutePath).dirname;
@@ -74,6 +74,25 @@
 		path;
 
 	};
+	
+	loadSession = { |path|
+		
+		// open dialog to where the data file is
+		
+		// read archive from found path
+		
+		// store archive 
+		
+	};
+	
+	saveSession = { |path|
+	
+
+/*		var sessionArchivePath = appPath.asAbsolutePath+/+genTitle+/+"session";
+		sessionData.writeArchive(sessionArchivePath);
+*/	
+		
+	};
 	//------------------------------------------------------
 	createSession = {
 
@@ -93,6 +112,7 @@
 		templateData.writeArchive(sessionArchivePath);
 
 
+		//sessionTitle = sessionArchivePath.asRelativePath(appPath.absolutePath).dirname;
 
 
 		// return path
@@ -439,16 +459,19 @@
 
 			// clear listView
 			listView.items = Array.newClear;
-			sessionData["keyPaths"].values.collect(_.asInteger).asSortedList.postln;
-			// repopulate in order of assigned midi note
-			sessionData["keyPaths"].values.asSortedList.collect(_.asInteger).do({ |val|
-				t = sessionData["keyPaths"].findKeyForValue(val.asString);
-				listView.addItem(t,{
-					numberView.value = val;
+			
+			if(sessionData["keyPaths"].isEmpty == false,{
+				sessionData["keyPaths"].values.collect(_.asInteger).asSortedList.postln;
+				// repopulate in order of assigned midi note
+				sessionData["keyPaths"].values.asSortedList.collect(_.asInteger).do({ |val|
+					t = sessionData["keyPaths"].findKeyForValue(val.asString);
+					listView.addItem(t,{
+						numberView.value = val;
+					});
 				});
+				t = listView.items.at(listView.value).key;
+				numberView.value = sessionData["keyPaths"].at(t.asString);
 			});
-			t = listView.items.at(listView.value).key;
-			numberView.value = sessionData["keyPaths"].at(t.asString);
 		};
 
 		CmdPeriod.doOnce({
