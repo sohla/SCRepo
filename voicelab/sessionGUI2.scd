@@ -14,7 +14,7 @@
 	//------------------------------------------------------
 	// FUNCTIONS
 	//------------------------------------------------------
-	var buildSession, initSession, createSession, loadTemplate,loadSession, saveSession;
+	var buildSession, initSession, createSession, loadTemplate,loadAndInitSession;
 	var initMidi, closeMidi, initGUI, refreshGUI, initArduino,closeArduino;
 	var addQuestion, getNextNoteNumber;
 	var playModeState,recordModeState;
@@ -33,7 +33,8 @@
 	buildSession = {
 
 //		initSession.value(loadTemplate.value(createSession.value()));
-		initSession.value(createSession.value());
+//		initSession.value(createSession.value());
+		loadAndInitSession.value(createSession.value());
 
 		// ready to play
 		"Ready to play!".postln;
@@ -45,9 +46,8 @@
 	initSession = { |path|
 
 		sessionData = Object.readArchive(path);
-		sessionTitle = path.asRelativePath(appPath.absolutePath).dirname;
 		(sessionTitle ++ " session loaded").postln;
-		//sessionData["keyPaths"].postln;
+//		sessionData["keyPaths"].postln;
 	};
 
 	//------------------------------------------------------
@@ -66,7 +66,7 @@
 
 			var newPath = appPath.asAbsolutePath+/+path.asRelativePath(appPath.absolutePath).dirname+/+"Questions";
 
-		SoundFile.normalize(f.path,newPath+/+f.path.basename,threaded:true);
+			SoundFile.normalize(f.path,newPath+/+f.path.basename,threaded:true);
 
 
 		};
@@ -75,24 +75,38 @@
 
 	};
 	
-	loadSession = { |path|
+	loadAndInitSession = { |path|
 		
-		// open dialog to where the data file is
-		
-		// read archive from found path
-		
-		// store archive 
-		
-	};
-	
-	saveSession = { |path|
-	
 
-/*		var sessionArchivePath = appPath.asAbsolutePath+/+genTitle+/+"session";
-		sessionData.writeArchive(sessionArchivePath);
-*/	
+		File.openDialog("Select a VoiceLab Session ",{|p|
+
+			// load archive from found path
+			var templateData = Object.readArchive(p);
+			var sourceDirPath = p.dirname;
+			
+			// save data as achive inside session dir
+			templateData.writeArchive(path);
+
+			initSession.value(path);
+
+			SoundFile.collect(sourceDirPath.asAbsolutePath+/+"Questions/*").do{ |f,i|
+
+				var newPath = appPath.asAbsolutePath+/+path.asRelativePath(appPath.absolutePath).dirname+/+"Questions";
+
+				SoundFile.normalize(f.path,newPath+/+f.path.basename,threaded:true);
+
+			};
+			refreshGUI.value();
+
+		},{
+			// cancel file open dialog
+		});
 		
+		
+		// return
+		path;
 	};
+	
 	//------------------------------------------------------
 	createSession = {
 
@@ -101,7 +115,7 @@
 		var sessionDir = File.mkdir(appPath.asAbsolutePath+/+genTitle);
 		var quesiotnsDir = File.mkdir(appPath.asAbsolutePath+/+genTitle+/+"Questions");
 		var answersDir = File.mkdir(appPath.asAbsolutePath+/+genTitle+/+"Answers");
-		var sessionArchivePath = appPath.asAbsolutePath+/+genTitle+/+"session";
+		var sessionArchivePath = appPath.asAbsolutePath+/+genTitle+/+"session.vls";
 
 
 		// create empty datastore
@@ -112,7 +126,7 @@
 		templateData.writeArchive(sessionArchivePath);
 
 
-		//sessionTitle = sessionArchivePath.asRelativePath(appPath.absolutePath).dirname;
+		sessionTitle = sessionArchivePath.asRelativePath(appPath.absolutePath).dirname;
 
 
 		// return path
@@ -253,7 +267,7 @@
 		n.put(path.basename,num.asString);
 		sessionData["keyPaths"]  = n;
 
-		p = appPath.asAbsolutePath+/+sessionTitle+/+"session";
+		p = appPath.asAbsolutePath+/+sessionTitle+/+"session.vls";
 		sessionData.writeArchive(p);
 		sessionData = Object.readArchive(p);
 
@@ -378,7 +392,7 @@
 					File.delete(path);
 
 					sessionData["keyPaths"].removeAt(key.asString);
-					p = appPath.asAbsolutePath+/+sessionTitle+/+"session";
+					p = appPath.asAbsolutePath+/+sessionTitle+/+"session.vls";
 					sessionData.writeArchive(p);
 					sessionData = Object.readArchive(p);
 
