@@ -4,19 +4,29 @@
 var window,mainView;
 var loadView,sessionView;
 
+say = ({|s|
+	if(true,{s.speak});
+});
+
 loadView = ({
 	View().layout_( VLayout(
 		StaticText().string_("Welcome to Voice Lab").align_(\center).font_(Font(size:48)),
 		
 		[Button()
 			.states_([["New Session"]])
-			.action_({|b| mainView.index = 1})
+			.action_({|b| 
+				mainView.index = 1;
+				say.value("New, Voice Lab Session");
+			})
 			.minWidth_(400)
 			.minHeight_(70)
 			, align:\center],
 		
 		[Button()
 			.states_([["Open Session"]])
+			.action_({|b| 
+				"Open Voice Lab Session".speak;
+			})
 			.minWidth_(400)
 			.minHeight_(70)
 			, align:\center],
@@ -26,6 +36,9 @@ loadView = ({
 		[Button()
 			.maxHeight_(100)
 			.states_([["Template Session"]])
+			.action_({|b| 
+				"Creating Voice Lab Session from Template".speak;
+			})
 			.minWidth_(400)
 			.minHeight_(70)
 			, align:\center]
@@ -115,47 +128,22 @@ sessionView = ({
 
 
 
-window = Window("",Rect(50, 100, 1000, 400)).layout_( VLayout(
-mainView = StackLayout(
+window = Window("",Rect(50, 100, 1000, 400))
+	.layout_( VLayout(
+		mainView = StackLayout(
 	
-		loadView.value(),
-		sessionView.value()
+			loadView.value(),
+			sessionView.value()
 		);
-)).front;
+	))
 
-)
+	.toFrontAction_({
+		"welcome to, voicelab".speak;
+	
+		})
+	.front;
 
-43.asUnicode
-0x02ff.asAscii
-U+02FF.postln
-String("d")
-
-(
-w = Window.new("I catch keystrokes");
-w.view.keyDownAction = { arg view, char, modifiers, unicode, keycode;  [char, keycode].postln; };
-w.front;
-)
 
 
 
-500.do{|i| i.asAscii.postln}
-
-"underlined".underlined;
-"underlined".underlined($~);
-"hi. welcome to voice lab".speak;
-
-"before we begin, you may select the voice you want to hear".speak
-
-"question one. are you happy".speak
-
-"do you like this music".speak
-
-"i am enjoying it, to".speak
-
-"cann you please stay".speak
-
-"i enjoy talking, to you".speak
-
-"please, don't go. please".speak
-
-
+)
