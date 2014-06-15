@@ -1,16 +1,36 @@
 
 (
 	
-var window,mainView;
-var loadView,sessionView;
+var window, mainView;
+var loadView, sessionView, errorView, errorText;
+var say;
+var width = 400, height = 400, xspeed = 3, yspeed = 2, x = width*0.5, y = height*0.5;
 
 say = ({|s|
-	if(true,{s.speak});
+	if(false,{s.speak});
+});
+errorView = ({
+	View().layout_( VLayout(
+		
+		StaticText().string_("Error").align_(\center).font_(Font(size:48)),
+		errorText = StaticText().string_("-").align_(\center).font_(Font(size:24)),
+		
+		[Button()
+			.states_([["Ok"]])
+			.action_({|b| 
+				mainView.index = 0;
+			})
+			.minWidth_(400)
+			.minHeight_(70)
+			, align:\center]
+	))
 });
 
+
 loadView = ({
+	
 	View().layout_( VLayout(
-		StaticText().string_("Welcome to Voice Lab").align_(\center).font_(Font(size:48)),
+		StaticText().string_("Welcome to VoiceLab").align_(\center).font_(Font(size:48)),
 		
 		[Button()
 			.states_([["New Session"]])
@@ -24,8 +44,10 @@ loadView = ({
 		
 		[Button()
 			.states_([["Open Session"]])
-			.action_({|b| 
-				"Open Voice Lab Session".speak;
+			.action_({|b|
+				errorText.string = "oh no, you did something weird!"; 
+				mainView.index = 2;
+				say.value("Open Voice Lab Session");
 			})
 			.minWidth_(400)
 			.minHeight_(70)
@@ -37,14 +59,15 @@ loadView = ({
 			.maxHeight_(100)
 			.states_([["Template Session"]])
 			.action_({|b| 
-				"Creating Voice Lab Session from Template".speak;
+				say.value("Creating Voice Lab Session from Template");
 			})
 			.minWidth_(400)
 			.minHeight_(70)
 			, align:\center]
 			
 		)
-	)
+	);
+	
 });
 
 
@@ -54,10 +77,11 @@ sessionView = ({
 	var listView;
 	View().layout_( HLayout(
 		listView = ListView()
-			.maxHeight_(340)
+			.maxHeight_(900)
 			.items_([ "SinOsc", "Saw", "LFSaw", "WhiteNoise", "PinkNoise", "BrownNoise", "Osc", "BOsc", "SOsc" , "FOsc" ])
 			.font_(Font("Helvetica", 44)),
 			
+//			Slider2D(),
 		View().layout_( GridLayout.rows([
 			
 			Button()
@@ -100,7 +124,6 @@ sessionView = ({
 			],[
 			
 			UserView(),
-			
 			UserView()
 				.drawFunc_({
 					Pen.fillColor_( Color.grey( 0.0, 0.1 ));
@@ -128,17 +151,19 @@ sessionView = ({
 
 
 
-window = Window("",Rect(50, 100, 1000, 400))
+window = Window("",Rect(0, 800, 1200, 400))
 	.layout_( VLayout(
 		mainView = StackLayout(
 	
 			loadView.value(),
-			sessionView.value()
+			sessionView.value(),
+			errorView.value()
+		
 		);
 	))
 
 	.toFrontAction_({
-		"welcome to, voicelab".speak;
+		say.value("welcome to, voicelab");
 	
 		})
 	.front;

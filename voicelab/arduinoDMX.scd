@@ -13,17 +13,16 @@ a.dmx_(3,0)
 (
 	
 
-	a = RduinoDMX(SerialPort.devices.last,115200);
+	//a = RduinoDMX(SerialPort.devices.last,115200);
 	w = Window.new.front;
-o=0;
 	w.onClose = {
-		a.dmxc_(0,0,0);
+	//	a.dmxc_(0,0,0);
 	};
 
 	b = {|hue,sat,slider|
 		c = Color.hsv(hue,sat,1,1);
 		slider.background_(c);
-		a.dmxc_(c.red*255.0,c.green*255.0,c.blue*255.0);
+	//	a.dmxc_(c.red*255.0,c.green*255.0,c.blue*255.0);
 	};
 
 	t = Slider2D(w, w.view.bounds.insetBy(10,10))

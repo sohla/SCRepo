@@ -14,7 +14,7 @@
 	//------------------------------------------------------
 	// FUNCTIONS
 	//------------------------------------------------------
-	var buildSession, initSession, createSession, loadTemplate,loadAndInitSession;
+	var buildSession, createSession, loadTemplate,loadSession;
 	var initMidi, closeMidi, initGUI, refreshGUI, initArduino,closeArduino;
 	var addQuestion, getNextNoteNumber;
 	var playModeState,recordModeState;
@@ -32,23 +32,15 @@
 	//------------------------------------------------------
 	buildSession = {
 
-//		initSession.value(loadTemplate.value(createSession.value()));
-//		initSession.value(createSession.value());
-		loadAndInitSession.value(createSession.value());
+//		loadTemplate.value(createSession.value());
+//		createSession.value();
+		loadSession.value(createSession.value());
 
 		// ready to play
 		"Ready to play!".postln;
 
 	};
 
-
-	//------------------------------------------------------
-	initSession = { |path|
-
-		sessionData = Object.readArchive(path);
-		(sessionTitle ++ " session loaded").postln;
-//		sessionData["keyPaths"].postln;
-	};
 
 	//------------------------------------------------------
 	loadTemplate = { |path|
@@ -70,34 +62,49 @@
 
 
 		};
+		
+		// load  session data 
+		sessionData = Object.readArchive(path);
+		
 		// return
 		path;
 
 	};
 	
-	loadAndInitSession = { |path|
+	loadSession = { |path|
 		
 
 		File.openDialog("Select a VoiceLab Session ",{|p|
 
-			// load archive from found path
-			var templateData = Object.readArchive(p);
-			var sourceDirPath = p.dirname;
+			if(p.basename.splitext[1] == "vls",{
+
+				// load archive from found path
+				var templateData = Object.readArchive(p);
+				var sourceDirPath = p.dirname;
 			
-			// save data as achive inside session dir
-			templateData.writeArchive(path);
+				// save data as achive inside session dir
+				templateData.writeArchive(path);
 
-			initSession.value(path);
+				p.basename.splitext[1].postln;
+			
+			
+				SoundFile.collect(sourceDirPath.asAbsolutePath+/+"Questions/*").do{ |f,i|
 
-			SoundFile.collect(sourceDirPath.asAbsolutePath+/+"Questions/*").do{ |f,i|
+					var newPath = appPath.asAbsolutePath+/+path.asRelativePath(appPath.absolutePath).dirname+/+"Questions";
 
-				var newPath = appPath.asAbsolutePath+/+path.asRelativePath(appPath.absolutePath).dirname+/+"Questions";
+					SoundFile.normalize(f.path,newPath+/+f.path.basename,threaded:true);
 
-				SoundFile.normalize(f.path,newPath+/+f.path.basename,threaded:true);
-
-			};
-			refreshGUI.value();
-
+				};
+			
+				// load  session data 
+				sessionData = Object.readArchive(path);
+			
+				refreshGUI.value();
+			},{
+				// not a .vls file, so reload load dialog
+				loadSession.value(path);
+				
+			});
 		},{
 			// cancel file open dialog
 		});
@@ -128,6 +135,8 @@
 
 		sessionTitle = sessionArchivePath.asRelativePath(appPath.absolutePath).dirname;
 
+		// load  session data 
+		sessionData = Object.readArchive(sessionArchivePath);
 
 		// return path
 		sessionArchivePath;
