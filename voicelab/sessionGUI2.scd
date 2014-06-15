@@ -32,9 +32,9 @@
 	//------------------------------------------------------
 	buildSession = {
 
-//		loadTemplate.value(createSession.value());
+		loadTemplate.value(createSession.value());
 //		createSession.value();
-		loadSession.value(createSession.value());
+//		loadSession.value(createSession.value());
 
 		// ready to play
 		"Ready to play!".postln;
