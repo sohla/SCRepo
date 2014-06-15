@@ -40,36 +40,49 @@
 	//------------------------------------------------------
 
 	//------------------------------------------------------
-	loadTemplate = { |path|
+	loadTemplate = { |path,completefunc,errorfunc|
 
 		// load a template (json)
-		var jsonFile = File(appPath.asAbsolutePath+/+"template.json","r");
-		var templateData = jsonFile.readAllString.parseYAML;
-
-		jsonFile.close;
-
-		templateData.writeArchive(path);
-
-		//get list of template sounds
-		SoundFile.collect(appPath.asAbsolutePath+/+"templateQuestions/*").do{ |f,i|
-
-			var newPath = appPath.asAbsolutePath+/+path.asRelativePath(appPath.absolutePath).dirname+/+"Questions";
-
-			SoundFile.normalize(f.path,newPath+/+f.path.basename,threaded:true);
-
-
-		};
+		var jsonFile;
+		var templateData;
+		var fullPath = appPath.asAbsolutePath+/+"template2.json";
 		
-		// load  session data 
-		sessionData = Object.readArchive(path);
-		
-		// return
-		path;
+		//if( File.exists(fullPath),{}{});
 
+         if( File.exists(fullPath) , {
+
+			jsonFile = File(fullPath,"r");
+		
+			templateData = jsonFile.readAllString.parseYAML;
+
+			jsonFile.close;
+
+			templateData.writeArchive(path);
+
+			//get list of template sounds
+			SoundFile.collect(appPath.asAbsolutePath+/+"templateQuestions/*").do{ |f,i|
+
+				var newPath = appPath.asAbsolutePath+/+path.asRelativePath(appPath.absolutePath).dirname+/+"Questions";
+
+				SoundFile.normalize(f.path,newPath+/+f.path.basename,threaded:true);
+
+
+			};
+		
+			// load  session data 
+			sessionData = Object.readArchive(path);
+		
+			completefunc.value;
+	
+			// return
+			path;
+		},{
+			errorfunc.value;
+		});
 	};
 	
 	//------------------------------------------------------
-	loadSession = { |path,completefunc|
+	loadSession = { |path,completefunc,errorfunc|
 		
 
 		File.openDialog("Select a VoiceLab Session ",{|p|
@@ -100,8 +113,8 @@
 				completefunc.value;
 			},{
 				// not a .vls file, so reload load dialog
-				loadSession.value(path);
-				
+				//loadSession.value(path);
+				errorfunc.value;
 			});
 		},{
 			// cancel file open dialog
@@ -212,7 +225,7 @@
 		errorView = ({
 			View().layout_( VLayout(
 	
-				StaticText().string_("Error").align_(\center).font_(Font(size:48)),
+				StaticText().string_("Oops").align_(\center).font_(Font(size:48)),
 				errorText = StaticText().string_("-").align_(\center).font_(Font(size:24)),
 	
 				[Button()
@@ -253,7 +266,11 @@
 						loadSession.value(createSession.value,{
 							mainView.index = 1;
 							refreshGUI.value;
-							})
+						},{
+								errorText.string = "You must select Voice Lab session (.vls) file"; 
+								mainView.index = 2;
+							
+						})
 					})
 					.minWidth_(400)
 					.minHeight_(70)
@@ -266,6 +283,11 @@
 					.states_([["Template Session"]])
 					.action_({|b| 
 						say.value("Creating Voice Lab Session from Template");
+						loadTemplate.value(createSession.value,{
+							mainView.index = 1;
+							refreshGUI.value;
+							})
+						
 					})
 					.minWidth_(400)
 					.minHeight_(70)
@@ -458,7 +480,6 @@
 
 	//------------------------------------------------------
 
-//	buildSession.value;
 	initGUI.value;
 
 )
