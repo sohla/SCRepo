@@ -167,6 +167,7 @@
 	getNextNoteNumber = {
 		a = (0..127);
 		b = sessionData["keyPaths"].collect(_.asInteger);
+		difference(a,b).first.postln;
 		difference(a,b).first;
 
 	};
@@ -216,11 +217,32 @@
 	initGUI = ({
 		
 		var window, mainView;
-		var loadView, sessionView, errorView, errorText;
+		var loadView, sessionView, errorView, errorText, textFieldView,textFieldMessage,textField;
 		var onPlayLevel;
 		
 		var scale = 1.0;
 		var listView;
+		//------------------------------------------------------
+		textFieldView = ({
+			View().layout_( VLayout(
+	
+				textFieldMessage = StaticText().string_("-").align_(\center).font_(Font(size:24)),
+				[textField = TextField()
+					.minWidth_(1000)
+					.minHeight_(70)
+					.font_(Font(size:24))
+					, align:\center],
+				
+				[Button()
+					.states_([["Ok"]])
+					.action_({|b| 
+						mainView.index = 0;
+					})
+					.minWidth_(400)
+					.minHeight_(70)
+					, align:\center]
+			))
+		});
 		//------------------------------------------------------
 		errorView = ({
 			View().layout_( VLayout(
@@ -306,15 +328,17 @@
 		//------------------------------------------------------
 		sessionView = ({
 
-			var btnHeight = 180, playButton;
-			var micSynth,recorderSynth,buffer,title,path;
+			var btnHeight = 180, playButton,levelStack;
+			var micSynth,recorderSynth,recBuffer,title,path;
 			
 			
 			View().layout_( HLayout(
 				listView = ListView()
 					.maxHeight_(900)
-					.font_(Font("Helvetica", 44)),
-		
+					.font_(Font("Helvetica", 44))
+					.enterKeyAction_({|v|
+						v.items.at(v.value).postln;
+					}),
 				View().layout_( GridLayout.rows([
 		
 					Button()
@@ -355,6 +379,70 @@
 
 					Button()
 						.maxHeight_(btnHeight)
+						.states_([
+							["Record"],
+//							["Level Check",bgColor:Color.green],
+							["Stop",bgColor:Color.red]
+						])
+						.action_({|b| 
+							
+							switch(b.value,
+								0,{
+									
+									{
+										// stop recording
+										recorderSynth.free;
+										micSynth.free;
+
+
+										recBuffer.close;
+										recBuffer.postln;
+										recBuffer.free;
+										recBuffer.postln;
+									
+										t = title;
+										n = title.replace("Recording","Question");
+
+										textFieldMessage.string = "Save Question as"; 
+										textField.string = n.splitext;
+										mainView.index = 3;
+										//••
+										
+										SoundFile.normalize(path+/+t,path+/+n,threaded:false);
+										File.delete(path+/+t);
+
+										addQuestion.value(path+/+n,getNextNoteNumber.value);
+										("Finished recording "++title).postln;
+
+										s.queryAllNodes;
+									
+										refreshGUI.value;
+									
+									}.defer(0.2);// so we don't loose last bit of buffer
+									
+								},
+								1,{
+									// record
+								
+									micSynth = Synth.new(\micInput);
+									recBuffer.postln;
+									recBuffer = Buffer.alloc(s,65536,1);
+									g = Date.getDate.format("%H_%M_%S");
+									title = "Recording"++g++".wav";
+									path = appPath.asAbsolutePath+/+sessionTitle+/+"Questions";
+									recBuffer.write(path+/+title,"wav","int16", 0, 0, true);
+									recorderSynth = Synth.tail(nil,\diskOut, ["bufnum", recBuffer.bufnum]);
+									("Recording "++title).postln;
+									s.queryAllNodes;
+								},
+								2,{
+									
+								},
+								);
+							
+						}),
+					Button()
+						.maxHeight_(btnHeight)
 						.states_([["Import"]])
 				        .action_({ arg butt;
 
@@ -374,80 +462,37 @@
 						}),
 						
 
-						Button()
-							.maxHeight_(btnHeight)
-							.states_([["Delete"]])
-					        .action_({ arg butt;
-
-								var key = listView.items.at(listView.value);
-								var path = appPath.asAbsolutePath+/+sessionTitle+/+"Questions"+/+key;
-
-								if(File.exists(path),{
-
-									File.delete(path);
-
-									sessionData["keyPaths"].removeAt(key.asString);
-									p = appPath.asAbsolutePath+/+sessionTitle+/+"session.vls";
-									
-									sessionData.writeArchive(p);
-									sessionData = Object.readArchive(p);
-
-									refreshGUI.value;
-
-								},{
-										("Error : Can't find Question to delete").postln;
-								});
-
-							}),
-							
-
 					Button()
 						.maxHeight_(btnHeight)
-						.states_([
-							["Record"],
-							["Stop",bgColor:Color.red]
-						])
-						.action_({|b| 
-							
-							
-							if(b.value == 1,{
-								// record
-								
-								micSynth = Synth.new(\micInput);
-								buffer.postln;
-								buffer = Buffer.alloc(s,65536,1);
-								buffer.postln;
-								g = Date.getDate.format("%H_%M_%S");
-								title = "Question_"++g++".wav";
-								path = appPath.asAbsolutePath+/+sessionTitle+/+"Questions"+/+title;
-								buffer.write(path,"wav","int16", 0, 0, true);
-								recorderSynth = Synth.tail(nil,\diskOut, ["bufnum", b]);
-								("Recording "++title).postln;
-								s.queryAllNodes;
+						.states_([["Delete"]])
+				        .action_({ arg butt;
 
+							var key = listView.items.at(listView.value);
+							var path = appPath.asAbsolutePath+/+sessionTitle+/+"Questions"+/+key;
+
+							if(File.exists(path),{
+
+								File.delete(path);
+
+								sessionData["keyPaths"].removeAt(key.asString);
+								p = appPath.asAbsolutePath+/+sessionTitle+/+"session.vls";
 								
+								sessionData.writeArchive(p);
+								sessionData = Object.readArchive(p);
+
+								refreshGUI.value;
+
 							},{
-								// stop recording
-								recorderSynth.free;
-								micSynth.free;
-
-
-								buffer.close;
-								buffer.postln;
-								buffer.free;
-								buffer.postln;
-								//SoundFile.normalize(f.path,newPath+/+f.path.basename,threaded:true);
-								addQuestion.value(path,getNextNoteNumber.value);
-								("Finished recording "++title).postln;
-
-								s.queryAllNodes;
-							
+									("Error : Can't find Question to delete").postln;
 							});
-							
+
 						})
+						
+
+						
 					],[
 		
-					UserView(),
+					Knob(),
 					UserView()
 						.drawFunc_({
 							Pen.fillColor_( Color.grey( 0.0, 0.1 ));
@@ -504,7 +549,8 @@
 
 					loadView.value,
 					sessionView.value,
-					errorView.value
+					errorView.value,
+					textFieldView.value
 	
 				);
 			))
