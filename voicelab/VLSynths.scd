@@ -3,6 +3,7 @@ s.freeAll
 s.quit
 
 s.queryAllNodes
+
 s.boot
 
 (
@@ -62,12 +63,13 @@ s.boot
 	}).send(s);
 
 	SynthDef(\recordInput, {|bufnum = 0|
-		var player = SoundIn.ar(0);
+		var p = SoundIn.ar(0);
 	    var imp = Impulse.kr(10);
 	    var delimp = Delay1.kr(imp);
-		 SendReply.kr(imp, '/onRecordLevel', [1,Amplitude.kr(player), K2A.ar(Peak.ar(player, delimp).lag(0, 1))]);
+		 SendReply.kr(imp, '/onRecordLevel', [1,Amplitude.kr(p), K2A.ar(Peak.ar(p, delimp).lag(0, 1))]);
 
-		 DiskOut.ar(bufnum, player);
+		 DiskOut.ar(bufnum, p);
+		 Out.ar(0,[0,p]);
 	}).send(s);
 
 )

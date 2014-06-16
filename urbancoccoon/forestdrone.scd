@@ -13,14 +13,14 @@ var exciter, spec,scale,root,out,eq,envelope;
 		exciter = Decay.ar(PinkNoise.ar(0.0001), 0.1);
 		spec = Array.fill(2, {
 			`[
-				Array.fill(p, { arg i; (scale.choose  + root.choose +2).midicps } ),
+				Array.fill(p, { arg i; (scale.choose  + root.choose - 48).midicps } ),
 				nil,
 				Array.fill(p, { 0.2 + 0.1.linrand } )
 			]
 	});
 		out = Klank.ar(spec, exciter);
 		
-		eq = HPF.ar(out,300);
+		eq = HPF.ar(out,50);
 
 		out = eq;
 		

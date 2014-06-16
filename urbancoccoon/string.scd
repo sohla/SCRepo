@@ -39,7 +39,7 @@ var root, scale;
 		
 
 		root = rrand(3,126);
-		root = 	29+(12*pitch);
+		root = 	pitch;
 		scale = #[0];
 		mx = MouseX.kr(0, 15);
 		my = 0.2-MouseY.kr(0.001, 0.2,0.9);
@@ -64,5 +64,5 @@ var root, scale;
 	).send(s);
 )
 
-s.sendMsg("/s_new", "string", 2000, 1, 1,"pitch",4);
+s.sendMsg("/s_new", "string", s.nextNodeID, 1, 1,"pitch",38);
 s.sendMsg("/n_set",2000,"gate",0);
