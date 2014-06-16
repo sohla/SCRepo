@@ -1,4 +1,10 @@
 
+s.freeAll
+s.quit
+
+s.queryAllNodes
+s.boot
+
 (
 	SynthDef(\playBuffer, {|buffer = 0, note = 69|
 		var pitch = (note.midicps / 440.0) * BufRateScale.kr(buffer);
@@ -51,8 +57,17 @@
 
 
 	// simple disk out
-	SynthDef(\diskOut, {arg bufnum;
+	SynthDef(\diskOut, {|bufnum|
 	    DiskOut.ar(bufnum, In.ar(0,1));
+	}).send(s);
+
+	SynthDef(\recordInput, {|bufnum = 0|
+		var player = SoundIn.ar(0);
+	    var imp = Impulse.kr(10);
+	    var delimp = Delay1.kr(imp);
+		 SendReply.kr(imp, '/onRecordLevel', [1,Amplitude.kr(player), K2A.ar(Peak.ar(player, delimp).lag(0, 1))]);
+
+		 DiskOut.ar(bufnum, player);
 	}).send(s);
 
 )

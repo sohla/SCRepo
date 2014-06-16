@@ -10,7 +10,8 @@
 	var date = Date.getDate;
 	var appPath = PathName.new("~/Music/VoiceLab");
 	var sessionTitle,broadcaster;
-
+	var recordSynth,recordBuffer;
+	
 	var say;
 
 	var playQuestion;
@@ -20,7 +21,7 @@
 	var createSession, loadTemplate,loadSession;
 	var getNextNoteNumber, addQuestion;
 
-
+	var killRecorder;
 	var initGUI, refreshGUI;
 
 
@@ -45,7 +46,7 @@
 		// load a template (json)
 		var jsonFile;
 		var templateData;
-		var fullPath = appPath.asAbsolutePath+/+"template2.json";
+		var fullPath = appPath.asAbsolutePath+/+"template.json";
 		
 		//if( File.exists(fullPath),{}{});
 
@@ -192,16 +193,43 @@
 	// COMMANDS
 	//------------------------------------------------------
 
+	killRecorder = ({
+		if(recordBuffer.class == Buffer,{
+			recordBuffer.close;
+			recordBuffer.free;
+			recordBuffer = nil;
+			recordSynth.free;
+		});
+		
+		
+	});
 	playQuestion = ({ |path, completionFunc|
 			
 		a = Synth(\playBuffer,[\buffer,Buffer.read(s, path)]);
-		//pluginSynth = Synth.tail(nil,pluginName);
 
+		killRecorder.value;
+		
 		s.queryAllNodes;
 		a.onFree({
 			s.queryAllNodes;
 			{
 				completionFunc.value;
+				
+				// record kid
+				recordBuffer = Buffer.alloc(s,65536,1);
+				recordSynth = Synth.new(\recordInput,["bufnum", recordBuffer.bufnum]);
+
+				g = Date.getDate.format("%H_%M_%S");
+				t = path.basename.splitext[0];
+				t = "AnswerTo_"++t++"_At_"++g++".wav";
+				path = appPath.asAbsolutePath+/+sessionTitle+/+"Answers";
+
+				recordBuffer.write(path+/+t,"wav","int16", 0, 0, true);
+
+				("Recording "++t).postln;
+				s.queryAllNodes;
+				
+				
 			}.defer;
 		});
 			
@@ -236,6 +264,7 @@
 				[Button()
 					.states_([["Ok"]])
 					.action_({|b| 
+						textField.object.value.postln;
 						mainView.index = 0;
 					})
 					.minWidth_(400)
@@ -331,6 +360,7 @@
 			var btnHeight = 180, playButton,levelStack;
 			var micSynth,recorderSynth,recBuffer,title,path;
 			
+			path = appPath.asAbsolutePath+/+sessionTitle+/+"Questions";
 			
 			View().layout_( HLayout(
 				listView = ListView()
@@ -362,7 +392,8 @@
 								if(listView.value + 1 < listView.items.size,{listView.value = listView.value + 1});
 								window.view.enabled = true;
 							});
-								
+							
+							
 						}),
 			
 
@@ -404,9 +435,11 @@
 										n = title.replace("Recording","Question");
 
 										textFieldMessage.string = "Save Question as"; 
-										textField.string = n.splitext;
+										textField.object = { t };
+										textField.valueAction_(n.splitext[0]);
 										mainView.index = 3;
 										//••
+										
 										
 										SoundFile.normalize(path+/+t,path+/+n,threaded:false);
 										File.delete(path+/+t);
@@ -429,7 +462,7 @@
 									recBuffer = Buffer.alloc(s,65536,1);
 									g = Date.getDate.format("%H_%M_%S");
 									title = "Recording"++g++".wav";
-									path = appPath.asAbsolutePath+/+sessionTitle+/+"Questions";
+									
 									recBuffer.write(path+/+title,"wav","int16", 0, 0, true);
 									recorderSynth = Synth.tail(nil,\diskOut, ["bufnum", recBuffer.bufnum]);
 									("Recording "++title).postln;
@@ -495,20 +528,30 @@
 					Knob(),
 					UserView()
 						.drawFunc_({
-							Pen.fillColor_( Color.grey( 0.0, 0.1 ));
+							if(recordBuffer.class == Buffer,{
+								Pen.fillColor_( Color.red);
+							},{
+								Pen.fillColor_( Color.grey( 0.0, 0.1 ));
+							});
 							Pen.fillRect( Rect( 0, 0, 120, 120));
 							Pen.fillColor= Color.new255(226, 49, 140);
 							Pen.strokeColor= Color.new255(226, 49, 140);
 							Pen.fillOval(Rect.aboutPoint(Point(60, 55), 20*scale, 20*scale));
 						})
 						.animate_(true)
-						.clearOnRefresh_(false),
-	
+						.clearOnRefresh_(false)
+						.mouseDownAction_({ killRecorder.value }),
 		
 					Button()
 						.maxHeight_(btnHeight)
 						.states_([["Exit"]])
-						.action_({|b| mainView.index = 0})
+						.action_({|b| 
+							killRecorder.value;
+							s.freeAll;
+							s.queryAllNodes;
+							mainView.index = 0;
+							
+						})
 					])
 	
 	
