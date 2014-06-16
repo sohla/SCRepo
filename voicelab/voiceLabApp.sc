@@ -11,6 +11,8 @@
 	var appPath = PathName.new("~/Music/VoiceLab");
 	var sessionTitle,broadcaster;
 	var recordSynth,recordBuffer;
+	var micInputSynth;
+	var micSynth,recorderSynth,recBuffer;
 	
 	var say;
 
@@ -23,7 +25,7 @@
 
 	var killRecorder;
 	var initGUI, refreshGUI;
-
+	var startRecordingQuestion,stopRecordingQuestion;
 
 
 	// contect locally so we can send msgs
@@ -129,7 +131,7 @@
 	//------------------------------------------------------
 	createSession = {
 
-		var genTitle= date.format("%A_%d:%m:%Y_%H_%M_%S");
+		var genTitle= date.format("%A_%d:%m:%Y-[%H_%M_%S]");
 			// create all the dirs
 		var sessionDir = File.mkdir(appPath.asAbsolutePath+/+genTitle);
 		var quesiotnsDir = File.mkdir(appPath.asAbsolutePath+/+genTitle+/+"Questions");
@@ -174,13 +176,16 @@
 	};
 
 	//------------------------------------------------------
-	addQuestion = { |path,num|
+	addQuestion = { |path,newPath,num|
+
+		SoundFile.normalize(path,newPath,threaded:false);
+
 
 		// we have to copy the dict since parseYAML returns an unmutable collection!!
 		n = Dictionary.newFrom(sessionData["keyPaths"]);
 
 		// insert new question into datastore
-		n.put(path.basename,num.asString);
+		n.put(newPath.basename,num.asString);
 		sessionData["keyPaths"]  = n;
 
 		p = appPath.asAbsolutePath+/+sessionTitle+/+"session.vls";
@@ -190,9 +195,6 @@
 	};
 
 	//------------------------------------------------------
-	// COMMANDS
-	//------------------------------------------------------
-
 	killRecorder = ({
 		if(recordBuffer.class == Buffer,{
 			recordBuffer.close;
@@ -203,6 +205,8 @@
 		
 		
 	});
+	
+	//------------------------------------------------------
 	playQuestion = ({ |path, completionFunc|
 			
 		a = Synth(\playBuffer,[\buffer,Buffer.read(s, path)]);
@@ -221,7 +225,7 @@
 
 				g = Date.getDate.format("%H_%M_%S");
 				t = path.basename.splitext[0];
-				t = "AnswerTo_"++t++"_At_"++g++".wav";
+				t = "AnswerTo["++t++"]_At_["++g++"].wav";
 				path = appPath.asAbsolutePath+/+sessionTitle+/+"Answers";
 
 				recordBuffer.write(path+/+t,"wav","int16", 0, 0, true);
@@ -235,6 +239,35 @@
 			
 	});
 
+
+
+	//------------------------------------------------------
+	startRecordingQuestion = ({ |title|
+	
+		micSynth = Synth.new(\micInput);
+		recBuffer.postln;
+		recBuffer = Buffer.alloc(s,65536,1);
+		
+		p = appPath.asAbsolutePath+/+sessionTitle+/+"Questions";
+		
+		recBuffer.write(p+/+title,"wav","int16", 0, 0, true);
+		recorderSynth = Synth.tail(nil,\diskOut, ["bufnum", recBuffer.bufnum]);
+		("Recording "++title).postln;
+		s.queryAllNodes;
+	
+	});
+	
+	//------------------------------------------------------
+	stopRecordingQuestion = ({ 
+	
+		recorderSynth.free;
+		micSynth.free;
+
+		recBuffer.close;
+		recBuffer.postln;
+		recBuffer.free;
+		recBuffer.postln;
+	});
 	//------------------------------------------------------
 	// GUI
 	//------------------------------------------------------
@@ -264,8 +297,27 @@
 				[Button()
 					.states_([["Ok"]])
 					.action_({|b| 
+						
 						textField.object.value.postln;
-						mainView.index = 0;
+						
+						p = appPath.asAbsolutePath+/+sessionTitle+/+"Questions";
+						
+						t = textField.object.value;
+						n = textField.string++".wav";
+						
+//						SoundFile.normalize(p+/+t,p+/+n,threaded:false);
+
+						addQuestion.value(p+/+t,p+/+n,getNextNoteNumber.value);
+						("Finished recording "++p+/+n).postln;
+
+						// delete the old temp recording
+						File.delete(p+/+t);
+
+						s.queryAllNodes;
+					
+						mainView.index = 1;
+						refreshGUI.value;
+						
 					})
 					.minWidth_(400)
 					.minHeight_(70)
@@ -311,8 +363,6 @@
 				[Button()
 					.states_([["Open Session"]])
 					.action_({|b|
-//						errorText.string = "oh no, you did something weird!"; 
-						
 						say.value("Open Voice Lab Session");
 						loadSession.value(createSession.value,{
 							mainView.index = 1;
@@ -326,8 +376,6 @@
 					.minWidth_(400)
 					.minHeight_(70)
 					, align:\center],
-	
-	
 	
 				[Button()
 					.maxHeight_(100)
@@ -358,9 +406,7 @@
 		sessionView = ({
 
 			var btnHeight = 180, playButton,levelStack;
-			var micSynth,recorderSynth,recBuffer,title,path;
-			
-			path = appPath.asAbsolutePath+/+sessionTitle+/+"Questions";
+			var recordedQuestionTitle;
 			
 			View().layout_( HLayout(
 				listView = ListView()
@@ -422,51 +468,26 @@
 									
 									{
 										// stop recording
-										recorderSynth.free;
-										micSynth.free;
-
-
-										recBuffer.close;
-										recBuffer.postln;
-										recBuffer.free;
-										recBuffer.postln;
-									
-										t = title;
-										n = title.replace("Recording","Question");
+										stopRecordingQuestion.value;
+										
+										t = recordedQuestionTitle;
+										n = recordedQuestionTitle.replace("Recording","Question");
 
 										textFieldMessage.string = "Save Question as"; 
 										textField.object = { t };
 										textField.valueAction_(n.splitext[0]);
 										mainView.index = 3;
-										//••
-										
-										
-										SoundFile.normalize(path+/+t,path+/+n,threaded:false);
-										File.delete(path+/+t);
-
-										addQuestion.value(path+/+n,getNextNoteNumber.value);
-										("Finished recording "++title).postln;
-
-										s.queryAllNodes;
 									
-										refreshGUI.value;
-									
-									}.defer(0.2);// so we don't loose last bit of buffer
+									}.defer(0.4);// so we don't loose last bit of buffer
 									
 								},
 								1,{
 									// record
 								
-									micSynth = Synth.new(\micInput);
-									recBuffer.postln;
-									recBuffer = Buffer.alloc(s,65536,1);
 									g = Date.getDate.format("%H_%M_%S");
-									title = "Recording"++g++".wav";
-									
-									recBuffer.write(path+/+title,"wav","int16", 0, 0, true);
-									recorderSynth = Synth.tail(nil,\diskOut, ["bufnum", recBuffer.bufnum]);
-									("Recording "++title).postln;
-									s.queryAllNodes;
+									recordedQuestionTitle = "Recording"++g++".wav";
+
+									startRecordingQuestion.value(recordedQuestionTitle);
 								},
 								2,{
 									
@@ -483,10 +504,10 @@
 
 								// copy this file to our questions dir
 								var newPath = appPath.asAbsolutePath+/+sessionTitle+/+"Questions";
-								SoundFile.normalize(path,newPath+/+path.basename);
+//								SoundFile.normalize(path,newPath+/+path.basename);
 								// generate a unique note number
 
-								addQuestion.value(path,getNextNoteNumber.value());
+								addQuestion.value(path,newPath+/+path.basename,getNextNoteNumber.value());
 								
 								refreshGUI.value;
 							},{
@@ -525,7 +546,24 @@
 						
 					],[
 		
-					Knob(),
+					Button()
+						.maxHeight_(btnHeight)
+						.states_([
+							["Speak"],
+							["Speak", bgColor:Color.green]
+						])
+						.action_({|b| 
+							switch(b.value,
+								0,{
+								
+										micInputSynth.free;
+								},
+								1,{
+									
+									micInputSynth = Synth.new(\micInput);
+
+								});
+						}),
 					UserView()
 						.drawFunc_({
 							if(recordBuffer.class == Buffer,{
@@ -546,6 +584,7 @@
 						.maxHeight_(btnHeight)
 						.states_([["Exit"]])
 						.action_({|b| 
+							listView.items = Array.newClear;
 							killRecorder.value;
 							s.freeAll;
 							s.queryAllNodes;
@@ -603,6 +642,11 @@
 
 				})
 			.front;
+			
+//		window.drawFunc = {
+//			Pen.addRect(window.view.bounds);
+//			Pen.fillAxialGradient(window.view.bounds.leftTop, window.view.bounds.rightBottom, Color.rand, Color.rand);
+//		};
 		
 		window.onClose = ({
 			onPlayLevel.free;
