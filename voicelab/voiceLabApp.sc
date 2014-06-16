@@ -286,7 +286,11 @@
 						loadTemplate.value(createSession.value,{
 							mainView.index = 1;
 							refreshGUI.value;
-							})
+						},{
+								errorText.string = "Can't seem to find template files."; 
+								mainView.index = 2;
+							
+						})
 						
 					})
 					.minWidth_(400)
@@ -303,6 +307,7 @@
 		sessionView = ({
 
 			var btnHeight = 180, playButton;
+			var micSynth,recorderSynth,buffer,title,path;
 			
 			
 			View().layout_( HLayout(
@@ -398,7 +403,48 @@
 
 					Button()
 						.maxHeight_(btnHeight)
-						.states_([["Record"]])
+						.states_([
+							["Record"],
+							["Stop",bgColor:Color.red]
+						])
+						.action_({|b| 
+							
+							
+							if(b.value == 1,{
+								// record
+								
+								micSynth = Synth.new(\micInput);
+								buffer.postln;
+								buffer = Buffer.alloc(s,65536,1);
+								buffer.postln;
+								g = Date.getDate.format("%H_%M_%S");
+								title = "Question_"++g++".wav";
+								path = appPath.asAbsolutePath+/+sessionTitle+/+"Questions"+/+title;
+								buffer.write(path,"wav","int16", 0, 0, true);
+								recorderSynth = Synth.tail(nil,\diskOut, ["bufnum", b]);
+								("Recording "++title).postln;
+								s.queryAllNodes;
+
+								
+							},{
+								// stop recording
+								recorderSynth.free;
+								micSynth.free;
+
+
+								buffer.close;
+								buffer.postln;
+								buffer.free;
+								buffer.postln;
+								//SoundFile.normalize(f.path,newPath+/+f.path.basename,threaded:true);
+								addQuestion.value(path,getNextNoteNumber.value);
+								("Finished recording "++title).postln;
+
+								s.queryAllNodes;
+							
+							});
+							
+						})
 					],[
 		
 					UserView(),

@@ -188,7 +188,7 @@
 			p = appPath.asAbsolutePath+/+sessionTitle+/+"Questions"+/+t;
 			a = Synth(\playBuffer,[\buffer,Buffer.read(s, p)]);
 
-			pluginSynth = Synth.tail(nil,pluginName);
+			//pluginSynth = Synth.tail(nil,pluginName);
 
 			s.queryAllNodes;
 			a.onFree({
@@ -293,11 +293,12 @@
 		var listView, numberView,playButton,importButton, deleteButton;
 
 		var playLevelView,circleView;
-		var recordButton;
+		var recordButton,noteButton;
 		var onRecordMsg;
 		var onPlayLevel;
 		var recordMode=0;
 		var scale = 1.0;
+		var noteOnVal = 0;
 
 		window.onClose = ({
 			closeMidi.value();
@@ -420,6 +421,25 @@
 					])
 	        .action_({ arg butt;
 				broadcaster.sendMsg("/onRecordMsg");
+			});
+
+		noteButton = Button(window, 80@50)
+	        .states_([
+					["NOTE ON", Color.black, Color.grey(alpha:0.2)],
+					["NOTE OFF", Color.green, Color.grey(alpha:0.2)]
+					])
+	        .action_({ arg butt;
+				
+				if(butt.value == 1,{
+					"on".postln;
+					noteOnVal = getNextNoteNumber.value;
+					MIDIIn.doNoteOnAction(1, 1, noteOnVal, 64);
+				},{
+					"off".postln;
+					MIDIIn.doNoteOffAction(1, 1, noteOnVal, 64);
+					noteOnVal = 0;
+				});
+				//MIDIIn.doNoteOnAction(1, 1, getNextNoteNumber.value, 64);
 			});
 
 
