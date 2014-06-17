@@ -360,7 +360,7 @@
 				t = listView.items.at(listView.value).key;
 				p = appPath.asAbsolutePath+/+sessionTitle+/+"Questions"+/+t;
 				a = Synth(\playBuffer,[\buffer,Buffer.read(s, p)]);
-			pluginSynth = Synth.tail(nil,pluginName);
+			//pluginSynth = Synth.tail(nil,pluginName);
 
 			s.queryAllNodes;
 			a.onFree({
