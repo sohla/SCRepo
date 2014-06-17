@@ -240,8 +240,6 @@
 			{
 				completionFunc.value;
 				
-				startRecorder.value(path.basename.splitext[0]);
-				
 			}.defer;
 		});
 	});
@@ -249,7 +247,7 @@
 	//------------------------------------------------------
 	startRecordingQuestion = ({ |title|
 	
-		micSynth = Synth.new(\micInput);
+		micSynth = Synth.new(\micInput,["channel",1]);
 		recBuffer.postln;
 		recBuffer = Buffer.alloc(s,65536,1);
 		
@@ -465,8 +463,18 @@
 							p = appPath.asAbsolutePath+/+sessionTitle+/+"Questions"+/+t;
 
 							playQuestion.value(p,{
-								if(listView.value + 1 < listView.items.size,{listView.value = listView.value + 1});
+								
+								// check if there is another question
+								// if so, move to next and start recording kid
+								if(listView.value + 1 < listView.items.size,{
+									listView.value = listView.value + 1;
+									startRecorder.value(p.basename.splitext[0]);
+								},{
+									"LAST".postln;
+								
+								});
 								window.view.enabled = true;
+								
 							});
 						}),
 			
@@ -593,7 +601,7 @@
 					UserView()
 						.drawFunc_({
 							if(recordBuffer.class == Buffer,{
-								Pen.fillColor_( Color.red);
+								Pen.fillColor_( Color.red.alpha_(0.1));
 							},{
 								Pen.fillColor_( Color.grey( 0.0, 0.1 ));
 							});

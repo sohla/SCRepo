@@ -23,8 +23,8 @@ s.boot
 
 	}).send(s);
 
-	SynthDef(\micInput, {|buffer = 0|
-		var player = SoundIn.ar(0);
+	SynthDef(\micInput, {|buffer = 0, channel = 0|
+		var player = SoundIn.ar(channel);
 	    var imp = Impulse.kr(10);
 	    var delimp = Delay1.kr(imp);
 		 SendReply.kr(imp, '/onPlayLevel', [1,Amplitude.kr(player), K2A.ar(Peak.ar(player, delimp).lag(0, 1))]);
@@ -69,7 +69,7 @@ s.boot
 		 SendReply.kr(imp, '/onRecordLevel', [1,Amplitude.kr(p), K2A.ar(Peak.ar(p, delimp).lag(0, 1))]);
 
 		 DiskOut.ar(bufnum, p);
-		 Out.ar(0,[0,p]);
+		 //Out.ar(0,[0,p]);
 	}).send(s);
 
 )
