@@ -601,7 +601,7 @@
 					UserView()
 						.drawFunc_({
 							if(recordBuffer.class == Buffer,{
-								Pen.fillColor_( Color.red.alpha_(0.1));
+								Pen.fillColor_( Color.red(0.5,1.0));
 							},{
 								Pen.fillColor_( Color.grey( 0.0, 0.1 ));
 							});
@@ -677,10 +677,10 @@
 				})
 			.front;
 			
-//		window.drawFunc = {
-//			Pen.addRect(window.view.bounds.insetBy(2));
-//			Pen.fillAxialGradient(window.view.bounds.leftTop, window.view.bounds.rightBottom, Color.rand, Color.rand);
-//		};
+		window.drawFunc = {
+			Pen.addRect(window.view.bounds.insetBy(2));
+			Pen.fillAxialGradient(window.view.bounds.leftTop, window.view.bounds.rightBottom, Color.rand, Color.rand);
+		};
 		
 		window.onClose = ({
 			onPlayLevel.free;

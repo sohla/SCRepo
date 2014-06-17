@@ -1,7 +1,6 @@
 (
 	w = Window.new.front;
 	
-	
 	w.layout_( VLayout(
 		
 		View()
