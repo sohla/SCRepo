@@ -1,11 +1,11 @@
 
 (
-	
+
 	//------------------------------------------------------
 	// GLOBALS
 	//------------------------------------------------------
 
-	
+
 	var sessionData = Dictionary.new;
 	var appPath = PathName.new("~/Music/VoiceLab");
 	var sessionTitle,broadcaster;
@@ -13,8 +13,8 @@
 	var micInputSynth;
 	var micSynth,recorderSynth,recBuffer;
 	var listenSynth;
-	
-	
+	var arpSynth,droneSynth;
+
 	var say;
 
 	var playQuestion;
@@ -39,12 +39,12 @@
 
 	listenSynth = Synth.new(\listenToMic);
 
-	y = Pbind(
-	    [\degree, \dur], Pseq([[0, 0.1], [2, 0.1], [4, 0.1], [5, 0.1], [2, 0.1]], inf),
-		    \amp, 0.04, \octave, [4,5,6], \instrument, \cfstring1, \mtranspose, [0,2,4], \atk, 0.01,\dcy, [0.2,1.1,2]).play;
-	z = Pbind(
+	arpSynth = Pbind(
+	[\degree, \dur], Pseq([[0, 0.1], [2, 0.1], [4, 0.1], [5, 0.1], [2, 0.1]], inf),
+	\amp, 0.04, \octave, [4,5,6], \instrument, \cfstring1, \mtranspose, [0,2,4], \atk, 0.01,\dcy, [0.2,1.1,2]).play;
+	droneSynth = Pbind(
 	    [\degree, \dur], Pseq([[0, 8], [2, 6], [5, 9], [1, 10], [4, 8]], inf),
-		    \amp, [0.3,0.4,0.5], \octave, [1,2,3], \instrument, \cfstring1, \mtranspose, [0], \hf,[90,200,400], \atk, 2,\dcy, 3).play;
+		    \amp, [0.1,0.2,0.5], \octave, [1,2,3], \instrument, \cfstring1, \mtranspose, [0], \hf,[90,200,400], \atk, 2,\dcy, 3).play;
 
 	//------------------------------------------------------
 	// SESSION
@@ -57,13 +57,13 @@
 		var jsonFile;
 		var templateData;
 		var fullPath = appPath.asAbsolutePath+/+"template.json";
-		
+
 		//if( File.exists(fullPath),{}{});
 
          if( File.exists(fullPath) , {
 
 			jsonFile = File(fullPath,"r");
-		
+
 			templateData = jsonFile.readAllString.parseYAML;
 
 			jsonFile.close;
@@ -79,22 +79,22 @@
 
 
 			};
-		
-			// load  session data 
+
+			// load  session data
 			sessionData = Object.readArchive(path);
-		
+
 			completefunc.value;
-	
+
 			// return
 			path;
 		},{
 			errorfunc.value;
 		});
 	};
-	
+
 	//------------------------------------------------------
 	loadSession = { |path,cancelfunc,completefunc,errorfunc|
-		
+
 
 		File.openDialog("Select a VoiceLab Session ",{|p|
 
@@ -103,23 +103,23 @@
 				// load archive from found path
 				var templateData = Object.readArchive(p);
 				var sourceDirPath = p.dirname;
-			
+
 				// save data as achive inside session dir
 				templateData.writeArchive(path);
 
 				(sourceDirPath.asAbsolutePath+/+"Questions/").postln;
-			
-			
+
+
 				SoundFile.collect(sourceDirPath.asAbsolutePath+/+"Questions/*").do{ |f,i|
 
 					var newPath = appPath.asAbsolutePath+/+path.asRelativePath(appPath.absolutePath).dirname+/+"Questions";
 					f.postln;
 					SoundFile.normalize(f.path,newPath+/+f.path.basename,threaded:false);
 				};
-			
-				// load  session data 
+
+				// load  session data
 				sessionData = Object.readArchive(path);
-			
+
 				//refreshGUI.value();
 				completefunc.value;
 			},{
@@ -130,12 +130,12 @@
 		},{
 			cancelfunc.value;
 		});
-		
-		
+
+
 		// return
 		path;
 	};
-	
+
 	//------------------------------------------------------
 	createSession = {
 
@@ -158,7 +158,7 @@
 
 		sessionTitle = sessionArchivePath.asRelativePath(appPath.absolutePath).dirname;
 
-		// load  session data 
+		// load  session data
 		sessionData = Object.readArchive(sessionArchivePath);
 
 		// return path
@@ -188,7 +188,7 @@
 	addQuestion = { |path,newPath,num|
 
 		var newData,sessionPath;
-		
+
 		SoundFile.normalize(path,newPath,threaded:false);
 
 		// we have to copy the dict since parseYAML returns an unmutable collection!!
@@ -212,13 +212,13 @@
 			recordBuffer = nil;
 			recordSynth.free;
 		});
-		
-		
+
+
 	});
-	
+
 	//------------------------------------------------------
 	startRecorder = ({ |title|
-		
+
 		// record kid
 		recordBuffer = Buffer.alloc(s,65536,1);
 		recordSynth = Synth.new(\recordInput,["bufnum", recordBuffer.bufnum]);
@@ -232,46 +232,46 @@
 
 		("Recording "++t).postln;
 		s.queryAllNodes;
-		
-		
+
+
 	});
-	
+
 	//------------------------------------------------------
 	playQuestion = ({ |path, completionFunc|
-			
+
 		a = Synth(\playBuffer,[\buffer,Buffer.read(s, path)]);
 
 		stopRecorder.value;
-		
+
 		s.queryAllNodes;
 		a.onFree({
 			s.queryAllNodes;
 			{
 				completionFunc.value;
-				
+
 			}.defer;
 		});
 	});
 
 	//------------------------------------------------------
 	startRecordingQuestion = ({ |title|
-	
+
 		micSynth = Synth.new(\micInput,["channel",1]);
 		recBuffer.postln;
 		recBuffer = Buffer.alloc(s,65536,1);
-		
+
 		p = appPath.asAbsolutePath+/+sessionTitle+/+"Questions";
-		
+
 		recBuffer.write(p+/+title,"wav","int16", 0, 0, true);
 		recorderSynth = Synth.tail(nil,\diskOut, ["bufnum", recBuffer.bufnum]);
 		("Recording "++title).postln;
 		s.queryAllNodes;
-	
+
 	});
-	
+
 	//------------------------------------------------------
-	stopRecordingQuestion = ({ 
-	
+	stopRecordingQuestion = ({
+
 		recorderSynth.free;
 		micSynth.free;
 
@@ -280,9 +280,9 @@
 		recBuffer.free;
 		recBuffer.postln;
 	});
-	
-	
-	
+
+
+
 	//------------------------------------------------------
 	// GUI
 	//------------------------------------------------------
@@ -291,36 +291,36 @@
 
 	//------------------------------------------------------
 	initGUI = ({
-		
+
 		var window, mainView;
 		var loadView, sessionView, errorView, errorText, textFieldView,textFieldMessage,textField;
 		var onPlayLevel;
-		
+
 		var scale = 1.0;
 		var listView;
 		//------------------------------------------------------
 		textFieldView = ({
 			View().layout_( VLayout(
-	
+
 				textFieldMessage = StaticText().string_("-").align_(\center).font_(Font(size:24)),
 				[textField = TextField()
 					.minWidth_(1000)
 					.minHeight_(70)
 					.font_(Font(size:24))
 					, align:\center],
-				
+
 				[Button()
 					.states_([["Ok"]])
-					.action_({|b| 
+					.action_({|b|
 						var qpath,oldTitle,newTitle;
-						
+
 						textField.object.value.postln;
-						
+
 						qpath = appPath.asAbsolutePath+/+sessionTitle+/+"Questions";
-						
+
 						oldTitle = textField.object.value;
 						newTitle = textField.string++".wav";
-						
+
 						addQuestion.value(qpath+/+oldTitle,qpath+/+newTitle,getNextNoteNumber.value);
 
 						("Finished recording "++qpath+/+newTitle).postln;
@@ -330,10 +330,10 @@
 						File.delete(qpath+/+oldTitle);
 
 						s.queryAllNodes;
-					
+
 						mainView.index = 1;
 						refreshGUI.value;
-						
+
 					})
 					.minWidth_(400)
 					.minHeight_(70)
@@ -343,13 +343,13 @@
 		//------------------------------------------------------
 		errorView = ({
 			View().layout_( VLayout(
-	
+
 				StaticText().string_("Oops").align_(\center).font_(Font(size:48)),
 				errorText = StaticText().string_("-").align_(\center).font_(Font(size:24)),
-	
+
 				[Button()
 					.states_([["Ok"]])
-					.action_({|b| 
+					.action_({|b|
 						mainView.index = 0;
 					})
 					.minWidth_(400)
@@ -361,13 +361,13 @@
 
 		//------------------------------------------------------
 		loadView = ({
-			
+
 			View().layout_( VLayout(
 				StaticText().string_("Welcome to VoiceLab").align_(\center).font_(Font(size:48)),
-	
+
 				[Button()
 					.states_([["New Session"]])
-					.action_({|b| 
+					.action_({|b|
 						mainView.index = 1;
 						say.value("New, Voice Lab Session");
 						createSession.value;
@@ -375,14 +375,14 @@
 					.minWidth_(400)
 					.minHeight_(70)
 					, align:\center],
-	
+
 				[Button()
 					.states_([["Open Session"]])
-					.focusGainedAction_({|b| 
+					.focusGainedAction_({|b|
 						b.states = [["Open Session"]];
 						b.refresh;
 					})
-					
+
 					.action_({|b|
 						{
 						b.states = [["processing session files...",Color.new255(226, 49, 140)]];
@@ -392,28 +392,28 @@
 						loadSession.value(createSession.value,{
 							b.states = [["Open Session"]];
 							b.refresh;
-							
+
 						},{
 							mainView.index = 1;
 							refreshGUI.value;
 						},{
-								errorText.string = "You must select Voice Lab session (.vls) file"; 
+								errorText.string = "You must select Voice Lab session (.vls) file";
 								mainView.index = 2;
-							
+
 						})
 					})
 					.minWidth_(400)
 					.minHeight_(70)
 					, align:\center],
-	
+
 				[Button()
 					.maxHeight_(100)
 					.states_([["Template Session"]])
-					.focusGainedAction_({|b| 
+					.focusGainedAction_({|b|
 						b.states = [["Template Session"]];
 						b.refresh;
 					})
-					.action_({|b| 
+					.action_({|b|
 						b.states = [["processing session files...",Color.new255(226, 49, 140)]];
 						b.refresh;
 						say.value("Creating Voice Lab Session from Template");
@@ -422,17 +422,17 @@
 							mainView.index = 1;
 							refreshGUI.value;
 						},{
-								errorText.string = "Can't seem to find template files."; 
+								errorText.string = "Can't seem to find template files.";
 								mainView.index = 2;
-							
+
 						})
 						}.defer(1)
-						
+
 					})
 					.minWidth_(400)
 					.minHeight_(70)
 					, align:\center]
-		
+
 				)
 			);
 
@@ -444,7 +444,7 @@
 
 			var btnHeight = 180, playButton,levelStack;
 			var recordedQuestionTitle,spokenQuestionTitle;
-			
+
 			View().layout_( HLayout(
 				listView = ListView()
 					.maxHeight_(900)
@@ -453,7 +453,7 @@
 						v.items.at(v.value).postln;
 					}),
 				View().layout_( GridLayout.rows([
-		
+
 					Button()
 						.maxHeight_(btnHeight)
 						.states_([["PREV"]])
@@ -466,13 +466,13 @@
 						.states_([["PLAY"]])
 				        .action_({ arg butt;
 							window.view.enabled = false;
-				
+
 				            listView.value.postln;
 							t = listView.items.at(listView.value);
 							p = appPath.asAbsolutePath+/+sessionTitle+/+"Questions"+/+t;
 
 							playQuestion.value(p,{
-								
+
 								// check if there is another question
 								// if so, move to next and start recording kid
 								if(listView.value + 1 < listView.items.size,{
@@ -480,13 +480,13 @@
 									startRecorder.value(p.basename.splitext[0]);
 								},{
 									"LAST".postln;
-								
+
 								});
 								window.view.enabled = true;
-								
+
 							});
 						}),
-			
+
 
 					Button()
 						.maxHeight_(btnHeight)
@@ -505,35 +505,35 @@
 							["Record"],
 							["Stop",bgColor:Color.red]
 						])
-						.action_({|b| 
-							
+						.action_({|b|
+
 							switch(b.value,
 								0,{
 									{
 										// stop recording
 										stopRecordingQuestion.value;
-										
+
 										t = recordedQuestionTitle;
 										n = recordedQuestionTitle.replace("Recording","Question");
 
-										textFieldMessage.string = "Save Question as"; 
+										textFieldMessage.string = "Save Question as";
 										textField.object = { t };
 										textField.valueAction_(n.splitext[0]);
 										mainView.index = 3;
-									
+
 									}.defer(0.4);// so we don't loose last bit of buffer
-									
+
 								},
 								1,{
 									// record
-									
+
 									g = Date.getDate.format("%H_%M_%S");
 									recordedQuestionTitle = "Recording"++g++".wav";
 
 									startRecordingQuestion.value(recordedQuestionTitle);
 								}
 							);
-							
+
 						}),
 					Button()
 						.maxHeight_(btnHeight)
@@ -546,13 +546,13 @@
 								var newPath = appPath.asAbsolutePath+/+sessionTitle+/+"Questions";
 
 								addQuestion.value(path,newPath+/+path.basename,getNextNoteNumber.value());
-								
+
 								refreshGUI.value;
 							},{
 								// cancel file open dialog
 							});
 						}),
-						
+
 
 					Button()
 						.maxHeight_(btnHeight)
@@ -568,7 +568,7 @@
 
 								sessionData["keyPaths"].removeAt(key.asString);
 								p = appPath.asAbsolutePath+/+sessionTitle+/+"session.vls";
-								
+
 								sessionData.writeArchive(p);
 								sessionData = Object.readArchive(p);
 
@@ -579,29 +579,29 @@
 							});
 
 						})
-						
 
-						
+
+
 					],[
-		
+
 					Button()
 						.maxHeight_(btnHeight)
 						.states_([
 							["Speak"],
 							["Speak", bgColor:Color.green]
 						])
-						.action_({|b| 
+						.action_({|b|
 							switch(b.value,
 								0,{
-								
+
 									stopRecordingQuestion.value;
 									startRecorder.value(spokenQuestionTitle.basename.splitext[0]);
 								},
 								1,{
-									
+
 									g = Date.getDate.format("%H_%M_%S");
 									spokenQuestionTitle = "SpokenQuestion"++g++".wav";
-									
+
 									startRecordingQuestion.value(spokenQuestionTitle);
 
 								}
@@ -622,21 +622,21 @@
 						.animate_(true)
 						.clearOnRefresh_(false)
 						.mouseDownAction_({ stopRecorder.value }),
-		
+
 					Button()
 						.maxHeight_(btnHeight)
 						.states_([["Exit"]])
-						.action_({|b| 
+						.action_({|b|
 							listView.items = Array.newClear;
 							stopRecorder.value;
 							s.freeAll;
 							s.queryAllNodes;
 							mainView.index = 0;
-							
+
 						})
 					])
-	
-	
+
+
 				).minWidth_(400)
 
 			))
@@ -646,7 +646,7 @@
 		refreshGUI = {
 			// clear listView
 			listView.items = Array.newClear;
-			
+
 			if(sessionData["keyPaths"].isEmpty == false,{
 				sessionData["keyPaths"].values.collect(_.asInteger).asSortedList.postln;
 				// repopulate in order of assigned midi note
@@ -657,7 +657,7 @@
 				//t = listView.items.at(listView.value).key;
 			});
 		};
-		
+
 		//------------------------------------------------------
 		onPlayLevel = OSCFunc({|msg, time, addr, recvPort|
     		{
@@ -676,7 +676,7 @@
 					sessionView.value,
 					errorView.value,
 					textFieldView.value
-	
+
 				);
 			))
 
@@ -685,18 +685,21 @@
 
 				})
 			.front;
-			
+
 		window.drawFunc = {
 			Pen.addRect(window.view.bounds.insetBy(2));
 			Pen.fillAxialGradient(window.view.bounds.leftTop, window.view.bounds.rightBottom, Color.rand, Color.rand);
 		};
-		
+
 		window.onClose = ({
 			onPlayLevel.free;
 			listenSynth.free;
+
+		arpSynth.stop;
+		droneSynth.stop;
 		});
 
-			
+
 	});
 
 
