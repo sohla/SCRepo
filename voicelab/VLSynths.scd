@@ -1,10 +1,24 @@
 
+s.boot
+s.queryAllNodes
+
 s.freeAll
 s.quit
 
-s.queryAllNodes
 
-s.boot
+routing
+
+in
+1	child
+2	operator
+
+
+out
+1-2	child
+3-4 operator
+
+
+
 
 (
 	SynthDef(\playBuffer, {|buffer = 0, note = 69|
@@ -19,7 +33,7 @@ s.boot
 	    var delimp = Delay1.kr(imp);
 	    SendReply.kr(imp, '/onPlayLevel', [0,Amplitude.kr(player), K2A.ar(Peak.ar(player, delimp).lag(0, 1))]);
 
-		Out.ar(0,[player,player]);
+		Out.ar(0,[player,player,player,player]);
 
 	}).send(s);
 
@@ -29,7 +43,7 @@ s.boot
 	    var delimp = Delay1.kr(imp);
 		 SendReply.kr(imp, '/onPlayLevel', [1,Amplitude.kr(player), K2A.ar(Peak.ar(player, delimp).lag(0, 1))]);
 
-		Out.ar(0,[player,player]);
+		Out.ar(0,[0,0,player,player]);
 
 	}).send(s);
 
@@ -69,8 +83,34 @@ s.boot
 		 SendReply.kr(imp, '/onRecordLevel', [1,Amplitude.kr(p), K2A.ar(Peak.ar(p, delimp).lag(0, 1))]);
 
 		 DiskOut.ar(bufnum, p);
+
+		 Out.ar(0,[0,0,p,p]);
 		 //Out.ar(0,[0,p]);
 	}).send(s);
 
+
+	SynthDef(\listenToMic, {
+		var p = SoundIn.ar(0);
+	    var imp = Impulse.kr(10);
+	    var delimp = Delay1.kr(imp);
+		 SendReply.kr(imp, '/onListenLevel', [1,Amplitude.kr(p), K2A.ar(Peak.ar(p, delimp).lag(0, 1))]);
+
+		 Out.ar(0,[0,0,p,p]);
+	}).send(s);
+
+	(
+	SynthDef(\cfstring1, { arg i_out, freq = 160, gate = 1, pan, amp=0.1, lf = 50,hf = 12000, atk = 0.001,dcy = 1;
+		    var out, eg, fc, osc, a, b, w;
+		    fc = LinExp.kr(LFNoise1.kr(Rand(0.25, 0.4)), -1, 1, lf, hf);
+		    osc = Mix.fill(4, {LFSaw.ar(freq * [Rand(0.99, 1.01), Rand(0.99, 1.01)], 0, amp) }).distort * 0.1;
+		    eg = EnvGen.kr(Env.asr(atk, 1, dcy), gate, doneAction:2);
+		    out = eg * RLPF.ar(osc, fc, 0.1);
+		    #a, b = out*0.4;
+			//c = Mix.ar(PanAz.ar(4, [a, b], [pan, pan+0.3]));
+		    Out.ar(i_out, [ a,b,a,b]);
+	}).send(s);
+	)
+
 )
+
 

@@ -12,6 +12,8 @@
 	var recordSynth,recordBuffer;
 	var micInputSynth;
 	var micSynth,recorderSynth,recBuffer;
+	var listenSynth;
+	
 	
 	var say;
 
@@ -35,7 +37,14 @@
 
 
 
+	listenSynth = Synth.new(\listenToMic);
 
+	y = Pbind(
+	    [\degree, \dur], Pseq([[0, 0.1], [2, 0.1], [4, 0.1], [5, 0.1], [2, 0.1]], inf),
+		    \amp, 0.04, \octave, [4,5,6], \instrument, \cfstring1, \mtranspose, [0,2,4], \atk, 0.01,\dcy, [0.2,1.1,2]).play;
+	z = Pbind(
+	    [\degree, \dur], Pseq([[0, 8], [2, 6], [5, 9], [1, 10], [4, 8]], inf),
+		    \amp, [0.3,0.4,0.5], \octave, [1,2,3], \instrument, \cfstring1, \mtranspose, [0], \hf,[90,200,400], \atk, 2,\dcy, 3).play;
 
 	//------------------------------------------------------
 	// SESSION
@@ -684,7 +693,7 @@
 		
 		window.onClose = ({
 			onPlayLevel.free;
-
+			listenSynth.free;
 		});
 
 			
@@ -696,3 +705,6 @@
 	initGUI.value;
 
 )
+
+
+

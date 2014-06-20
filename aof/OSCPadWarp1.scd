@@ -3,10 +3,10 @@
 
 (
 	SynthDef(\simplesine, {arg frq=440.0, amp = 0.4;
-		
+
 		Out.ar(0,
 				[SinOsc.ar(frq,0,amp),SinOsc.ar(frq,0.01,amp)]
-		);	
+		);
 	}).send(s);
 
 )
@@ -15,14 +15,14 @@
 
 (
 	SynthDef(\simplering, {arg frq=240.0, amp = 0.5, modfrq = 120, modamp = 0.5;
-			
+
 		var	mod;
 		var	os;
 		mod = SinOsc.ar(modfrq,0,modamp);
 		os = SinOsc.ar(frq * mod,0,1.0);
-		
+
 		Out.ar(0,[os,os]);
-		
+
 	}).send(s);
 
 )
@@ -48,90 +48,90 @@ a.set(\frq,120);
 
 (
 	var sy1 = Synth(\simplesine);
-	
-	
-	
-	var i=0;	
-	
-	var res = OSCresponderNode.new(nil, "/model"++i, { 
-		arg time, resp, msg; 
-		sy1.set(\frq,50 + (msg[1] * 600)); 
-		sy1.set(\amp,msg[2]); 
-	
-	} ).add; 
 
 
-	res = OSCresponderNode.new(nil, "/model"++i++"on", { 
-		arg time, resp, msg; 
-		sy1.run(true); 
-	} ).add; 
-	res = OSCresponderNode.new(nil, "/model"++i++"off", { 
-		arg time, resp, msg; 
-		sy1.run(false); 
-	} ).add; 
-	
+
+	var i=0;
+
+	var res = OSCresponderNode.new(nil, "/model"++i, {
+		arg time, resp, msg;
+		sy1.set(\frq,50 + (msg[1] * 600));
+		sy1.set(\amp,msg[2]);
+
+	} ).add;
+
+
+	res = OSCresponderNode.new(nil, "/model"++i++"on", {
+		arg time, resp, msg;
+		sy1.run(true);
+	} ).add;
+	res = OSCresponderNode.new(nil, "/model"++i++"off", {
+		arg time, resp, msg;
+		sy1.run(false);
+	} ).add;
+
 	sy1.run(false);
-	
+
 )
 //------------------------------------------------------------------------
 // 2 rings
 //------------------------------------------------------------------------
 
 (
-	var sy1 = Synth(\simplering);	
-//	var sy2 = Synth(\simplering);	
-	
-	
-	var i=0;	
-	
-	var res = OSCresponderNode.new(nil, "/model"++i, { 
-		arg time, resp, msg; 
-		sy1.set(\frq,50 + (msg[1] * 600)); 
-		sy1.set(\frqamp,msg[2]); 
-	
-	} ).add; 
+	var sy1 = Synth(\simplering);
+//	var sy2 = Synth(\simplering);
 
 
-	res = OSCresponderNode.new(nil, "/model"++i++"on", { 
-		arg time, resp, msg; 
-		sy1.run(true); 
-	} ).add; 
-	res = OSCresponderNode.new(nil, "/model"++i++"off", { 
-		arg time, resp, msg; 
-		sy1.run(false); 
-	} ).add; 
-	
+	var i=0;
+
+	var res = OSCresponderNode.new(nil, "/model"++i, {
+		arg time, resp, msg;
+		sy1.set(\frq,50 + (msg[1] * 600));
+		sy1.set(\frqamp,msg[2]);
+
+	} ).add;
+
+
+	res = OSCresponderNode.new(nil, "/model"++i++"on", {
+		arg time, resp, msg;
+		sy1.run(true);
+	} ).add;
+	res = OSCresponderNode.new(nil, "/model"++i++"off", {
+		arg time, resp, msg;
+		sy1.run(false);
+	} ).add;
+
 
 	i =1;
 
-	res = OSCresponderNode.new(nil, "/model"++i, { 
-		arg time, resp, msg; 
-		sy1.set(\modfrq,50 + (msg[1] * 600)); 
-		sy1.set(\modamp,msg[2]); 
-	
-	} ).add; 
+	res = OSCresponderNode.new(nil, "/model"++i, {
+		arg time, resp, msg;
+		sy1.set(\modfrq,50 + (msg[1] * 600));
+		sy1.set(\modamp,msg[2]);
 
-//	res = OSCresponderNode.new(nil, "/model"++i++"on", { 
-//		arg time, resp, msg; 
-//		sy1.run(true); 
-//	} ).add; 
-//	res = OSCresponderNode.new(nil, "/model"++i++"off", { 
-//		arg time, resp, msg; 
-//		sy1.run(false); 
-//	} ).add; 
-	
-	
+	} ).add;
+
+//	res = OSCresponderNode.new(nil, "/model"++i++"on", {
+//		arg time, resp, msg;
+//		sy1.run(true);
+//	} ).add;
+//	res = OSCresponderNode.new(nil, "/model"++i++"off", {
+//		arg time, resp, msg;
+//		sy1.run(false);
+//	} ).add;
+
+
 	sy1.run(false);
-	
+
 )
 (
 
 	var winenv;
 	winenv = Env([0, 1, 0], [0.01, 0.01], [-2, 2]);
 	z = Buffer.sendCollection(s, winenv.discretize, 1);
-	
+
 	SynthDef(\warppadxy, {arg buffer = 0, envbuf = -1, ws = 0.5, pch = 0.5, xx = 0.2,yy = 0.2,vol=0.2;
-		
+
 		Out.ar(0,
 			Splay.arFill(24,
 				{ |i| Warp1.ar(2, buffer, xx+0.01, pch,yy, envbuf, 4, ws, 4)  },
@@ -139,7 +139,7 @@ a.set(\frq,120);
 				1,
 				0
 			) * vol
-		);	
+		);
 	}).send(s);
 
 )
@@ -156,65 +156,65 @@ a.set(\frq,120);
 //	var buf2 = Buffer.read(s, "sounds/Jazz 130bpm.wav");
 //	var buf2 = Buffer.read(s, "sounds/Church Bells 1.aiff");
 
-	var buf2 = Buffer.read(s, "sounds/Peeling potatoes.aiff");
+//	var buf2 = Buffer.read(s, "sounds/Peeling potatoes.aiff");
 
 
-//	var buf2 = Buffer.read(s, "sounds/70986__jppi-stu__sw-countdownfrom10.wav");
-//	var buf1 = Buffer.read(s, "sounds/hurtfull.aif");
-	
+	var buf2 = Buffer.read(s, "~/Music/sounds/bellsDemo.wav".standardizePath);
+	var buf1 = Buffer.read(s, "~/Music/sounds/23875__Connum__spoon_in_cup.wav".standardizePath);
+
 	var sy1 = Synth(\warppadxy,[\buffer,buf2,\ws,3.3,\pch,1.0]);
 	var sy2 = Synth(\warppadxy,[\buffer,buf2,\ws,3.3,\pch,0.5]);
-	
-	
+
+
 	var numOfBlobs = 2;
-	
-			
-	
-	var i=0;	
-	
-	var res = OSCresponderNode.new(nil, "/model"++i, { 
-		arg time, resp, msg; 
-		sy1.set(\xx,msg[1]); 
-		sy1.set(\pch,0.5 + (msg[2] * 0.5)); 
-	
-	} ).add; 
 
 
-	res = OSCresponderNode.new(nil, "/model"++i++"on", { 
-		arg time, resp, msg; 
-		sy1.run(true); 
-	} ).add; 
-	res = OSCresponderNode.new(nil, "/model"++i++"off", { 
-		arg time, resp, msg; 
-		sy1.run(false); 
-	} ).add; 
-	
+
+	var i=0;
+
+	var res = OSCresponderNode.new(nil, "/model"++i, {
+		arg time, resp, msg;
+		sy1.set(\xx,msg[1]);
+		sy1.set(\pch,0.5 + (msg[2] * 0.5));
+
+	} ).add;
+
+
+	res = OSCresponderNode.new(nil, "/model"++i++"on", {
+		arg time, resp, msg;
+		sy1.run(true);
+	} ).add;
+	res = OSCresponderNode.new(nil, "/model"++i++"off", {
+		arg time, resp, msg;
+		sy1.run(false);
+	} ).add;
+
 
 	i =1;
 
-	res = OSCresponderNode.new(nil, "/model"++i, { 
-		arg time, resp, msg; 
-		sy2.set(\xx,msg[1]); 
-		//sy2.set(\yy,msg[2]); 
-	
-	} ).add; 
+	res = OSCresponderNode.new(nil, "/model"++i, {
+		arg time, resp, msg;
+		sy2.set(\xx,msg[1]);
+		//sy2.set(\yy,msg[2]);
 
-	res = OSCresponderNode.new(nil, "/model"++i++"on", { 
-		arg time, resp, msg; 
-		sy2.run(true); 
-	} ).add; 
-	res = OSCresponderNode.new(nil, "/model"++i++"off", { 
-		arg time, resp, msg; 
-		sy2.run(false); 
-	} ).add; 
-	
-	
+	} ).add;
+
+	res = OSCresponderNode.new(nil, "/model"++i++"on", {
+		arg time, resp, msg;
+		sy2.run(true);
+	} ).add;
+	res = OSCresponderNode.new(nil, "/model"++i++"off", {
+		arg time, resp, msg;
+		sy2.run(false);
+	} ).add;
+
+
 	sy1.run(false);
 	sy2.run(false);
 
 	sy1.set(\vol,0.4);
 	sy2.set(\vol,0.4);
-	
+
 )
 
 
@@ -223,24 +223,24 @@ a.set(\frq,120);
 	//var buf = Buffer.read(s, "sounds/23875__Connum__spoon_in_cup.wav");
 	var buf1 = Buffer.read(s, "sounds/55208__noisecollector__kidstory.wav");
 	var buf2 = Buffer.read(s, "sounds/alleg.wav");
-	
-	var sy1 = Synth(\warppadxy,[\buffer,buf,\ws,3.3,\pch,1.0]);
-	
-	var res = OSCresponderNode.new(nil, "/model", { 
-		arg time, resp, msg; 
-		sy.set(\xx,msg[1]); 
-		//sy.set(\yy,msg[2]); 
-	
-	} ).add; 
 
-	res = OSCresponderNode.new(nil, "/on", { 
-		arg time, resp, msg; 
-		sy.run(true); 
-	} ).add; 
-	res = OSCresponderNode.new(nil, "/off", { 
-		arg time, resp, msg; 
-		sy.run(false); 
-	} ).add; 
+	var sy1 = Synth(\warppadxy,[\buffer,buf,\ws,3.3,\pch,1.0]);
+
+	var res = OSCresponderNode.new(nil, "/model", {
+		arg time, resp, msg;
+		sy.set(\xx,msg[1]);
+		//sy.set(\yy,msg[2]);
+
+	} ).add;
+
+	res = OSCresponderNode.new(nil, "/on", {
+		arg time, resp, msg;
+		sy.run(true);
+	} ).add;
+	res = OSCresponderNode.new(nil, "/off", {
+		arg time, resp, msg;
+		sy.run(false);
+	} ).add;
 
 )
 
@@ -250,22 +250,22 @@ a.set(\frq,120);
 	var buf = Buffer.read(s, "sounds/70986__jppi-stu__sw-countdownfrom10.wav");
 	//var buf = Buffer.read(s, "sounds/23875__Connum__spoon_in_cup.wav");
 	//var buf = Buffer.read(s, "sounds/55208__noisecollector__kidstory.wav");
-	
-	var sy = Synth(\warppadxy,[\buffer,buf,\ws,3.3,\pch,1.0]);
-	
-	var r1 = OSCresponderNode.new(nil, "/1/multixy1/1", { 
-		arg time, resp, msg; 
-		sy.set(\xx,msg[1]); 
-		sy.set(\xx,msg[2]); 
-	
-	} ).add; 
 
-	var r2 = OSCresponderNode.new(nil, "/1/multixy1/2", { 
-		arg time, resp, msg; 
-		sy.set(\ws,msg[1]); 
-		sy.set(\pch,0.5 + msg[2]); 
-	
-	} ).add; 
+	var sy = Synth(\warppadxy,[\buffer,buf,\ws,3.3,\pch,1.0]);
+
+	var r1 = OSCresponderNode.new(nil, "/1/multixy1/1", {
+		arg time, resp, msg;
+		sy.set(\xx,msg[1]);
+		sy.set(\xx,msg[2]);
+
+	} ).add;
+
+	var r2 = OSCresponderNode.new(nil, "/1/multixy1/2", {
+		arg time, resp, msg;
+		sy.set(\ws,msg[1]);
+		sy.set(\pch,0.5 + msg[2]);
+
+	} ).add;
 
 )
 
@@ -277,14 +277,14 @@ a.set(\frq,120);
 	// e a d g b e
 	pitch = [ 52, 57, 62, 67, 71, 76 ];
 	mousex = MouseX.kr;
-	
-	
-	r1 = OSCresponderNode.new(nil, "/1/multixy1/1", { 
-		arg time, resp, msg; 
-		xx = msg[1] * 500; 
-	
-	} ).add; 
-	
+
+
+	r1 = OSCresponderNode.new(nil, "/1/multixy1/1", {
+		arg time, resp, msg;
+		xx = msg[1] * 500;
+
+	} ).add;
+
 	out = Mix.arFill(pitch.size, { arg i;
 		var trigger, pluck, period, string;
 		// place trigger points from 0.25 to 0.75
