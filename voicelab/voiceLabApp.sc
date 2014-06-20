@@ -14,7 +14,7 @@
 	var micSynth,recorderSynth,recBuffer;
 	var listenSynth;
 	var arpSynth,droneSynth;
-
+	var arduino;
 	var say;
 
 	var playQuestion;
@@ -37,6 +37,7 @@
 	sessionData.put("keyPaths",Dictionary.new);
 
 
+	arduino = RduinoDMX(SerialPort.devices.last,115200);
 
 
 
@@ -156,7 +157,7 @@
 		sessionData = Object.readArchive(sessionArchivePath);
 
 		listenSynth = Synth.new(\listenToMic);
-		//bgMusicStart.value;
+		bgMusicStart.value;
 
 		// return path
 		sessionArchivePath;
@@ -473,8 +474,8 @@
 
 			View().layout_( HLayout(
 				listView = ListView()
-					.maxHeight_(900)
-					.font_(Font("Helvetica", 44))
+					.maxHeight_(700)
+					.font_(Font("Helvetica", 24))
 					.enterKeyAction_({|v|
 						v.items.at(v.value).postln;
 					}),
@@ -491,25 +492,28 @@
 						.maxHeight_(btnHeight)
 						.states_([["PLAY"]])
 				        .action_({ arg butt;
-							window.view.enabled = false;
 
-				            listView.value.postln;
-							t = listView.items.at(listView.value);
-							p = appPath.asAbsolutePath+/+sessionTitle+/+"Questions"+/+t;
+							if(listView.items.size > 0,{
+								window.view.enabled = false;
 
-							playQuestion.value(p,{
+					            listView.value.postln;
+								t = listView.items.at(listView.value);
+								p = appPath.asAbsolutePath+/+sessionTitle+/+"Questions"+/+t;
 
-								// check if there is another question
-								// if so, move to next and start recording kid
-								if(listView.value + 1 < listView.items.size,{
-									listView.value = listView.value + 1;
-									startRecorder.value(p.basename.splitext[0]);
-								},{
-									"LAST".postln;
+								playQuestion.value(p,{
+
+									// check if there is another question
+									// if so, move to next and start recording kid
+									if(listView.value + 1 < listView.items.size,{
+										listView.value = listView.value + 1;
+										startRecorder.value(p.basename.splitext[0]);
+									},{
+										"LAST".postln;
+
+									});
+									window.view.enabled = true;
 
 								});
-								window.view.enabled = true;
-
 							});
 						}),
 
@@ -667,7 +671,20 @@
 					])
 
 
-				).minWidth_(400)
+				).minWidth_(400),
+				
+				View().layout_(VLayout(
+					
+					Slider2D()
+						.background_(Color.black())
+			        	.action_({|sl|
+							c = Color.hsv(sl.x*0.999,1,sl.y*0.999,1);
+							sl.background_(c);
+							arduino.dmxc_(c.red*r,c.green*r,c.blue*r);
+						});
+					
+					
+					));
 
 			))
 
@@ -692,6 +709,12 @@
 		onPlayLevel = OSCFunc({|msg, time, addr, recvPort|
     		{
 				scale = msg[4].ampdb.linexp(-40, 0, 1, 2.0);
+				if( msg[5].ampdb.linlin(-40, 0, 0, 1) > 0.3,{
+			// arduino.pw_(9,msg[5].ampdb.linexp(-40, 0, 5, 127));
+			arduino.dmxc_(msg[5].ampdb.linexp(-40, 0, 10, 255),0,0);
+				},{
+					arduino.dmxc_(30,0,0);
+				});
 
   			}.defer;
 
@@ -723,6 +746,9 @@
 
 		window.onClose = ({
 			onPlayLevel.free;
+			listenSynth.free;
+			arduino.dmxc_(0,0,0);
+			arduino.close;
 
 		});
 
