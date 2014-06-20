@@ -77,14 +77,14 @@ out
 	}).send(s);
 
 	SynthDef(\recordInput, {|bufnum = 0|
-		var p = SoundIn.ar(0);
+		var p = SoundIn.ar(0,2);
 	    var imp = Impulse.kr(10);
 	    var delimp = Delay1.kr(imp);
 		 SendReply.kr(imp, '/onRecordLevel', [1,Amplitude.kr(p), K2A.ar(Peak.ar(p, delimp).lag(0, 1))]);
 
 		 DiskOut.ar(bufnum, p);
 
-		 Out.ar(0,[0,0,p,p]);
+		 //Out.ar(0,[0,0,p,p]);
 		 //Out.ar(0,[0,p]);
 	}).send(s);
 

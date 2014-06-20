@@ -28,6 +28,7 @@
 	var initGUI, refreshGUI;
 	var startRecordingQuestion,stopRecordingQuestion;
 
+	var bgMusicStart, bgMusicStop;
 
 	// contect locally so we can send msgs
 	broadcaster = NetAddr("127.0.0.1", NetAddr.langPort);
@@ -37,14 +38,7 @@
 
 
 
-	listenSynth = Synth.new(\listenToMic);
 
-	arpSynth = Pbind(
-	[\degree, \dur], Pseq([[0, 0.1], [2, 0.1], [4, 0.1], [5, 0.1], [2, 0.1]], inf),
-	\amp, 0.04, \octave, [4,5,6], \instrument, \cfstring1, \mtranspose, [0,2,4], \atk, 0.01,\dcy, [0.2,1.1,2]).play;
-	droneSynth = Pbind(
-	    [\degree, \dur], Pseq([[0, 8], [2, 6], [5, 9], [1, 10], [4, 8]], inf),
-		    \amp, [0.1,0.2,0.5], \octave, [1,2,3], \instrument, \cfstring1, \mtranspose, [0], \hf,[90,200,400], \atk, 2,\dcy, 3).play;
 
 	//------------------------------------------------------
 	// SESSION
@@ -160,6 +154,9 @@
 
 		// load  session data
 		sessionData = Object.readArchive(sessionArchivePath);
+
+		listenSynth = Synth.new(\listenToMic);
+		//bgMusicStart.value;
 
 		// return path
 		sessionArchivePath;
@@ -281,6 +278,34 @@
 		recBuffer.postln;
 	});
 
+	bgMusicStart = ({
+		arpSynth = Pbind(
+		    [\degree, \dur],
+			Pseq([[0, 1], [2, 2], [4, 2], [5, 1], [2, 1]], inf),
+			\amp, 0.07,
+			\octave, [4,5,6],
+			\instrument, \cfstring1,
+			\mtranspose, [0,2,4],
+			\atk, 2.01,
+			\dcy, [2.2,4.1,8]).play;
+
+		droneSynth = Pbind(
+		    [\degree, \dur],
+			Pseq([[0, 8], [2, 6], [5, 9], [1, 10], [4, 8]], inf),
+			\amp, [0.1,0.2,0.5],
+			\octave, [1,2,3],
+			\instrument, \cfstring1,
+			\mtranspose, [0],
+			\hf,[90,200,400],
+			\atk, 2,
+			\dcy, 3).play;
+		});
+
+	bgMusicStop = ({
+		arpSynth.stop;
+		droneSynth.stop;
+
+		});
 
 
 	//------------------------------------------------------
@@ -444,6 +469,7 @@
 
 			var btnHeight = 180, playButton,levelStack;
 			var recordedQuestionTitle,spokenQuestionTitle;
+
 
 			View().layout_( HLayout(
 				listView = ListView()
@@ -629,9 +655,13 @@
 						.action_({|b|
 							listView.items = Array.newClear;
 							stopRecorder.value;
+							bgMusicStop.value;
+							//listenSynth.free;
+
 							s.freeAll;
 							s.queryAllNodes;
 							mainView.index = 0;
+
 
 						})
 					])
@@ -693,10 +723,7 @@
 
 		window.onClose = ({
 			onPlayLevel.free;
-			listenSynth.free;
 
-		arpSynth.stop;
-		droneSynth.stop;
 		});
 
 
