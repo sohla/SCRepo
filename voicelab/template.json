@@ -1,0 +1,28 @@
+{
+		"keyPaths" : {
+
+			"7.shallWeBegin.wav":"70",
+			"8.ok.wav":"71",
+			"9.questionOneHappy.wav":"72",
+			"10.whatMakesYouLaugh.wav":"73",
+			"11.whatIsTheBestThing.wav":"74",
+			"12.question2FavouriteActivity.wav":"75",
+			"13.leastFavouriteActivity.wav":"76",
+			"14.hardestPart.wav":"77",
+			"15.ifYouCouldGoBack.wav":"78",
+			"16.questionThreeWhatIsLove.wav":"79",
+			"17.whyDoWeDream.wav":"80",
+			"18.whatHappensGrowUp.wav":"81",
+			"19.doWithOneMillion.wav":"82",
+			"20.becamePrimeMinister.wav":"83",
+			"21.wellThatsIt.wav":"84",
+			"1.welcomeToVoiceLab.wav":"64",
+			"2.vlWouldLikeToAskYou.wav":"65",
+			"3.vlWantToKnow.wav":"66",
+			"4.beforeWeBeginWhatIsYourName.wav":"67",
+			"5.howOldAreYou.wav":"68",
+			"6.howManyFingersIsVL.wav":"69",
+
+			}
+		
+}
