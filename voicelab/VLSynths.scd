@@ -1,25 +1,6 @@
-
 s.boot
-s.queryAllNodes
 
-s.freeAll
 s.quit
-
-
-routing
-
-in
-1	child
-2	operator
-
-
-out
-1-2	child
-3-4 operator
-
-
-
-
 (
 	SynthDef(\playBuffer, {|buffer = 0, note = 69|
 		var pitch = (note.midicps / 440.0) * BufRateScale.kr(buffer);
@@ -69,6 +50,25 @@ out
 		ReplaceOut.ar(0, a);
 
 	}).send(s);
+	
+	SynthDef(\ringme, {|buffer = 0, pitch = 24, range = 20,delay = 0.04, decay = 0.19|
+
+		var player,sel,fol;
+		var modulator;
+		var notes = #[0,4,7];
+		var root = 42;
+		var dly;
+		//player = SoundIn.ar(0);
+		player = In.ar(0,2);//PlayBuf.ar(1,buffer,BufRateScale.kr(buffer),loop: 1) ;
+		fol = (PeakFollower.ar(player,0.01) * range).lag(0,0.1);
+
+		modulator = SinOsc.ar( pitch.midicps + fol.midicps,0,player) ;
+
+		dly = CombN.ar((modulator).dup,0.3,[delay,delay+0.01],decay);
+		Out.ar(0,dly);
+
+	}).send(s);
+	
 
 
 	// simple disk out

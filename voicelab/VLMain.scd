@@ -314,7 +314,7 @@ closeArduino = {
 			Pen.strokeColor= Color.new255(226, 49, 140);
 			Pen.fillOval(Rect.aboutPoint(Point(50, 50), 20*scale, 20*scale));
 		};
-		circleView.animate= true;
+//		circleView.animate= true;
 		circleView.clearOnRefresh = false;
 
 		numberView = EZNumber(window,
@@ -406,32 +406,6 @@ closeArduino = {
 			});
 		});
 
-		onRecordMsg = OSCFunc({|msg, time, addr, recvPort|
-			{
-				recordMode = recordMode.even.asInteger;
-				recordButton.value = recordMode;
-				switch(recordMode,
-				0,{playModeState.value();playLevelView.background=Color.grey;},
-				1,{recordModeState.value();playLevelView.background=Color.red(1,0.5);}
-				);
-
-			}.defer;
-		}, '/onRecordMsg');
-
-		onPlayLevel = OSCFunc({|msg, time, addr, recvPort|
-    		{
-				scale = msg[4].ampdb.linexp(-40, 0, 1, 1.5);
-				playLevelView.value = msg[4].ampdb.linlin(-40, 0, 0, 1);
-				playLevelView.peakLevel = msg[5].ampdb.linlin(-40, 0, 0, 1);
-
-				if( msg[5].ampdb.linlin(-40, 0, 0, 1) > 0.3,{
-					 arduino.pw_(9,msg[5].ampdb.linexp(-40, 0, 5, 127));
-				},{
-						 arduino.pw_(9,0);
-				});
-  			}.defer;
-
-		}, '/onPlayLevel');
 
 	//------------------------------------------------------
 	refreshGUI = {

@@ -16,9 +16,6 @@
 	var arpSynth,droneSynth;
 	var arduino;
 	var say;
-	var pluginName=\ringme;
-	var pluginSynth;
-	
 
 	var playQuestion;
 	//------------------------------------------------------
@@ -34,7 +31,7 @@
 	var bgMusicStart, bgMusicStop;
 
 	// contect locally so we can send msgs
-	broadcaster = NetAddr("127.0.0.1", NetAddr.langPort);
+	//broadcaster = NetAddr("127.0.0.1", NetAddr.langPort);
 
 	// setup dummy datastore
 	sessionData.put("keyPaths",Dictionary.new);
@@ -160,7 +157,7 @@
 		sessionData = Object.readArchive(sessionArchivePath);
 
 		listenSynth = Synth.new(\listenToMic);
-		//bgMusicStart.value;
+		bgMusicStart.value;
 
 		// return path
 		sessionArchivePath;
@@ -242,13 +239,10 @@
 
 		a = Synth(\playBuffer,[\buffer,Buffer.read(s, path)]);
 
-		pluginSynth = Synth.tail(nil,pluginName);
-
 		stopRecorder.value;
 
 		s.queryAllNodes;
 		a.onFree({
-			pluginSynth.free;
 			s.queryAllNodes;
 			{
 				completionFunc.value;
@@ -332,7 +326,7 @@
 		var listView;
 		//------------------------------------------------------
 		textFieldView = ({
-			View().layout_( VLayout(
+			View().layout_( VLayoutView(
 
 				textFieldMessage = StaticText().string_("-").align_(\center).font_(Font(size:24)),
 				[textField = TextField()
@@ -374,7 +368,7 @@
 		});
 		//------------------------------------------------------
 		errorView = ({
-			View().layout_( VLayout(
+			View().layout_( VLayoutView(
 
 				StaticText().string_("Oops").align_(\center).font_(Font(size:48)),
 				errorText = StaticText().string_("-").align_(\center).font_(Font(size:24)),
@@ -394,7 +388,7 @@
 		//------------------------------------------------------
 		loadView = ({
 
-			View().layout_( VLayout(
+			View().layout_( VLayoutView(
 				StaticText().string_("Welcome to VoiceLab").align_(\center).font_(Font(size:48)),
 
 				[Button()
@@ -478,7 +472,7 @@
 			var recordedQuestionTitle,spokenQuestionTitle;
 
 
-			View().layout_( HLayout(
+			View().layout_( HLayoutView(
 				listView = ListView()
 					.maxHeight_(700)
 					.font_(Font("Helvetica", 24))
@@ -679,7 +673,7 @@
 
 				).minWidth_(400),
 				
-				View().layout_(VLayout(
+				View().layout_(VLayoutView(
 					
 					Slider2D()
 						.background_(Color.black())
@@ -712,23 +706,10 @@
 		};
 
 		//------------------------------------------------------
-		onPlayLevel = OSCFunc({|msg, time, addr, recvPort|
-    		{
-				scale = msg[4].ampdb.linexp(-40, 0, 1, 2.0);
-				if( msg[5].ampdb.linlin(-40, 0, 0, 1) > 0.3,{
-			// arduino.pw_(9,msg[5].ampdb.linexp(-40, 0, 5, 127));
-			arduino.dmxc_(msg[5].ampdb.linexp(-40, 0, 10, 255),0,0);
-				},{
-					arduino.dmxc_(30,0,0);
-				});
-
-  			}.defer;
-
-		}, '/onPlayLevel');
 		//------------------------------------------------------
 
 		window = Window("",Rect(0, 800, 1200, 400))
-			.layout_( VLayout(
+			.layout_( VLayoutView(
 				mainView = StackLayout(
 
 					loadView.value,
