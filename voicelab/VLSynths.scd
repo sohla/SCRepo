@@ -1,3 +1,4 @@
+s.quit
 (
 	SynthDef(\playBuffer, {|buffer = 0, note = 69|
 		var pitch = (note.midicps / 440.0) * BufRateScale.kr(buffer);
