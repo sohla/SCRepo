@@ -24,15 +24,17 @@
 (
 
 	var synthName = \warpSynth;
-	var numOfBlobs = 2;
+	var numOfBlobs = 4;
 	var res;
 
 	var synths = Array.new(numOfBlobs);
 
 	var paths = [
 	"23875__Connum__spoon_in_cup.wav",
-	"bellsDemo.aif"
-
+	"bellsDemo.aif",
+	"darkforest.wav",
+	"totoro.wav",
+	"helloTest2.wav"
 	];
 
 	var buffers = Array.new(paths.size);
@@ -83,7 +85,7 @@
 		res = OSCresponderNode.new(nil, "/model"++i, {
 			arg time, resp, msg;
 			synths.at(i).set(\xx,msg[2]);
-			synths.at(i).set(\yy,0.75 + msg[1]);
+			synths.at(i).set(\77,0.75 + msg[1]);
 
 		} ).add;
 
