@@ -11,7 +11,7 @@ SynthDef(\vcstrech, {arg buffer = 0, envbuf = -1, ws = 0.5, pch = 0.5;
 
 	mx = LFSaw.kr( (1.0/(160.0)) * MouseX.kr(0.01, 1.0) ,1,0.5,0.5);
 
-	my = 0.8;//MouseY.kr(0.5,1,1.0);//splay
+	my = MouseY.kr(0.5,1,1.0);//splay
 
 	sp = Splay.arFill(30,
 			{ |i| Warp1.ar(1, buffer, mx, pch,my, envbuf, 8, 0.1, 2)  },
@@ -21,7 +21,7 @@ SynthDef(\vcstrech, {arg buffer = 0, envbuf = -1, ws = 0.5, pch = 0.5;
 		) * 0.7 * MouseY.kr(0.1,1,1.0);
 
 
-	sp = HPF.ar(sp,MouseY.kr(5000,50,1.0));
+	//sp = HPF.ar(sp,MouseY.kr(5000,50,1.0));
 	Out.ar(0,
 		sp;
 	);

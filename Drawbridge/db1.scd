@@ -26,7 +26,7 @@ SynthDef(\env_help, { |out, gate = 1, amp = 0.1, release = 0.01|
 
 (
 
-SynthDef("simpleEnvSample",{ |bufnum,gate = 1, pch = 1.0,amp=0.2, pan = 0.5|
+SynthDef("simpleEnvSample",{ |bufnum,gate = 1, pch = 1.0,amp=1.0, pan = 0.5|
 		    var sig = PlayBuf.ar(1, bufnum, BufRateScale.kr(bufnum) * pch, doneAction:2) * EnvGen.kr(Env.adsr,gate, doneAction: 2) * amp;
 
 			Out.ar(0,Pan2.ar(sig,pan));
@@ -49,36 +49,63 @@ SynthDef(\cfstring1, { arg i_out, freq = 160, gate = 1, pan, amp=0.1, lf = 50,hf
 
 
 (
-	var pink, synhts[];
+var parts = Array.new(8);
+var pink;
+	var titles = [
+		"ding.wav",
+		"scrape.wav",
+		"SFX_1021_23.wav",
+		"ding.wav"
 
-	TempoClock.default.tempo = 532/60;
+	];
 
-	p = ("~/Music/sounds/ding.wav").standardizePath;
-	b = Buffer.read(s, p);
 
-	pink = Pbind(
+	TempoClock.default.tempo = 320/60;
+
+// p = ("~/Music/sounds/scrape.wav").standardizePath;
+// b = Buffer.read(s, p);
+
+	c = Pbind(
 		    [\degree, \dur],
-			Pseq([[0, 1], [2, 2], [4, 2], [5, 1], [2, 1]], inf),
+			Pseq([[0, 1], [2, 1], [4, 1], [5, 1], [2, 1]], inf),
 			\amp, 0.07,
-			\octave, [4,5,6],
+			\octave, [4,5],
 			\instrument, \cfstring1,
 			\mtranspose, [0,2,4],
 			\atk, 0.01,
 			\dcy, [1.2,1.1,2]).play;
-	pink.stop;
+	parts.add(c);
+	parts[0].stop;
 
-	a = Rduino(SerialPort.devices.last,115200);
+	d = Pbind(
+		    [\degree, \dur],
+			Pseq([[0, 4], [2, 4], [4, 4], [5, 4], [2, 4]], inf),
+			\amp, 0.07,
+			\octave, [7,8],
+			\instrument, \cfstring1,
+			\mtranspose, [0,2,4],
+			\atk, 1.01,
+			\hf,200,
+			\dcy, [1.2,1.1,2]).play;
+	parts.add(d);
+	parts[1].stop;
+
+
+a = Rduino(SerialPort.devices.last,115200);
 	a.start;
 
 	a.onCallback = {|index|
 		("ON:"++index).postln;
 		//pink = Synth(\simpleEnvSample,[\bufnum,b.bufnum,\pch,[0,2,4,7].choose.midiratio]);
-		//pink.play;
+		//parts[index].play;
+		 p = ("~/Music/sounds/"++titles[0]).standardizePath;
+		b = Buffer.read(s, p);
+	Synth(\simpleEnvSample,[\bufnum,b.bufnum,\pch,[0,0,3,3,7,7,9,9].at(index).midiratio]);
 	};
 	a.offCallback = {|index|
 		("OFF:"++index).postln;
 		//pink.set(\gate, 0);
-		//pink.pause;
+		//parts[index].pause;
 
 	};
 
@@ -96,3 +123,4 @@ SynthDef(\cfstring1, { arg i_out, freq = 160, gate = 1, pan, amp=0.1, lf = 50,hf
 	};
 
 )
+[1,2,36,4].at(2)
