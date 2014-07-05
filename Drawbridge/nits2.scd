@@ -22,7 +22,7 @@ p = ("~/Music/sounds/nitwalk.wav").standardizePath;
 b = Buffer.read(s, p);
 z = Synth(\dbSampler,[\bufnum, b.bufnum,\degree,0]);
 
-
+Server.default.makeGui
 
 
 (
@@ -41,7 +41,7 @@ z = Synth(\dbSampler,[\bufnum, b.bufnum,\degree,0]);
 	});
 
 	8.do({ |i|
-	p = ("~/Music/sounds/kantilan"++(i+1)++".wav").standardizePath;
+	p = ("~/Music/sounds/n"++(i+1)++".wav").standardizePath;
 	p.postln;
 		b = Buffer.read(s, p);
 		bufnums.add(b.bufnum);
