@@ -27,6 +27,8 @@
 	var childMicGroup,listenGroup;
 	var micInGroup;
 
+	var lxX=0,lxY=0,lxTask,lxUI;
+	var tx=0,ty=0;
 	//------------------------------------------------------
 	// FUNCTIONS
 	//------------------------------------------------------
@@ -175,6 +177,24 @@
 		bgMusicStart.value;
 
 		s.queryAllNodes;
+
+
+		lxTask = Task.new({ inf.do({ |i|
+
+			{
+				 tx = (lxX + (0.04 * sin(0.0001*i*(180.0/pi)))).clip(0,0.999);
+				 ty = (lxY + (0.04 * cos(0.0001*i*(180.0/pi)))).clip(0,0.999);
+
+				r = 255;
+				c = Color.hsv(tx,1,ty,1);
+				lxUI.background_(c);
+				//arduino.dmxc_(c.red*r,c.green*r,c.blue*r);
+
+			}.defer;
+
+			0.02.wait;
+
+		})}).play;
 
 		// return path
 		sessionArchivePath;
@@ -682,7 +702,8 @@
 							stopRecorder.value;
 							bgMusicStop.value;
 							//listenSynth.free;
-
+							lxTask.stop;
+							lxTask.free;
 							s.freeAll;
 							s.queryAllNodes;
 							mainView.index = 0;
@@ -704,11 +725,14 @@
 
 				View().layout_(VLayout(
 
-					Slider2D()
+					lxUI= Slider2D()
 						.background_(Color.black())
 			        	.action_({|sl|
-							c = Color.hsv(sl.x*0.999,1,sl.y*0.999,1);
-							sl.background_(c);
+
+						lxX = sl.x;
+						lxY = sl.y;
+					//c = Color.hsv(sl.x*0.999,1,sl.y*0.999,1);
+							//sl.background_(c);
 							//arduino.dmxc_(c.red*r,c.green*r,c.blue*r);
 						});
 

@@ -13,8 +13,8 @@ SynthDef(\pitchit, {|buffer = 0, pitch = 1.0,frq = 2.4, amp = 0.2, add = 0.3,del
 
 }).send(s);
 )
-p = "~/Music/sounds/Original Intro and Questions.aif".standardizePath;
 
+p = "~/Music/sounds/Original Intro and Questions.aif".standardizePath;
 c = Buffer.read(s,p);
 
 

@@ -45,11 +45,8 @@ c = Buffer.read(s,p);
 
 a = Group.new;
 b = Group.new;
-
 e = Synth.head(a,\ss);
-
 x = Synth.head(b,\playBuffer,[\buffer,c]);
-
 y = Synth.after(x,\fshift,[\buffer,c])
 
 s.queryAllNodes
