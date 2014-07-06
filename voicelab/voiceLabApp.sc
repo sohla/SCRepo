@@ -1,4 +1,3 @@
-
 (
 
 	//------------------------------------------------------
@@ -13,14 +12,21 @@
 	var micInputSynth;
 	var micSynth,recorderSynth,recBuffer;
 	var listenSynth;
-//	var arpSynth,droneSynth;
 //	var arduino;
 	var say;
-	var pluginName=\ringme;
 	var pluginSynth;
 	var bgFile;
 
 	var playQuestion;
+
+	var pluginIndex = 0;
+	var pluginNames = #["OFF","pitchme","shiftme","ringme"];
+
+	var playbackGroup;
+	var backgroundGroup;
+	var childMicGroup,listenGroup;
+	var micInGroup;
+
 	//------------------------------------------------------
 	// FUNCTIONS
 	//------------------------------------------------------
@@ -159,8 +165,16 @@
 		// load  session data
 		sessionData = Object.readArchive(sessionArchivePath);
 
-		listenSynth = Synth.new(\listenToMic);
+		backgroundGroup = Group.new;
+		childMicGroup = Group.new;
+		micInGroup  = Group.new;
+		listenGroup = Group.new;
+		playbackGroup = Group.new;
+
+		listenSynth = Synth.head(listenGroup,\listenToMic);
 		bgMusicStart.value;
+
+		s.queryAllNodes;
 
 		// return path
 		sessionArchivePath;
@@ -222,7 +236,7 @@
 
 		// record kid
 		recordBuffer = Buffer.alloc(s,65536,1);
-		recordSynth = Synth.new(\recordInput,["bufnum", recordBuffer.bufnum]);
+		recordSynth = Synth.head(childMicGroup,\recordInput,["bufnum", recordBuffer.bufnum]);
 
 		g = Date.getDate.format("%H_%M_%S");
 		t = title;
@@ -240,15 +254,21 @@
 	//------------------------------------------------------
 	playQuestion = ({ |path, completionFunc|
 
-		a = Synth(\playBuffer,[\buffer,Buffer.read(s, path)]);
+	// a = Synth(\playBuffer,[\buffer,Buffer.read(s, path)]);
+		a = Synth.head(playbackGroup,\playBuffer,[\buffer,Buffer.read(s, path)]);
 
-		//pluginSynth = Synth.tail(nil,pluginName);
+	pluginNames[pluginIndex].postln;
+
+		if( pluginIndex > 0, {
+			pluginSynth = Synth.after(a,pluginNames[pluginIndex]);
+		},{
+		});
 
 		stopRecorder.value;
 
 		s.queryAllNodes;
 		a.onFree({
-			//pluginSynth.free;
+			pluginSynth.free;
 			s.queryAllNodes;
 			{
 				completionFunc.value;
@@ -260,14 +280,14 @@
 	//------------------------------------------------------
 	startRecordingQuestion = ({ |title|
 
-		micSynth = Synth.new(\micInput,["channel",1]);
+		micSynth = Synth.head(micInGroup,\micInput,["channel",1]);
 		recBuffer.postln;
 		recBuffer = Buffer.alloc(s,65536,1);
 
 		p = appPath.asAbsolutePath+/+sessionTitle+/+"Questions";
 
 		recBuffer.write(p+/+title,"wav","int16", 0, 0, true);
-		recorderSynth = Synth.tail(nil,\diskOut, ["bufnum", recBuffer.bufnum]);
+		recorderSynth = Synth.after(micSynth,\diskOut, ["bufnum", recBuffer.bufnum]);
 		("Recording "++title).postln;
 		s.queryAllNodes;
 
@@ -286,25 +306,26 @@
 	});
 
 	bgMusicStart = ({
-		
-		
+
+
 		p = "~/Music/VoiceLab/VoiceLab_audio/Backing Atmos - complex.aif".standardizePath;
-//		p = "~/Music/VoiceLab/VoiceLab_audio/Backing Atmos.aif".standardizePath;
-		bgFile = SoundFile.openRead(p);
-		
-		bgRoutine = Routine { arg inval;
-			loop {
-				e = bgFile.cue((amp:0.1),playNow:true,closeWhenDone:false);
-				bgFile.duration.wait;
-			}
-		}.play;
-		
-		});
+
+			//b = Synth.head(backgroundGroup,\playBuffer,[\buffer,Buffer.read(s, p)]);
+
+	bgFile = SoundFile.openRead(p);
+	bgRoutine = Routine { arg inval;
+		loop {
+			e = bgFile.cue((group:backgroundGroup,amp:0.1),playNow:true,closeWhenDone:false);
+			bgFile.duration.wait;
+		}
+	}.play;
+
+	 });
 
 	bgMusicStop = ({
-		bgRoutine.stop;
-		bgFile.close;
-		
+		// bgRoutine.stop;
+		// bgFile.close;
+
 		});
 
 
@@ -652,6 +673,7 @@
 						.clearOnRefresh_(false)
 						.mouseDownAction_({ stopRecorder.value }),
 
+
 					Button()
 						.maxHeight_(btnHeight)
 						.states_([["Exit"]])
@@ -667,13 +689,21 @@
 
 
 						})
-					])
+					],[
+				UserView(),
+					PopUpMenu()
+					.items_(pluginNames)
+					.action_({|menu|
+						pluginIndex = menu.value;
+					}),
+					UserView()
+				])
 
 
 				).minWidth_(400),
-				
+
 				View().layout_(VLayout(
-					
+
 					Slider2D()
 						.background_(Color.black())
 			        	.action_({|sl|
@@ -681,8 +711,8 @@
 							sl.background_(c);
 							//arduino.dmxc_(c.red*r,c.green*r,c.blue*r);
 						});
-					
-					
+
+
 					));
 
 			))
@@ -720,7 +750,7 @@
 		}, '/onPlayLevel');
 		//------------------------------------------------------
 
-		window = Window("",Rect(0, 800, 1200, 400))
+		window = Window("",Rect(0, 800, 1200, 460))
 			.layout_( VLayout(
 				mainView = StackLayout(
 
@@ -728,7 +758,7 @@
 					sessionView.value,
 					errorView.value,
 					textFieldView.value
-
+≥
 				);
 			))
 
@@ -745,7 +775,7 @@
 
 		window.onClose = ({
 			bgMusicStop.value;
-			
+
 			onPlayLevel.free;
 			listenSynth.free;
 			//arduino.dmxc_(0,0,0);
@@ -762,5 +792,4 @@
 	initGUI.value;
 
 )
-
 

@@ -41,26 +41,26 @@ a.dmxc_(0,0,0);
 
 	t = Slider2D(w, w.view.bounds.insetBy(10,10))
         .x_(0) // initial location of x
-        .y_(0)   // initial location of y
+        .y_(0)   // initial location of y_
         .action_({|sl|
             //[\sliderX, sl.x, \sliderY, sl.y].postln;
 			//b.value(sl.x*0.999,sl.y*0.999,t);
         });
 		
-		
+	v=UserView(w, 10@10);
+	v.background_(Color.black);
 	t.x_(0.5);	
+	
 	r = Task.new({ inf.do({ |i|
 
-		x = (0.5 + (0.5 * sin(0.00001*i*(180.0/pi))));
-		y = (0.8 + (0.1 * sin(0.00002*i*(180.0/pi))));
 		{
+			x = (t.x + (0.1 * sin(0.001*i*(180.0/pi)))).clip(0,0.999);
+			y = (t.y + (0.1 * cos(0.001*i*(180.0/pi)))).clip(0,0.999);
 
-			m = 255;
-			c = Color.hsv(x,1,y,1);
-			t.background_(c);
-			t.x_(x);
-			t.y_(y);
-			a.dmxc_(c.red*m,c.green*m,c.blue*m);
+			//("x;"++x++" y:"++y).postln;
+			b.value(x,y,t);
+			v.moveTo(x * w.view.bounds.width, w.view.bounds.height - (y * w.view.bounds.height));
+			
 
 			}.defer;
         0.02.wait;
@@ -78,3 +78,5 @@ a.dmxc_(0,0,0);
 	};
 		
 )
+s.boot
+

@@ -1,4 +1,9 @@
+
+
+Server.local.options.memSize_(4096*8);
 s.boot
+
+
 (
 SynthDef(\convol, {|buffer = 0, root = 48, mix = 0.2, hpf = 800, time = 0.1|
 
@@ -11,9 +16,9 @@ SynthDef(\convol, {|buffer = 0, root = 48, mix = 0.2, hpf = 800, time = 0.1|
 	kernal = Saw.ar((root+notes).midicps,0.5).dup;
 	//verb = GVerb.ar(HPF.ar(player,hpf),16,time,0.41,0.19,15,-48,-9,-11);
 	voco = Vocoder.ar(kernal,player,164);
-	sel = LinSelectX.ar(mix,[voco,HPF.ar(player,hpf)]) * 0.06;
-	verb2 = GVerb.ar(sel,20,1.1,0.42,0.19,15,-23,-9,-13);
-	Out.ar(0,verb2);
+	sel = LinSelectX.ar(mix,[voco,HPF.ar(player,hpf)]) * 0.6;
+	//verb2 = GVerb.ar(sel,20,1.1,0.42,0.19,15,-23,-9,-13);
+	Out.ar(0,sel);
 
 }).send(s);
 )
