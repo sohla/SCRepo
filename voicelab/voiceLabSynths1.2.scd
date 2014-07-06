@@ -1,14 +1,14 @@
 
 
 (
-	SynthDef(\playBuffer, {|buffer = 0, note = 69|
+	SynthDef(\playBuffer, {|buffer = 0, note = 69, amp = 1.0|
 		var pitch = (note.midicps / 440.0) * BufRateScale.kr(buffer);
 		var player = PlayBuf.ar(
 			buffer.numChannels,
 			buffer,
 			pitch,
 			doneAction:2
-		);
+		) * amp;
 	    var imp = Impulse.kr(10);
 	    var delimp = Delay1.kr(imp);
 	    SendReply.kr(imp, '/onPlayLevel', [0,Amplitude.kr(player), K2A.ar(Peak.ar(player, delimp).lag(0, 1))]);
@@ -82,7 +82,7 @@
 		sq = PitchShift.ar(player, grainSize,pitch,SinOsc.ar(frq,0,amp,add)).dup;
 		dly = CombN.ar(sq,0.3,[delay,delay+0.01],decay);
 
-		ReplaceOut.ar(0,sq);
+		ReplaceOut.ar(0,dly);
 
 	}).send(s);
 
