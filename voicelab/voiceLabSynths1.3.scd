@@ -41,7 +41,7 @@
 		var player,voco,kernal;
 		var a = 0,dly;
 
-		player = In.ar(0,2);//PlayBuf.ar(1,buffer,BufRateScale.kr(buffer),loop: 1) ;
+	player = In.ar([0,1,2,3],4);//PlayBuf.ar(1,buffer,BufRateScale.kr(buffer),loop: 1) ;
 
 		kernal = LFTri.kr(frq,0,mul,add);
 
@@ -49,7 +49,7 @@
 
 		dly = CombN.ar((a).dup,0.3,[delay,delay+0.01],decay)*0.5;
 
-			ReplaceOut.ar(0,dly);
+			ReplaceOut.ar(0,[dly,dly,dly,dly]);
 
 	}).send(s);
 
@@ -62,13 +62,13 @@
 		var root = 42;
 		var dly;
 		//player = SoundIn.ar(0);
-		player = In.ar(0,2);//PlayBuf.ar(1,buffer,BufRateScale.kr(buffer),loop: 1) ;
+		player = In.ar(0,4);//PlayBuf.ar(1,buffer,BufRateScale.kr(buffer),loop: 1) ;
 		fol = (PeakFollower.ar(player,0.01) * range).lag(0,0.1);
 
 		modulator = SinOsc.ar( pitch.midicps + fol.midicps,0,player) ;
 
 		dly = CombN.ar((modulator).dup,0.3,[delay,delay+0.01],decay) * 0.8;
-		ReplaceOut.ar(0,dly);
+	ReplaceOut.ar(0,[dly,dly,dly,dly]);
 
 	}).send(s);
 
@@ -78,11 +78,11 @@
 		var grainSize = 0.4;
 		var dly;
 		//player = SoundIn.ar(0);
-		player = In.ar(0,2);//PlayBuf.ar(1,buffer,BufRateScale.kr(buffer),loop: 1) ;
+		player = In.ar(0,4);//PlayBuf.ar(1,buffer,BufRateScale.kr(buffer),loop: 1) ;
 		sq = PitchShift.ar(player, grainSize,pitch,SinOsc.ar(frq,0,amp,add)).dup;
 		dly = CombN.ar(sq,0.3,[delay,delay+0.01],decay);
 
-		ReplaceOut.ar(0,dly);
+		ReplaceOut.ar(0,[dly,dly,dly,dly]);
 
 	}).send(s);
 
