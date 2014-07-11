@@ -48,7 +48,7 @@
 	sessionData.put("keyPaths",Dictionary.new);
 
 
-	arduino = RduinoDMX(SerialPort.devices.last,115200);
+	//arduino = RduinoDMX(SerialPort.devices.last,115200);
 
 
 
@@ -188,7 +188,7 @@
 				r = 255;
 				c = Color.hsv(tx,1,ty,1);
 				lxUI.background_(c);
-				arduino.dmxc_(c.red*r,c.green*r,c.blue*r);
+				//arduino.dmxc_(c.red*r,c.green*r,c.blue*r);
 
 			}.defer;
 
@@ -287,7 +287,11 @@
 
 		s.queryAllNodes;
 		a.onFree({
-			pluginSynth.free;
+			if( pluginIndex > 0, {
+				pluginSynth.free;
+			},{
+			});
+
 			s.queryAllNodes;
 			{
 				completionFunc.value;
@@ -797,8 +801,8 @@
 
 			onPlayLevel.free;
 			listenSynth.free;
-			arduino.dmxc_(0,0,0);
-			arduino.close;
+			//arduino.dmxc_(0,0,0);
+			//arduino.close;
 
 		});
 
