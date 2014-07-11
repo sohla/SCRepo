@@ -21,11 +21,12 @@ Buffer.freeAll
 
 
 
-p = ("~/Music/sounds/nitwalk.wav").standardizePath;
+p = ("~/Music/sounds/kantilan"++i++".wav").standardizePath;
 b = Buffer.read(s, p);
 z = Synth(\dbSampler,[\bufnum, b.bufnum,\degree,0]);
 
 Server.default.makeGui
+
 
 
 (
@@ -37,14 +38,14 @@ Server.default.makeGui
 
 	w.front;
 
-	TempoClock.default.tempo = 1;
+	TempoClock.default.tempo = 2;
 
 	slid.action_({
-	TempoClock.default.tempo = (50 * slid.value) + 1;
+	TempoClock.default.tempo = (50 * slid.value) + 2;
 	});
 
 	10.do({ |i|
-	p = ("~/Music/sounds/laugh"++i++".wav").standardizePath;
+	p = ("~/Music/sounds/kantilan"++(i+1)++".wav").standardizePath;
 	p.postln;
 		b = Buffer.read(s, p);
 		bufnums.add(b.bufnum);
@@ -53,23 +54,25 @@ Server.default.makeGui
 
 
 	c = Pbind(
-	\degree,Prand([1], inf),
-			\dur,Prand([3], inf),
+	\degree,Prand([1,2,4,5,6,7], inf),
+			\dur,Prand([1], inf),
 			\amp, 0.07,
+			\scale,Scale.ionian,
 			\octave, 3.0,
 			\instrument, \dbSampler,
-			\bufnum, Prand(bufnums,inf),
+			\bufnum, bufnums[0],//Prand(bufnums,inf),
 			\atk, 0.01,
 			\dcy, [0.1,0.01,1]).play;
 
 
 	d = Pbind(
-		    \degree,Prand([1,2], inf),
-			\dur,Prand([4], inf),
+		    \degree,Prand([1,4,5,4], inf),
+			\dur,Prand([2], inf),
+			\scale,Scale.ionian,
 			\amp, 0.07,
-			\octave, 3.0,
+			\octave, 2.0,
 			\instrument, \dbSampler,
-			\bufnum, Prand(bufnums,inf),
+	\bufnum, bufnums[0],//Prand(bufnums,inf),
 			\atk, 0.01,
 			\dcy, [0.1,0.01,1]).play;
 )
