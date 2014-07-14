@@ -275,7 +275,7 @@
 	//------------------------------------------------------
 	playQuestion = ({ |path, completionFunc|
 
-	a = Synth.head(playbackGroup,\playBuffer,[\buffer,Buffer.read(s, path),\amp,0.5]);
+	a = Synth.head(playbackGroup,\playBuffer,[\buffer,Buffer.read(s, path),\amp,0.35]);
 
 	pluginNames[pluginIndex].postln;
 
@@ -343,22 +343,22 @@
 	bgMusicStart = ({
 
 		p = "~/Music/VoiceLab/VoiceLab_audio/Backing Atmos - complex.aif".standardizePath;
-		bgSynth = Synth.head(backgroundGroup,\playBuffer,[\buffer,Buffer.read(s, p),\amp,0.1]);
+		//bgSynth = Synth.head(backgroundGroup,\playBuffer,[\buffer,Buffer.read(s, p),\amp,0.1]);
 
-	// bgFile = SoundFile.openRead(p);
-	// bgRoutine = Routine { arg inval;
-	// 	loop {
-	// 		e = bgFile.cue((group:backgroundGroup,amp:0.1,out:3),playNow:true,closeWhenDone:false);
-	// 		bgFile.duration.wait;
-	// 	}
-	// }.play;
+	 bgFile = SoundFile.openRead(p);
+	 bgRoutine = Routine { arg inval;
+	 	loop {
+	 		e = bgFile.cue((group:backgroundGroup,amp:0.2),playNow:true,closeWhenDone:false);
+	 		bgFile.duration.wait;
+	 	}
+	 }.play;
 
 	 });
 
 	bgMusicStop = ({
-	// bgRoutine.stop;
-	// bgFile.close;
-		bgSynth.free;
+	 bgRoutine.stop;
+	 bgFile.close;
+	//	bgSynth.free;
 
 	});
 
