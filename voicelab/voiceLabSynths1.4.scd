@@ -10,11 +10,13 @@
 			pitch,
 			doneAction:2
 		) * amp;
-	    var imp = Impulse.kr(10);
+	    
+		var imp = Impulse.kr(10);
 	    var delimp = Delay1.kr(imp);
-	SendReply.kr(imp, '/onPlayLevel', [0,Amplitude.kr(player[0]), K2A.ar(Peak.ar(player[0], delimp).lag(0, 1))]);
+		
+		SendReply.kr(imp, '/onPlayLevel', [0,Amplitude.kr(player[0]), K2A.ar(Peak.ar(player[0], delimp).lag(0, 1))]);
 
-	Out.ar(0,Pan2.ar(player,[0,0],[1,1,1,1]));
+		Out.ar(0,Pan2.ar(player,[0,0],[1,1,1,1]));
 
 	}).send(s);
 
@@ -28,9 +30,9 @@
 		) * amp;
 	    var imp = Impulse.kr(10);
 	    var delimp = Delay1.kr(imp);
-	SendReply.kr(imp, '/onPlayLevel', [0,Amplitude.kr(player), K2A.ar(Peak.ar(player, delimp).lag(0, 1))]);
+		SendReply.kr(imp, '/onPlayLevel', [0,Amplitude.kr(player), K2A.ar(Peak.ar(player, delimp).lag(0, 1))]);
 
-	Out.ar(0,[player,player,player,player]);
+		Out.ar(0,[player,player,player,player]);
 
 	}).send(s);
 
@@ -58,7 +60,7 @@
 		var player,voco,kernal;
 		var a = 0,dly;
 
-	player = In.ar(0,4);//PlayBuf.ar(1,buffer,BufRateScale.kr(buffer),loop: 1) ;
+	player = In.ar(0,4);
 
 		kernal = LFTri.kr(frq,0,mul,add);
 
@@ -78,14 +80,13 @@
 		var notes = #[0,4,7];
 		var root = 42;
 		var dly;
-		//player = SoundIn.ar(0);
-		player = In.ar(0,4);//PlayBuf.ar(1,buffer,BufRateScale.kr(buffer),loop: 1) ;
+		player = In.ar(0,4);
 		fol = (PeakFollower.ar(player,0.01) * range).lag(0,0.1);
 
 		modulator = SinOsc.ar( pitch.midicps + fol.midicps,0,player) ;
 
 		dly = CombN.ar((modulator).dup,0.3,[delay,delay+0.01],decay) * 0.8;
-	ReplaceOut.ar(0,[dly,dly,dly,dly]);
+		ReplaceOut.ar(0,[dly,dly,dly,dly]);
 
 	}).send(s);
 
@@ -94,8 +95,7 @@
 		var player,sq;
 		var grainSize = 0.4;
 		var dly;
-		//player = SoundIn.ar(0);
-		player = In.ar(0,4);//PlayBuf.ar(1,buffer,BufRateScale.kr(buffer),loop: 1) ;
+		player = In.ar(0,4);
 		sq = PitchShift.ar(player, grainSize,pitch,SinOsc.ar(frq,0,amp,add)).dup;
 		dly = CombN.ar(sq,0.3,[delay,delay+0.01],decay);
 
@@ -116,9 +116,6 @@
 		 SendReply.kr(imp, '/onRecordLevel', [1,Amplitude.kr(p), K2A.ar(Peak.ar(p, delimp).lag(0, 1))]);
 
 		 DiskOut.ar(bufnum, p);
-
-		 //Out.ar(0,[0,0,p,p]);
-		 //Out.ar(0,[0,p]);
 	}).send(s);
 
 
@@ -139,7 +136,6 @@
 		    eg = EnvGen.kr(Env.asr(atk, 1, dcy), gate, doneAction:2);
 		    out = eg * RLPF.ar(osc, fc, 0.1);
 		    #a, b = out*0.4;
-			//c = Mix.ar(PanAz.ar(4, [a, b], [pan, pan+0.3]));
 		    Out.ar(i_out, [ a,b,a,b]);
 	}).send(s);
 	)
