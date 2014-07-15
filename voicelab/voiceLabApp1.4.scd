@@ -170,8 +170,8 @@
 
 		backgroundGroup = Group.new;
 		childMicGroup = Group.new;
-		micInGroup  = Group.new;
 		listenGroup = Group.new;
+		micInGroup  = Group.new;
 		playbackGroup = Group.new;
 
 		listenSynth = Synth.head(listenGroup,\listenToMic);
@@ -275,7 +275,7 @@
 	//------------------------------------------------------
 	playQuestion = ({ |path, completionFunc|
 
-	a = Synth.head(playbackGroup,\playBuffer,[\buffer,Buffer.read(s, path),\amp,0.35]);
+	a = Synth.head(playbackGroup,\playBuffer,[\buffer,Buffer.read(s, path),\amp,0.13]);
 
 	pluginNames[pluginIndex].postln;
 
@@ -348,7 +348,7 @@
 	 bgFile = SoundFile.openRead(p);
 	 bgRoutine = Routine { arg inval;
 	 	loop {
-	 		e = bgFile.cue((group:backgroundGroup,amp:0.2),playNow:true,closeWhenDone:false);
+	 		e = bgFile.cue((group:backgroundGroup,amp:0.1),playNow:true,closeWhenDone:false);
 	 		bgFile.duration.wait;
 	 	}
 	 }.play;
@@ -714,11 +714,19 @@
 						.states_([["Exit"]])
 						.action_({|b|
 							listView.items = Array.newClear;
+//							stopRecordingQuestion.value;
 							stopRecorder.value;
 							bgMusicStop.value;
 							//listenSynth.free;
 							lxTask.stop;
 							lxTask.free;
+
+						backgroundGroup.free;
+						childMicGroup.free;
+						micInGroup.free;
+						listenGroup.free;
+						playbackGroup.free;
+
 							s.freeAll;
 							s.queryAllNodes;
 							mainView.index = 0;
