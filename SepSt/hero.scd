@@ -40,7 +40,9 @@ b= Buffer.alloc(s, 65536, 2);
 
 c = Buffer.read(s, "sounds/celestesingle.aif");
 
-c = Buffer.read(s, "Applications/SuperColiider/sounds/overTheWvaes.wav");
+p = ("~/Music/sounds/speech.wav").standardizePath;
+
+c = Buffer.read(s, p);
 z = Synth(\warp,[\buffer,c,\ws,0.3,\pch,(69).midicps / 440.0]);
  y = Synth(\warp,[\buffer,c,\ws,0.3,\pch,(57).midicps / 440.0]);
 n y = Synth(\warp,[\buffer,c,\ws,0.3,\pch,(72).midicps / 440.0]);
