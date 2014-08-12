@@ -22,7 +22,7 @@ s.queryAllNodes
 var parts = Array.new(8);
 var arduino;
 var titles = [
-	"Xylophone.wav"
+	"ding.wav"
 ];
 
 arduino = Rduino(SerialPort.devices.last,115200);
@@ -34,13 +34,13 @@ arduino.onCallback = {|index|
 
 	p = ("~/Music/sounds/"++titles[0]).standardizePath;
 	b = Buffer.read(s, p);
-	Synth(\simpleEnvSample,[\bufnum,b.bufnum,\pch,[0,0,3,3,7,7,9,9].at(index).midiratio]);
+	Synth(\simpleEnvSample,[\bufnum,b.bufnum,\pch,[0,2,4,5,7,9,11,12].at(index).midiratio]);
 };
 
 arduino.offCallback = {|index|
 
 	("OFF:"++index).postln;
-
+"/Applications/SuperCollider3.6/sounds/"
 };
 
 r = Task.new({ inf.do({
