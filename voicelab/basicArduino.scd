@@ -19,6 +19,8 @@ a.pwClock_(9,5)
 
 
 a.bit_(9, 0);
+
+
 a.start
 f = { | i, val | [i,val].postln };
 a.atodCallback = Array.fill(a.atodCallback.size, f);
@@ -28,6 +30,27 @@ a.atods
 (2..13).do{ | i | a.mode_(i,1) };
 (2..13).do{ | i | a.bit_(i,0) };
 a.close
+
+
+
+
+
+SerialPort.devices
+a = Rduino(SerialPort.devices.last,115200);
+a.mode_(2,1);
+
+
+
+a.close
+
+
+
+
+
+
+
+
+
 
 
 

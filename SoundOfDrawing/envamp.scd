@@ -10,8 +10,8 @@
 
 	si = SoundIn.ar(0);
 
-	pba = PlayBuf.ar(2,d,BufRateScale.kr(d)/4,loop: 1);
-	pbb = PlayBuf.ar(1,d,BufRateScale.kr(d)/1,loop: 1);
+	pba = PlayBuf.ar(2,d,BufRateScale.kr(d)/8,loop: 1);
+	pbb = PlayBuf.ar(1,d,BufRateScale.kr(d)/4,loop: 1);
 
 	sn = PeakFollower.ar(si,0.01);
 
@@ -20,7 +20,7 @@
 		slopeBelow: 4.0,
 		slopeAbove: 1.0,
 		clampTime: 0.24,
-		relaxTime: 0.4
+		relaxTime: 1.4
 	);
 
 
