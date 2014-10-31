@@ -51,8 +51,6 @@
 
 	arduino = RduinoDMX(SerialPort.devices.last,115200);
 
-
-
 	//------------------------------------------------------
 	// SESSION
 	//------------------------------------------------------
@@ -275,9 +273,9 @@
 	//------------------------------------------------------
 	playQuestion = ({ |path, completionFunc|
 
-	a = Synth.head(playbackGroup,\playBuffer,[\buffer,Buffer.read(s, path),\amp,0.13]);
+		a = Synth.head(playbackGroup,\playBuffer,[\buffer,Buffer.read(s, path),\amp,0.13]);
 
-	pluginNames[pluginIndex].postln;
+		pluginNames[pluginIndex].postln;
 
 		if( pluginIndex > 0, {
 			pluginSynth = Synth.after(a,pluginNames[pluginIndex]);
@@ -288,14 +286,15 @@
 
 		s.queryAllNodes;
 		a.onFree({
-			if( pluginIndex > 0, {
+
+			if( pluginSynth != nil, {
 				pluginSynth.free;
 			},{
 			});
 
-			s.queryAllNodes;
 			{
 				completionFunc.value;
+				s.queryAllNodes;
 
 			}.defer;
 		});
@@ -378,6 +377,7 @@
 
 		var scale = 1.0;
 		var listView;
+		var pluginView;
 		//------------------------------------------------------
 		textFieldView = ({
 			View().layout_( VLayout(
@@ -448,6 +448,8 @@
 				[Button()
 					.states_([["New Session"]])
 					.action_({|b|
+						pluginIndex = 0;
+						pluginView.value = pluginIndex;
 						mainView.index = 1;
 						say.value("New, Voice Lab Session");
 						createSession.value;
@@ -468,6 +470,8 @@
 						b.states = [["processing session files...",Color.new255(226, 49, 140)]];
 						b.refresh;
 						}.defer(1);
+						pluginIndex = 0;
+						pluginView.value = pluginIndex;
 						say.value("Open Voice Lab Session");
 						loadSession.value(createSession.value,{
 							b.states = [["Open Session"]];
@@ -497,6 +501,8 @@
 						b.states = [["processing session files...",Color.new255(226, 49, 140)]];
 						b.refresh;
 						say.value("Creating Voice Lab Session from Template");
+						pluginIndex = 0;
+						pluginView.value = pluginIndex;
 						{
 						loadTemplate.value(createSession.value,{
 							mainView.index = 1;
@@ -735,7 +741,7 @@
 						})
 					],[
 				UserView(),
-					PopUpMenu()
+					pluginView = PopUpMenu()
 					.items_(pluginNames)
 					.action_({|menu|
 						pluginIndex = menu.value;
@@ -754,14 +760,8 @@
 							lxX = sl.x;
 							lxY = sl.y;
 						});
-
-
-
 					));
-
 			));
-
-
 
 		});
 		//------------------------------------------------------
@@ -804,7 +804,7 @@
 					sessionView.value,
 					errorView.value,
 					textFieldView.value
-≥
+
 				);
 			))
 
