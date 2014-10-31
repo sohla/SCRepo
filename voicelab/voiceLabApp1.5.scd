@@ -625,24 +625,30 @@
 							);
 
 						}),
-					Button()
-						.maxHeight_(btnHeight)
-						.states_([["Import"]])
-				        .action_({ arg butt;
+					// Button()
+					// .maxHeight_(btnHeight)
+					// .states_([["Import"]])
+					// .action_({ arg butt;
+					//
+					// 	File.openDialog("Select an awesome new question",{|path|
+					//
+					// 		// copy this file to our questions dir
+					// 		var newPath = appPath.asAbsolutePath+/+sessionTitle+/+"Questions";
+					//
+					// 		addQuestion.value(path,newPath+/+path.basename,getNextNoteNumber.value());
+					//
+					// 		refreshGUI.value;
+					// 		},{
+					// 			// cancel file open dialog
+					// 	});
+					// }),
 
-							File.openDialog("Select an awesome new question",{|path|
-
-								// copy this file to our questions dir
-								var newPath = appPath.asAbsolutePath+/+sessionTitle+/+"Questions";
-
-								addQuestion.value(path,newPath+/+path.basename,getNextNoteNumber.value());
-
-								refreshGUI.value;
-							},{
-								// cancel file open dialog
-							});
-						}),
-
+						pluginView = PopUpMenu()
+					.maxHeight_(btnHeight)
+					.items_(pluginNames)
+					.action_({|menu|
+						pluginIndex = menu.value;
+					}),
 
 					Button()
 						.maxHeight_(btnHeight)
@@ -673,7 +679,6 @@
 
 
 					],[
-
 					Button()
 						.maxHeight_(btnHeight)
 						.states_([
@@ -739,15 +744,7 @@
 
 
 						})
-					],[
-				UserView(),
-					pluginView = PopUpMenu()
-					.items_(pluginNames)
-					.action_({|menu|
-						pluginIndex = menu.value;
-					}),
-					UserView()
-				])
+					])
 
 
 				).minWidth_(400),

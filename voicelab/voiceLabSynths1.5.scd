@@ -1,5 +1,4 @@
 
-///Users/soh_la/Library/Application\ Support/Avian/Pristine\ Copy/Bundles/scmate.tmbundle/Support/bin/start_pipe ; exit;
 
 (
 
@@ -11,10 +10,10 @@
 			pitch,
 			doneAction:2
 		) * amp;
-	    
+
 		var imp = Impulse.kr(10);
 	    var delimp = Delay1.kr(imp);
-		
+
 		SendReply.kr(imp, '/onPlayLevel', [0,Amplitude.kr(player[0]), K2A.ar(Peak.ar(player[0], delimp).lag(0, 1))]);
 
 		Out.ar(0,Pan2.ar(player,[0,0],[1,1,1,1]));
@@ -142,5 +141,4 @@
 	)
 
 )
-s.boot
 
