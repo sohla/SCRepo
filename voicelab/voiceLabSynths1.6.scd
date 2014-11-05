@@ -17,7 +17,7 @@
 
 		SendReply.kr(imp, '/onPlayLevel', [0,Amplitude.kr(player[0]), K2A.ar(Peak.ar(player[0], delimp).lag(0, 1))]);
 
-		Out.ar(0,Pan2.ar(player,[0,0],[1,1,1,1]));
+		Out.ar(0,Pan2.ar(player,[0,0],[0.03,0.03,1,1]));
 
 	}).send(s);
 
@@ -59,8 +59,8 @@
 		player = In.ar(0,4);
 		kernal = LFTri.kr(frq,0,mul,add);
 		a= FreqShift.ar(player,kernal);
-		dly = CombN.ar((a).dup,0.3,[delay,delay+0.01],decay)*0.5;
-		ReplaceOut.ar(0,[dly,dly,dly,dly]);
+		dly = CombN.ar((a).dup,0.3,[delay,delay+0.01],decay)*0.9;
+		ReplaceOut.ar(0,[dly*0.03,dly*0.03,dly,dly]);
 
 	}).send(s);
 
@@ -76,8 +76,8 @@
 		player = In.ar(0,4);
 		fol = (PeakFollower.ar(player,0.01) * range).lag(0,0.1);
 		modulator = SinOsc.ar( pitch.midicps + fol.midicps,0,player) ;
-		dly = CombN.ar((modulator).dup,0.3,[delay,delay+0.01],decay) * 0.8;
-		ReplaceOut.ar(0,[dly,dly,dly,dly]);
+		dly = CombN.ar((modulator).dup,0.3,[delay,delay+0.01],decay) * 1.4;
+		ReplaceOut.ar(0,[dly*0.03,dly*0.03,dly,dly]);
 
 	}).send(s);
 
@@ -89,9 +89,9 @@
 
 		player = In.ar(0,4);
 		sq = PitchShift.ar(player, grainSize,pitch,SinOsc.ar(frq,0,amp,add)).dup;
-		dly = CombN.ar(sq,0.3,[delay,delay+0.01],decay);
+		dly = CombN.ar(sq,0.3,[delay,delay+0.01],decay) * 1.5;
 
-		ReplaceOut.ar(0,[dly,dly,dly,dly]);
+		ReplaceOut.ar(0,[dly*0.03,dly*0.03,dly,dly]);
 
 	}).send(s);
 
@@ -102,7 +102,7 @@
 	}).send(s);
 
 	SynthDef(\recordInput, {|bufnum = 0|
-		var p = SoundIn.ar(0);
+		var p = SoundIn.ar(1);
 	    var imp = Impulse.kr(10);
 	    var delimp = Delay1.kr(imp);
 		SendReply.kr(imp, '/onRecordLevel', [1,Amplitude.kr(p), K2A.ar(Peak.ar(p, delimp).lag(0, 1))]);
@@ -112,12 +112,12 @@
 
 
 	SynthDef(\listenToMic, {
-		var p = SoundIn.ar(0);
+		var p = SoundIn.ar(1);
 	    var imp = Impulse.kr(10);
 	    var delimp = Delay1.kr(imp);
 		 SendReply.kr(imp, '/onListenLevel', [1,Amplitude.kr(p), K2A.ar(Peak.ar(p, delimp).lag(0, 1))]);
 
-		 Out.ar(0,[0,0,p,p]);
+		 Out.ar(0,[p,p,0,0]);
 	}).send(s);
 
 
