@@ -173,7 +173,6 @@
 
 		backgroundGroup = Group.new;
 
-	backgroundGroup.set(\out,2);
 		childMicGroup = Group.new;
 		listenGroup = Group.new;
 		micInGroup  = Group.new;
@@ -280,7 +279,7 @@
 	//------------------------------------------------------
 	playQuestion = ({ |path, completionFunc|
 
-		a = Synth.head(playbackGroup,\playBuffer,[\buffer,Buffer.read(s, path),\amp,0.13]);
+		a = Synth.head(playbackGroup,\playBuffer,[\buffer,Buffer.read(s, path),\amp,0.33]);
 
 		pluginNames[pluginIndex].postln;
 
@@ -309,7 +308,7 @@
 	//------------------------------------------------------
 	startRecordingQuestion = ({ |title|
 
-		micSynth = Synth.head(micInGroup,\micInput,["channel",1]);
+		micSynth = Synth.head(micInGroup,\micInput,["channel",0]);
 		recBuffer.postln;
 
 		if( pluginIndex > 0, {
@@ -354,7 +353,7 @@
 	 bgFile = SoundFile.openRead(p);
 	 bgRoutine = Routine { arg inval;
 	 	loop {
-	 		e = bgFile.cue((group:backgroundGroup,amp:0.1),playNow:true,closeWhenDone:false);
+	 		e = bgFile.cue((out:2,group:backgroundGroup,amp:0.4),playNow:true,closeWhenDone:false);
 	 		bgFile.duration.wait;
 	 	}
 	 }.play;
@@ -800,7 +799,7 @@
 		}, '/onPlayLevel');
 		//------------------------------------------------------
 
-		window = Window("",Rect(0, 800, 1200, 460))
+		window = Window("",Rect(0, 0, Window.screenBounds.width, Window.screenBounds.height/2))
 			.layout_( VLayout(
 				mainView = StackLayout(
 
@@ -843,5 +842,4 @@
 	initGUI.value;
 
 )
-
 
