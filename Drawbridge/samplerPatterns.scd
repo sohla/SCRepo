@@ -1,6 +1,8 @@
 s.boot
 s.queryAllNodes
 s.queryAllBuffers
+s.freeAll;
+s.quit;
 Buffer.freeAll
 (
 
@@ -18,7 +20,7 @@ Buffer.freeAll
 
 
 
-p = ("~/Music/sounds/nitwalk.wav").standardizePath;
+p = ("~/Music/sounds/ding.wav").standardizePath;
 b = Buffer.read(s, p);
 z = Synth(\dbSampler,[\bufnum, b.bufnum,\degree,0]);
 
@@ -35,7 +37,7 @@ z = Synth(\dbSampler,[\bufnum, b.bufnum,\degree,0]);
 
 	TempoClock.default.tempo = 322/60;
 
-	p = ("~/Music/sounds/nitwalk.wav").standardizePath;
+	p = ("~/Music/sounds/ding.wav").standardizePath;
 	b = Buffer.read(s, p);
 
 	c = Pbind(

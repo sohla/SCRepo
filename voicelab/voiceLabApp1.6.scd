@@ -50,7 +50,7 @@
 
 
 
-	if( SerialPort.devices.last.containsi("usbmodem1421"),{
+if( SerialPort.devices.last.containsi("usbmodem"),{
 		arduino = RduinoDMX(SerialPort.devices.last,115200);
 	},{
 		arduino = 0;
