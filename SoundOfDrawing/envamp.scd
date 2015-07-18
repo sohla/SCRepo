@@ -27,7 +27,7 @@
 	verb = FreeVerb2.ar(cmp,cmp,0.35,0.7,0.0);
 
 
-	[verb,verb]
+	[verb,verb,verb,verb]
 
 
 

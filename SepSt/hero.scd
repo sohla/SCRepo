@@ -22,7 +22,7 @@ SynthDef(\warp, {arg buffer = 0, envbuf = -1, ws = 0.5, pch = 1.0;
 	my = MouseY.kr(0.4,0.5,1.0);//splay
 
 	sp = Splay.arFill(splayCount,
-		{ |i| Warp1.ar(2, buffer, mx, pch,my, envbuf, 8, 0.1, 2)  },
+		{ |i| Warp1.ar(1, buffer, mx, pch,my, envbuf, 8, 0.1, 2)  },
 		1,
 		1,
 		splayCount.rand.linlin(0,splayCount,-1.0,1.0),
@@ -40,10 +40,13 @@ FreqScope.new(1300, 200, 0);
 
 
 p = ("~/Music/sounds/speech.wav").standardizePath;
-p = ("~/Music/sounds/scream.wav").standardizePath;
+p = ("~/Music/sounds/pedAlarm1.wav").standardizePath;
 c = Buffer.read(s, p);
-z = Synth(\warp,[\buffer,c,\ws,0.3,\pch,(57).midicps / 440.0]);
-z = Synth(\warp,[\buffer,c,\ws,0.3,\pch,(61).midicps / 440.0]);
+z = Synth(\warp,[\buffer,c,\ws,0.3,\pch,(69).midicps / 435.0]);
+z = Synth(\warp,[\buffer,c,\ws,0.3,\pch,(71).midicps / 435.0]);
+z = Synth(\warp,[\buffer,c,\ws,0.3,\pch,(64).midicps / 435.0]);
+z = Synth(\warp,[\buffer,c,\ws,0.3,\pch,(73).midicps / 435.0]);
+z = Synth(\warp,[\buffer,c,\ws,0.3,\pch,(57).midicps / 435.0]);
 
 
 

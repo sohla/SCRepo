@@ -10,37 +10,42 @@ SynthDef(\warp, {arg buffer = 0, envbuf = -1, ws = 0.5, pch = 0.5;
 	var sp,verb;
 
 	mx = LFSaw.kr( (1.0/10.0) * MouseX.kr(0.01, 1.0) ,1,0.5,0.5);
-		
+
 	my = MouseY.kr(0.001,1,1.0);//splay
-	
-	
+
+
 	sp = Splay.arFill(24,
 			{ |i| Warp1.ar(1, buffer, mx, pch,my, envbuf, 8, 0.1, 2)  },
 			1,
 			1,
 			0
 		) * 0.15;
-		
+
 	verb = GVerb.ar(
-Ê Ê Ê Ê Ê Ê Ê Ê sp,
-Ê Ê Ê Ê Ê Ê Ê Ê 26,
-Ê Ê Ê Ê Ê Ê Ê Ê 2.24,
-Ê Ê Ê Ê Ê Ê Ê Ê 0.5,
-Ê Ê Ê Ê Ê Ê Ê Ê0.15,
-Ê Ê Ê Ê Ê Ê Ê Ê 15,
-Ê Ê Ê Ê Ê Ê Ê Ê -70.dbamp,
-Ê Ê Ê Ê Ê Ê Ê Ê -22.dbamp,
-Ê Ê Ê Ê Ê Ê Ê Ê -17.dbamp,
-Ê Ê Ê Ê Ê Ê Ê Ê 26, 0.5);
-		
+ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ sp,
+ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ 26,
+ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ 2.24,
+ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ 0.5,
+ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½0.15,
+ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ 15,
+ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ -70.dbamp,
+ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ -22.dbamp,
+ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ -17.dbamp,
+ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ ï¿½ 26, 0.5);
+
 	Out.ar(0,
 		sp+verb
-	);	
+	);
 }).send(s);
 
 )
+
+p = ("~/Music/sounds/c12.wav").standardizePath;
+p = ("~/Music/sounds/thereyouare.wav").standardizePath;
+p = ("~/Music/sounds/manyBells.wav").standardizePath;
+
 c = Buffer.read(s, "sounds/bellsDemo2.aif");
-c = Buffer.read(s, "sounds/celestesingle.aif");
+c = Buffer.read(s, p);
 c = Buffer.read(s, "sounds/celestes.aif");
 
 c = Buffer.read(s, "sounds/ahthewind.wav");
@@ -48,8 +53,8 @@ c = Buffer.read(s, "sounds/ahthewind.wav");
 c = Buffer.read(s, "sounds/bellsDemo.aif");
 x = Synth(\warp,[\buffer,c,\ws,0.3,\pch,1.0]);
 x = Synth(\warp,[\buffer,c,\ws,0.3,\pch,0.5]);
-x = Synth(\warp,[\buffer,c,\ws,0.3,\pch,0.25]);
-	
+x = Synth(\warp,[\buffer,c,\ws,0.3,\pch,8]);
+
 x.free;
 c.free;
 
