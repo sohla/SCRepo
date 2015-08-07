@@ -8,8 +8,8 @@ var root, scale;
 
 
 		root = rrand(3,126);
-		root = 	26+(12*2);
-		scale = #[0];
+		root = 	26+(12*5)+12;
+		scale = #[0,7];
 		mx = MouseX.kr(0, 15);
 		my = 0.2-MouseY.kr(0.001, 0.2,0.9);
 		notes = FloatArray[0,2,3,5,7,8,10];
@@ -33,7 +33,7 @@ var root, scale;
 (
 	SynthDef(
 		"string",{
-			arg gate=1,pitch=38;
+			arg gate=1,pitch;
 var root, scale;
 		var trig, p, s, exc, x, freq,notes,mx,my,notesBuffer,envelope;
 
