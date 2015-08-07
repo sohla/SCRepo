@@ -19,9 +19,39 @@ OSCFunc.trace(true); // Turn posting on
 OSCFunc.trace(false);
 
 
+// simple example passing everything over OSC : msg needs to contain path with /server
+(
+	o = OSCresponderNode.new(nil, "/server", { |time, resp, msg|
+
+		msg.postln;
+		msg.removeAt(0);
+		s.listSendMsg(msg);
+
+	}).add;
+
+)
 
 
-
-
-o = OSCresponderNode.new(nil, "/yo", { arg time, resp, msg; [time,resp,msg].postln; msg.postln;} ).add;
 o.remove;
+
+
+
+
+(
+a = [\default];
+d = Dictionary.new;
+a.do({|item,i|
+
+	n = Synth(item, [\freq, 440]).nodeID;
+	s.sendMsg(\n_run,n,1);
+	d.add(item -> Dictionary.newFrom(List[
+		\id,n
+	]));
+
+
+});
+
+
+)
+// OSC command /patch1 /set /volume 3
+
