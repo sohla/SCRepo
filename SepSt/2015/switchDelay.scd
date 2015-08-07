@@ -7,7 +7,7 @@ SynthDef('help-switchdelay-2', { arg out=0, bufnum, delaytime;
         Pan2.ar(
             SwitchDelay.ar(
                 PlayBuf.ar(numChannels: 1, bufnum: bufnum, loop: 1) * 0.5,
-				drylevel: 0.0,
+				drylevel: 0.1,
                 wetlevel: 1.0,
                 delaytime: Select.kr(
                     Stepper.kr(Impulse.kr(MouseX.kr(1, 100, 0.1)), 0, 0, 3),
@@ -20,6 +20,8 @@ SynthDef('help-switchdelay-2', { arg out=0, bufnum, delaytime;
 }).send(s);
 )
 
+p = ("~/Music/sounds/emilyCasual.wav").standardizePath;
+b = Buffer.read(s, p);
 x = Synth('help-switchdelay-2', [\bufnum, b, \delaytime, 2.0]);
 x.free;
 
