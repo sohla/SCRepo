@@ -21,7 +21,7 @@ s.quit;
 )
 
 (
-	SynthDef("fbVerb",{ | out = 0, maxDly = 0.29, verbDcy = 5.0, feedback = 0.9|
+	SynthDef("fbVerb",{ | out = 0, maxDly = 0.09, verbDcy = 2.0, feedback = 0.01|
 
 	var sig = In.ar(out,2);
 
