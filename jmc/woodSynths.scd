@@ -27,7 +27,7 @@ SynthDef(\wood, {arg out=0, amp=0.3, pan=0, sustain=0.5, t_trig=1, freq=100, rq=
 }).add;
 
 
-Pbind(\instrument, \marimba, \freq, Pseq([60, 67, 63, 58]-10, inf).midicps, \dur, 0.5, \amp, 0.6, \sustain,0.04).play;
-Pbind(\instrument, \wood, \freq, Pseq([60, 67, 63, 58], inf).midicps, \dur, 0.5, \amp, 0.6,\sustain,0.1).play
+Pbind(\instrument, \marimba, \freq, Pseq([60, 67, 63, 58]-10, inf).midicps, \dur, 0.3, \amp, 0.6, \sustain,0.04).play;
+Pbind(\instrument, \wood, \freq, Pseq([60, 67, 63, 58], inf).midicps, \dur, 0.3, \amp, 0.6,\sustain,0.05).play
 
 
