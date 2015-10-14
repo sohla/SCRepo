@@ -17,7 +17,7 @@ SynthDef(\warp, {arg buffer = 0, envbuf = -1, ws = 0.5, pch = 1.0;
 	var sp,verb;
 	var splayCount = 2;
 
-	mx = LFSaw.kr( (1.0/(1.3)) * MouseX.kr(0.01, 1.0) ,1,0.5,0.5);
+	mx = LFSaw.kr( (1.0/(130)) * MouseX.kr(0.01, 1.0) ,1,0.5,0.5);
 
 	my = MouseY.kr(0.4,0.5,1.0);//splay
 
@@ -45,9 +45,11 @@ z = Synth(\warp,[\buffer,c,\ws,0.9,\pch,(69).midicps / 439.0]);
 
 
 
-p = ("~/Music/sounds/aNewDay.wav").standardizePath;
+p = ("~/Music/SCSamples/aNewDay.wav").standardizePath;
 c = Buffer.read(s, p);
 z = Synth(\warp,[\buffer,c,\ws,0.3,\pch,(69).midicps / 440.0]);
+x = Synth(\warp,[\buffer,c,\ws,0.3,\pch,(69-12).midicps / 440.0]);
+w = Synth(\warp,[\buffer,c,\ws,0.3,\pch,(69-24).midicps / 440.0]);
 
 
 x.free;

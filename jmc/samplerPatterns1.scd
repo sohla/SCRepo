@@ -21,9 +21,10 @@ s.quit;
 )
 
 (
-	SynthDef("fbVerb",{ | out = 0, maxDly = 0.09, verbDcy = 2.0, feedback = 0.01|
+	SynthDef("fbVerb",{ | out = 0, maxDly = 0.29, verbDcy = 5.0, feedback = 0.1|
 
 	var sig = In.ar(out,2);
+	var os = sig * 0.5;
 
 
 	Splay.arFill(10,{
@@ -33,8 +34,8 @@ s.quit;
 	// 	sig = AllpassN.ar(sig,maxDly,Rand(0.001,maxDly),verbDcy)
 	// };
 
-	LocalOut.ar(sig,feedback);
-	Out.ar(out,[sig,sig]);
+	LocalOut.ar(sig * 0.5;,feedback);
+	Out.ar(out,[sig + os,sig + os]);
 
 
 	},[0, 0, 0]).send(s);
@@ -91,10 +92,10 @@ z = Synth(\dbSampler,[\bufnum, b.bufnum,\atk,5.5]);
 
 (
 
-	TempoClock.default.tempo = 1;
-	t = 0.038;//0.075;
-	r = 3;
-	p = ("~/Music/SCSamples/slowboo.wav").standardizePath;
+	TempoClock.default.tempo = 12;
+	t = 3.075;//0.038;//0.075;
+	r = 4;
+	p = ("~/Music/SCSamples/bamboo1.wav").standardizePath;
 	b = Buffer.read(s, p);
 
 
@@ -102,9 +103,9 @@ z = Synth(\dbSampler,[\bufnum, b.bufnum,\atk,5.5]);
 	   	\type, \on,
 		\instrument, \dbSampler,
 		\bufnum, b.bufnum,
-		\octave, 3.0 + r,
+		\octave, 0.0 + r,
 		\degree,Prand([0,1,2]-t, inf),
-	 	\dur,Prand([1,2,3]*2, inf),
+	 	\dur,Prand([1.1,2.2,3.3]*2, inf),
 		\amp, 0.07,
 		\dcy, [0.1,0.01,1]);
 
@@ -115,7 +116,7 @@ z = Synth(\dbSampler,[\bufnum, b.bufnum,\atk,5.5]);
 		\bufnum, b.bufnum,
 		\octave, 2.0 + r,
 		\degree,Prand([0,4,5,6]-t, inf),
-	 	\dur,Prand([1,2,3]*2, inf),
+	 	\dur,Prand([1.5,2.4,3.3]*2, inf),
 		\amp, 0.07,
 		\dcy, [0.1,0.01,1]);
 
@@ -125,8 +126,8 @@ z = Synth(\dbSampler,[\bufnum, b.bufnum,\atk,5.5]);
 		\instrument, \dbSampler,
 		\bufnum, b.bufnum,
 		\octave, 1.0 + r,
-		\degree,Prand([0,1,5]-t, inf),
-	 	\dur,Prand([1,2,3]*8, inf),
+	\degree,Prand([0,1,5]-t, inf),
+	 	\dur,Prand([1.9,2.8,3.7]*8, inf),
 		\amp, 0.07,
 		\dcy, [0.1,0.01,1]);
 
@@ -137,7 +138,7 @@ z = Synth(\dbSampler,[\bufnum, b.bufnum,\atk,5.5]);
 		\bufnum, b.bufnum,
 		\octave, 0 + r,
 		\degree,Prand([0]-t, inf),
-	 	\dur,Prand([1,2]*16, inf),
+	 	\dur,Prand([1.6,2.5]*16, inf),
 		\amp, 0.07,
 		\dcy, [0.1,0.01,1]);
 
@@ -151,3 +152,7 @@ z = Synth(\dbSampler,[\bufnum, b.bufnum,\atk,5.5]);
 )
 s.freeAll;
 Buffer.freeAll
+
+s.recHeaderFormat = "wav";
+
+Server.local.makeWindow
