@@ -15,7 +15,7 @@ SynthDef(\warp, {arg buffer = 0, envbuf = -1, ws = 0.5, pch = 0.5;
 
 
 	sp = Splay.arFill(24,
-			{ |i| Warp1.ar(1, buffer, mx, pch,my, envbuf, 8, 0.1, 2)  },
+			{ |i| Warp1.ar(2, buffer, mx, pch,my, envbuf, 8, 0.1, 2)  },
 			1,
 			1,
 			0
