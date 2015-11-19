@@ -1,6 +1,6 @@
 (
 
-SynthDef(\echoShifter, { |buffer = 0, shift = 0.1|
+SynthDef(\echoShifter, { |buffer = 0, shift = 1.0|
 
 	var sig = 0;
 	var in, trig, delayTime, a, freq, playBuf;
@@ -32,3 +32,5 @@ SynthDef(\echoShifter, { |buffer = 0, shift = 0.1|
 p = ("~/Music/sounds/emilyCasual.wav").standardizePath;
 b = Buffer.read(s, p);
 z = Synth(\echoShifter,[\buffer,b,'\shift',1]);
+
+

@@ -1,3 +1,61 @@
+
+
+// simple example passing everything over OSC : msg needs to contain path with /server
+// message form eg: /sc /s_new default 1000 1 1 pitch 39
+(
+	o = OSCresponderNode.new(nil, "/sc", { |time, resp, msg|
+
+		msg.removeAt(0);
+		msg.postln;
+		s.listSendMsg(msg);
+
+	}).add;
+
+)
+
+o.remove;
+
+
+//
+// global dictioanry of samples with buffers
+//
+// sample root path
+// list of samples to load
+//
+
+
+(
+
+var gf = 220.0;
+
+	SynthDef("\sin_wave", { |frq=440.0 ,db=(-12.0)|
+
+		var sig;
+		sig = SinOsc.ar(gf, 0.0, db.dbamp);
+
+		Out.ar(0, [sig,sig]);
+
+	}).play(s);
+
+)
+
+
+//
+//
+
+
+s.sendMsg("/b_allocRead",1002,"/Users/soh_la/Music/sounds/emilyCasual.wav")
+
+s.sendMsg("/s_new","\echoShifter",1111,1,1);
+
+s.sendMsg("/b_free",1002)
+
+s.queryAllBuffers
+
+s.freeAll
+//
+//
+
 NetAddr.langPort; // retrieve the current port SC is listening to
 
 NetAddr.localAddr; // retrieve the current IP and port
@@ -19,23 +77,6 @@ OSCFunc.trace(true); // Turn posting on
 OSCFunc.trace(false);
 
 
-// simple example passing everything over OSC : msg needs to contain path with /server
-(
-	o = OSCresponderNode.new(nil, "/server", { |time, resp, msg|
-
-		msg.postln;
-		msg.removeAt(0);
-		s.listSendMsg(msg);
-
-	}).add;
-
-)
-
-
-o.remove;
-
-
-
 
 (
 a = [\default];
@@ -53,5 +94,5 @@ a.do({|item,i|
 
 
 )
-// OSC command /patch1 /set /volume 3
+
 
