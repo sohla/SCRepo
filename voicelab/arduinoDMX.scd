@@ -1,20 +1,32 @@
+SerialPort.devices
+
+
+
 a = RduinoDMX(SerialPort.devices.last,115200);
-a.dmxc_(254,254,254);
-a.dmxc_(0,0,0);
+a.dmxc_(254,0,0);
+a.dmxc_(1,0,0,0);
+a.close
 // basic example controlling hue and satuation
 (
 
+	d = 3;
 	a = RduinoDMX(SerialPort.devices.last,115200);
 	w = Window.new.front;
 	w.onClose = {
-		a.dmxc_(0,0,0);
+		a.dmxc_(1,0,0,0);
+		a.dmxc_(2,0,0,0);
+		a.dmxc_(3,0,0,0);
+		a.close;
+
 	};
 
 	b = {|hue,sat,slider|
 		r = 255;
 		c = Color.hsv(hue,1,sat,1);
 		slider.background_(c);
-		a.dmxc_(c.red*r,c.green*r,c.blue*r);
+		a.dmxc_(1,c.red*r,c.green*r,c.blue*r);
+		a.dmxc_(2,c.red*r,c.green*r,c.blue*r);
+		a.dmxc_(3,c.red*r,c.green*r,c.blue*r);
 	};
 
 	t = Slider2D(w, w.view.bounds.insetBy(10,10))
@@ -27,6 +39,10 @@ a.dmxc_(0,0,0);
 )
 
 
+
+c = 2
+d = 1 + ((c-1)*3)
+d
 (
 var fx=0,fy=0;
 
@@ -37,7 +53,7 @@ var fx=0,fy=0;
 		r = 255;
 		c = Color.hsv(hue,1,sat,1);
 		slider.background_(c);
-		a.dmxc_(c.red*r,c.green*r,c.blue*r);
+		a.dmxc_(1,c.red*r,c.green*r,c.blue*r);
 	};
 
 	t = Slider2D(w, w.view.bounds.insetBy(10,10))
@@ -54,6 +70,8 @@ var fx=0,fy=0;
 l = 0;
 m = 0;
 
+~so  = LFO.ar(
+
 	r = Task.new({ inf.do({ |i|
 
 		{
@@ -65,9 +83,9 @@ m = 0;
 			x = (fx + (0.1 * sin(0.001*i*(180.0/pi)))).clip(0,0.999);
 			y = (fy + (0.1 * cos(0.001*i*(180.0/pi)))).clip(0,0.999);
 
-			//("x;"++x++" y:"++y).postln;
-			b.value(x,y,t);
-			v.moveTo(x * w.view.bounds.width, w.view.bounds.height - (y * w.view.bounds.height));
+			("x;"++x++" y:"++y).postln;
+			//b.value(x,y,t);
+			//v.moveTo(x * w.view.bounds.width, w.view.bounds.height - (y * w.view.bounds.height));
 
 			}.defer;
         0.02.wait;
@@ -80,7 +98,7 @@ m = 0;
 	w.onClose = {
 		r.stop;
 		r.free;
-		a.dmxc_(0,0,0);
+		a.dmxc_(1,0,0,0);
 		a.close;
 	};
 
