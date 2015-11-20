@@ -1,5 +1,4 @@
-SerialPort.devices
-
+SerialPort.devices.last
 
 
 a = RduinoDMX(SerialPort.devices.last,115200);

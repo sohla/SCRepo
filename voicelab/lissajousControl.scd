@@ -1,104 +1,118 @@
 (
-	~arduino = RduinoDMX(SerialPort.devices.last,115200);
+	var data= Dictionary();
+	var fps = 1.0/60.0;
+	var arduino = RduinoDMX(SerialPort.devices.last,115200);
+	var window, xyView;
 
-	~fps = 1.0/60.0;
+	//--------------------------------------------------------------------------------
 
-	~xf = 0.1;
-	~xa = 1.0;
-	~xs = 0.5;
-
-	~yf = 0.1;
-	~ya = 0.1;
-	~ys = 0.9;
+	data = data.add(\x -> ~createOscilParams.value(0.03,1,0.5));
+	data = data.add(\y -> ~createOscilParams.value(0.06,0.4,0.8));
 
 
-	~window = Window.new(bounds:Rect(100,100,200,400)).front.layout_(
+	//--------------------------------------------------------------------------------
+
+	window = Window.new(bounds:Rect(100,100,200,400)).front.layout_(
 		VLayout(
-	        [~xyView = Slider2D()
+	        [xyView = Slider2D()
 			, stretch:1],
 
 		[View().layout_(
 			HLayout(
 				// X axis
 				[Slider()
-					.value_(~xf)
+					.value_(data[\x][\frq])
 					.step_(0.01)
 					.action_({|v|
-						~xf = v.value;
+						data[\x][\frq] = v.value;
 					})
 			],
 				[Slider()
-					.value_(~xa)
+					.value_(data[\x][\amp])
 					.step_(0.01)
 					.action_({|v|
-						~xa = v.value;
+						data[\x][\amp] = v.value;
 					})
 			],
 				[Slider()
-					.value_(~xs)
+					.value_(data[\x][\add])
 					.step_(0.01)
 					.action_({|v|
-						~xs = v.value;
+						data[\x][\add] = v.value;
 					})
 			],
 				// Y axis
 				[Slider()
-					.value_(~yf)
+					.value_(data[\y][\frq])
 					.step_(0.01)
 					.action_({|v|
-						~yf = v.value;
+						data[\y][\frq] = v.value;
 
 					})
 			],
 				[Slider()
-					.value_(~ya)
+					.value_(data[\y][\amp])
 					.step_(0.01)
 					.action_({|v|
-						~ya = v.value;
+						data[\y][\amp] = v.value;
 					})
 			],
 				[Slider()
-					.value_(~ys)
+					.value_(data[\y][\add])
 					.step_(0.01)
 					.action_({|v|
-						~ys = v.value;
+						data[\y][\add] = v.value;
 					})
 			]
 			));
 
 
+		],[Button()
+			.action_({|b|
+				data.postln;
+			});
+
 		]
 
 	    )
 	);
+	//--------------------------------------------------------------------------------
 
-	~window.onClose = {
+	window.onClose = {
 		~routine.stop;
-		3.do({|i|~arduino.dmxc_(i+1,0,0,0)});
-		~arduino.close;
+		3.do({|i|arduino.dmxc_(i+1,0,0,0)});
+		arduino.close;
 
 		"onClose".postln;
 	};
 
+	//--------------------------------------------------------------------------------
+	//
+	//--------------------------------------------------------------------------------
+
+	~createOscilParams = {|f,a,s|
+		Dictionary.newFrom(List[\frq,f,\amp,a,\add,s])
+	};
+
 	~calcWithFAS = {|i,f,a,s|
-		s + (sin((f * 1 * ~fps)* i * (180.0 / pi)) * 0.5 * a )
+		s + (sin((f * 1 * fps)* i * (180.0 / pi)) * 0.5 * a )
 	};
 
 	~routine = Routine{ |in|
 		inf.do{|i|
 			var x,y,c,r;
 
-			x = ~calcWithFAS.value(i,~xf,~xa,~xs);
-			y = ~calcWithFAS.value(i,~yf,~ya,~ys);
+			x = ~calcWithFAS.value(i,data[\x][\frq],data[\x][\amp],data[\x][\add]);
+			y = ~calcWithFAS.value(i,data[\y][\frq],data[\y][\amp],data[\y][\add]);
 
 			c = Color.hsv(max(min(x,0.999),0.0),1,max(min(y,0.999),0.0),1);
 
-			~xyView.background_(c);
-			~xyView.setXYActive(x,y);
+			xyView.background_(c);
+			xyView.setXYActive(x,y);
 			r = 255;
-			~arduino.dmxc_(1,c.red*r,c.green*r,c.blue*r);
+			arduino.dmxc_(1,c.red*r,c.green*r,c.blue*r);
 
-			~fps.wait;
+			fps.wait;
 		}
 	};
 
