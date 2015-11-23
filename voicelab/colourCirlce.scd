@@ -6,17 +6,22 @@
 	var radius = diameter / 2;
 	var origin = Point(radius,radius);
 	var numOfPixels = diameter * diameter;
-	var point = Point(0,0);
+	var point = Point(radius,radius);
 	var size = 30;
 
 	var calculateColorForPoint;
 
 
 	calculateColorForPoint = ({|x,y|
-			var angle = atan2(x - radius, y - radius);
-			var hue = min(((angle + pi) / 2pi),0.999);
-			var sat = min(origin.dist(Point(x,y))/radius,0.999);
-			Color.hsv(hue,sat,1,1)
+		var angle = atan2(x - radius, y - radius);
+		var hue = ((angle + pi) / 2pi);
+		var sat = origin.dist(Point(x,y)) / radius;
+
+
+		if( hue > 0.999, {hue = 0.0},{});
+		if( sat > 0.999, {sat = 0.0},{});
+
+		Color.hsv(hue,sat,1,1)
 	});
 
 	sliderView.background = Color.clear;
@@ -25,8 +30,13 @@
 
 
 	sliderView.mouseDownAction = ({|v,x,y|
-		point.set(x,y);
-		v.refresh();
+		var dist = origin.dist(Point(x,y));
+		if((dist <= radius),{
+			point.set(x,y);
+			v.refresh();
+		},{
+
+		});
 
 	});
 	sliderView.mouseMoveAction = sliderView.mouseDownAction;
