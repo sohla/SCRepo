@@ -8,37 +8,28 @@
 	var origin = Point(radius,radius);
 	var numOfPixels = diameter * diameter;
 	var point = Point(radius,radius);
-	var pointDelta = Point(0,0);
+	var pointDelta = Point(radius,radius);
 	var size = 60;
 	var brightness = 1.0;
 
-	var calculateColorForPoint;
+	var calculateColorForPoint,tween;
 	var fps = 1.0/30.0;
 
-
+	pointDelta.addUniqueMethod(\tween,{|self,point|
+		self.x = (0.1 * point.x) + (0.9 * self.x);
+		self.y = (0.1 * point.y) + (0.9 * self.y);
+	});
 
 	calculateColorForPoint = ({|x,y|
 		var angle = atan2(x - radius, y - radius);
 		var hue = ((angle + pi) / 2pi);
 		var sat = origin.dist(Point(x,y)) / radius;
 
-
 		if( hue > 0.999, {hue = 0.0},{});
 		if( sat > 0.999, {sat = 0.0},{});
 
 		Color.hsv(hue,sat,brightness,1)
 	});
-
-	slider2DView.background = Color.clear;
-
-
-	w.layout = HLayout(
-				StackLayout(colorView,slider2DView).mode_(\stackAll).index_(1),
-				sliderView
-	);
-
-	w.layout.spacing = 10;
-	w.layout.margins = [10,10,10,10];
 
 
 	sliderView.action = ({|v|
@@ -53,33 +44,26 @@
 
 	slider2DView.mouseDownAction = ({|v,x,y|
 		var dist = origin.dist(Point(x,y));
-		if((dist <= radius),{
-			point.set(x,y);
-			v.refresh();
-			sliderView.background_(calculateColorForPoint.value(point.x,point.y));
-		},{
-
-		});
-
+		if((dist <= radius),{point.set(x,y)},{});
 	});
-//	slider2DView.mouseMoveAction = slider2DView.mouseDownAction;
+	slider2DView.mouseMoveAction = slider2DView.mouseDownAction;
+	slider2DView.background = Color.clear;
 
 	slider2DView.drawFunc = ({
 
-	var dx = pointDelta.x;
-	var dy = pointDelta.y;
-
+		var color = calculateColorForPoint.value(pointDelta.x,pointDelta.y);
 		Pen.strokeColor = Color.white;
-		Pen.fillColor = calculateColorForPoint.value(point.x,point.y);
+		Pen.fillColor = color;
 
-	Pen.translate(dx,dy);
+		Pen.translate(pointDelta.x,pointDelta.y);
 
-	Pen.addOval(Rect(size.half.neg,size.half.neg,size,size));
+		Pen.addOval(Rect(size.half.neg,size.half.neg,size,size));
 		Pen.fillStroke;
-		Pen.translate(dx.neg,dy.neg);
+		Pen.translate(pointDelta.x.neg,pointDelta.y.neg);
 
-	dx = (0.0001 * point.x) + (0.9999 * pointDelta.x);
-	dy = (0.0001 * point.y) + (0.9999 * pointDelta.y);
+		sliderView.background_(color);
+
+		pointDelta.tween(point);
 	});
 
 	colorView.drawFunc = ({
@@ -95,15 +79,19 @@
 		});
 	});
 
-	colorView.refresh;
+
+	w.layout = HLayout(
+				StackLayout(colorView,slider2DView).mode_(\stackAll).index_(1),
+				sliderView
+	);
+
+	w.layout.spacing = 10;
+	w.layout.margins = [10,10,10,10];
 	w.front;
 
 	~routine = Routine{ |in|
 		inf.do{|i|
-
-
-
-		slider2DView.refresh();
+			slider2DView.refresh();
 			fps.wait;
 		}
 	};
