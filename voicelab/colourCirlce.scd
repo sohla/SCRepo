@@ -1,8 +1,8 @@
 (
-	var w = Window("Slider2D", Rect(10, 500, 400, 400));
-	var colorView = UserView().resize_(5);
+	var w = Window("Slider2D", Rect(10, 500, 500, 400));
+var colorView = UserView().resize_(5).bounds_(Rect(0,0,400,400));
 	var sliderView = UserView().resize_(5);
-	var diameter = w.bounds.width;
+	var diameter = 400;
 	var radius = diameter / 2;
 	var origin = Point(radius,radius);
 	var numOfPixels = diameter * diameter;
@@ -26,8 +26,14 @@
 
 	sliderView.background = Color.clear;
 
-	w.layout = StackLayout(colorView,sliderView).mode_(\stackAll).index_(1);
 
+	w.layout = HLayout(
+				StackLayout(colorView,sliderView).mode_(\stackAll).index_(1),
+				Slider().maxWidth_(100)
+	);
+
+	w.layout.spacing = 0;
+	w.layout.margins = [0,0,0,0];
 
 	sliderView.mouseDownAction = ({|v,x,y|
 		var dist = origin.dist(Point(x,y));
