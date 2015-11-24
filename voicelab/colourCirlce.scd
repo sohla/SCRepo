@@ -1,15 +1,20 @@
 (
-	var w = Window("Slider2D", Rect(10, 500, 500, 400));
-var colorView = UserView().resize_(5).bounds_(Rect(0,0,400,400));
-	var sliderView = UserView().resize_(5);
+	var w = Window("Colour Circle", Rect(10, 500, 520, 420));
+	var colorView = UserView().resize_(5).bounds_(Rect(0,0,400,400));
+	var slider2DView = UserView().resize_(5);
+	var sliderView = Slider().maxWidth_(90);
 	var diameter = 400;
 	var radius = diameter / 2;
 	var origin = Point(radius,radius);
 	var numOfPixels = diameter * diameter;
 	var point = Point(radius,radius);
-	var size = 30;
+	var pointDelta = Point(0,0);
+	var size = 60;
+	var brightness = 1.0;
 
 	var calculateColorForPoint;
+	var fps = 1.0/30.0;
+
 
 
 	calculateColorForPoint = ({|x,y|
@@ -21,40 +26,60 @@ var colorView = UserView().resize_(5).bounds_(Rect(0,0,400,400));
 		if( hue > 0.999, {hue = 0.0},{});
 		if( sat > 0.999, {sat = 0.0},{});
 
-		Color.hsv(hue,sat,1,1)
+		Color.hsv(hue,sat,brightness,1)
 	});
 
-	sliderView.background = Color.clear;
+	slider2DView.background = Color.clear;
 
 
 	w.layout = HLayout(
-				StackLayout(colorView,sliderView).mode_(\stackAll).index_(1),
-				Slider().maxWidth_(100)
+				StackLayout(colorView,slider2DView).mode_(\stackAll).index_(1),
+				sliderView
 	);
 
-	w.layout.spacing = 0;
-	w.layout.margins = [0,0,0,0];
+	w.layout.spacing = 10;
+	w.layout.margins = [10,10,10,10];
 
-	sliderView.mouseDownAction = ({|v,x,y|
+
+	sliderView.action = ({|v|
+		brightness = v.value;
+		slider2DView.refresh();
+		v.background_(calculateColorForPoint.value(point.x,point.y));
+
+	});
+	sliderView.valueAction_(brightness);
+	sliderView.background_(Color.white);
+	sliderView.mouseMoveAction = sliderView.mouseDownAction;
+
+	slider2DView.mouseDownAction = ({|v,x,y|
 		var dist = origin.dist(Point(x,y));
 		if((dist <= radius),{
 			point.set(x,y);
 			v.refresh();
+			sliderView.background_(calculateColorForPoint.value(point.x,point.y));
 		},{
 
 		});
 
 	});
-	sliderView.mouseMoveAction = sliderView.mouseDownAction;
+//	slider2DView.mouseMoveAction = slider2DView.mouseDownAction;
 
-	sliderView.drawFunc = ({
+	slider2DView.drawFunc = ({
+
+	var dx = pointDelta.x;
+	var dy = pointDelta.y;
 
 		Pen.strokeColor = Color.white;
 		Pen.fillColor = calculateColorForPoint.value(point.x,point.y);
-		Pen.translate(point.x,point.y);
-		Pen.addOval(Rect(size.half.neg,size.half.neg,size,size));
+
+	Pen.translate(dx,dy);
+
+	Pen.addOval(Rect(size.half.neg,size.half.neg,size,size));
 		Pen.fillStroke;
-		Pen.translate(point.x.neg,point.y.neg);
+		Pen.translate(dx.neg,dy.neg);
+
+	dx = (0.0001 * point.x) + (0.9999 * pointDelta.x);
+	dy = (0.0001 * point.y) + (0.9999 * pointDelta.y);
 	});
 
 	colorView.drawFunc = ({
@@ -72,4 +97,18 @@ var colorView = UserView().resize_(5).bounds_(Rect(0,0,400,400));
 
 	colorView.refresh;
 	w.front;
+
+	~routine = Routine{ |in|
+		inf.do{|i|
+
+
+
+		slider2DView.refresh();
+			fps.wait;
+		}
+	};
+
+
+	~routine.play(AppClock);
+
 )
