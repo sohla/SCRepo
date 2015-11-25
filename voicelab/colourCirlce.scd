@@ -14,10 +14,11 @@
 
 	var calculateColorForPoint,tween;
 	var fps = 1.0/30.0;
+	var friction = 0.02;
 
 	pointDelta.addUniqueMethod(\tween,{|self,point|
-		self.x = (0.1 * point.x) + (0.9 * self.x);
-		self.y = (0.1 * point.y) + (0.9 * self.y);
+	self.x = (friction * point.x) + ((1 - friction) * self.x);
+	self.y = (friction * point.y) + ((1 - friction) * self.y);
 	});
 
 	calculateColorForPoint = ({|x,y|
@@ -52,6 +53,14 @@
 	slider2DView.drawFunc = ({
 
 		var color = calculateColorForPoint.value(pointDelta.x,pointDelta.y);
+
+
+		Pen.strokeColor = Color.white;
+		Pen.fillColor = Color.black.alpha_(brightness.linlin(0,1,1,0));
+		Pen.addOval(Rect(0,0.neg,diameter,diameter));
+		Pen.fillStroke;
+
+
 		Pen.strokeColor = Color.white;
 		Pen.fillColor = color;
 
@@ -78,7 +87,6 @@
 
 		});
 	});
-
 
 	w.layout = HLayout(
 				StackLayout(colorView,slider2DView).mode_(\stackAll).index_(1),
