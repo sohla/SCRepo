@@ -9,12 +9,28 @@
 	var numOfPixels = diameter * diameter;
 	var point = Point(radius,radius);
 	var pointDelta = Point(radius,radius);
-	var size = 60;
+	var size = 30;
 	var brightness = 1.0;
 
 	var calculateColorForPoint,tween;
 	var fps = 1.0/30.0;
-	var friction = 0.02;
+	var friction = 0.05;
+
+	var arduino;
+
+	//--------------------------------------------------------------------------------
+	//
+	//--------------------------------------------------------------------------------
+
+	try{
+		arduino = RduinoDMX(SerialPort.devices.last,115200);
+	}{|error|
+		[\Connecting:error.errorString].postln;
+	};
+
+	//--------------------------------------------------------------------------------
+	//
+	//--------------------------------------------------------------------------------
 
 	pointDelta.addUniqueMethod(\tween,{|self,point|
 	self.x = (friction * point.x) + ((1 - friction) * self.x);
@@ -32,6 +48,9 @@
 		Color.hsv(hue,sat,brightness,1)
 	});
 
+	//--------------------------------------------------------------------------------
+	//
+	//--------------------------------------------------------------------------------
 
 	sliderView.action = ({|v|
 		brightness = v.value;
@@ -42,6 +61,10 @@
 	sliderView.valueAction_(brightness);
 	sliderView.background_(Color.white);
 	sliderView.mouseMoveAction = sliderView.mouseDownAction;
+
+	//--------------------------------------------------------------------------------
+	//
+	//--------------------------------------------------------------------------------
 
 	slider2DView.mouseDownAction = ({|v,x,y|
 		var dist = origin.dist(Point(x,y));
@@ -54,12 +77,10 @@
 
 		var color = calculateColorForPoint.value(pointDelta.x,pointDelta.y);
 
-
-		Pen.strokeColor = Color.white;
+		Pen.strokeColor = Color.gray;
 		Pen.fillColor = Color.black.alpha_(brightness.linlin(0,1,1,0));
 		Pen.addOval(Rect(0,0.neg,diameter,diameter));
 		Pen.fillStroke;
-
 
 		Pen.strokeColor = Color.white;
 		Pen.fillColor = color;
@@ -73,8 +94,15 @@
 		sliderView.background_(color);
 
 		pointDelta.tween(point);
+	r = 255;
+				arduino.dmxc_(1,color.red*r,color.green*r,color.blue*r);
+
 	});
 
+	//--------------------------------------------------------------------------------
+	//
+	//--------------------------------------------------------------------------------
+	colorView.background_(Color.gray);
 	colorView.drawFunc = ({
 		numOfPixels.do({|i|
 
@@ -88,6 +116,9 @@
 		});
 	});
 
+	//--------------------------------------------------------------------------------
+	//
+	//--------------------------------------------------------------------------------
 	w.layout = HLayout(
 				StackLayout(colorView,slider2DView).mode_(\stackAll).index_(1),
 				sliderView
@@ -97,6 +128,17 @@
 	w.layout.margins = [10,10,10,10];
 	w.front;
 
+	w.onClose = {
+		~routine.stop;
+		3.do({|i|arduino.dmxc_(i+1,0,0,0)});
+		arduino.close;
+
+		"onClose".postln;
+	};
+
+	//--------------------------------------------------------------------------------
+	//
+	//--------------------------------------------------------------------------------
 	~routine = Routine{ |in|
 		inf.do{|i|
 			slider2DView.refresh();

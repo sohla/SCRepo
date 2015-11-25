@@ -1,10 +1,24 @@
 (
 	var data= Dictionary();
 	var fps = 1.0/60.0;
-	var arduino = RduinoDMX(SerialPort.devices.last,115200);
+	var arduino;
 	var window, xyView;
 
 	//--------------------------------------------------------------------------------
+	//
+	//--------------------------------------------------------------------------------
+
+	try{
+		arduino = RduinoDMX(SerialPort.devices.last,115200);
+	}{|error|
+		[\Connecting:error.errorString].postln;
+	};
+
+
+	//--------------------------------------------------------------------------------
+	~createOscilParams = {|f,a,s|
+		Dictionary.newFrom(List[\frq,f,\amp,a,\add,s])
+	};
 
 	data = data.add(\x -> ~createOscilParams.value(0.03,1,0.5));
 	data = data.add(\y -> ~createOscilParams.value(0.06,0.4,0.8));
@@ -80,9 +94,10 @@
 
 	window.onClose = {
 		~routine.stop;
-		3.do({|i|arduino.dmxc_(i+1,0,0,0)});
-		arduino.close;
-
+		case{arduino.notNil}{
+			3.do({|i|arduino.dmxc_(i+1,0,0,0)});
+			arduino.close;
+		};
 		"onClose".postln;
 	};
 
@@ -90,9 +105,6 @@
 	//
 	//--------------------------------------------------------------------------------
 
-	~createOscilParams = {|f,a,s|
-		Dictionary.newFrom(List[\frq,f,\amp,a,\add,s])
-	};
 
 	~calcWithFAS = {|i,f,a,s|
 		s + (sin((f * 1 * fps)* i * (180.0 / pi)) * 0.5 * a )
@@ -109,9 +121,10 @@
 
 			xyView.background_(c);
 			xyView.setXYActive(x,y);
-			r = 255;
-			arduino.dmxc_(1,c.red*r,c.green*r,c.blue*r);
-
+			case{arduino.notNil}{
+				r = 255;
+				arduino.dmxc_(1,c.red*r,c.green*r,c.blue*r);
+			};
 			fps.wait;
 		}
 	};
