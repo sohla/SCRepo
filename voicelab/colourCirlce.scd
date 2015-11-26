@@ -1,8 +1,8 @@
 (
-	var w = Window("Colour Circle", Rect(10, 500, 520, 420));
+	var w = Window("Colour Circle", Rect(10, 500, 460, 420));
 	var colorView = UserView().resize_(5).bounds_(Rect(0,0,400,400));
 	var slider2DView = UserView().resize_(5);
-	var sliderView = Slider().maxWidth_(90);
+	var sliderView = Slider().maxWidth_(30);
 	var diameter = 400;
 	var radius = diameter / 2;
 	var origin = Point(radius,radius);
@@ -94,9 +94,11 @@
 		sliderView.background_(color);
 
 		pointDelta.tween(point);
-	r = 255;
-				arduino.dmxc_(1,color.red*r,color.green*r,color.blue*r);
 
+		case{arduino.notNil}{
+			r = 255;
+			arduino.dmxc_(1,color.red*r,color.green*r,color.blue*r);
+		};
 	});
 
 	//--------------------------------------------------------------------------------
@@ -130,9 +132,10 @@
 
 	w.onClose = {
 		~routine.stop;
-		3.do({|i|arduino.dmxc_(i+1,0,0,0)});
-		arduino.close;
-
+		case{arduino.notNil}{
+			3.do({|i|arduino.dmxc_(i+1,0,0,0)});
+			arduino.close;
+		};
 		"onClose".postln;
 	};
 
