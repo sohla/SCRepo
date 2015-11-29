@@ -33,8 +33,8 @@
 	//--------------------------------------------------------------------------------
 
 	pointDelta.addUniqueMethod(\tween,{|self,point|
-	self.x = (friction * point.x) + ((1 - friction) * self.x);
-	self.y = (friction * point.y) + ((1 - friction) * self.y);
+		self.x = (friction * point.x) + ((1 - friction) * self.x);
+		self.y = (friction * point.y) + ((1 - friction) * self.y);
 	});
 
 	calculateColorForPoint = ({|x,y|
@@ -55,9 +55,9 @@
 	sliderView.action = ({|v|
 		brightness = v.value;
 		slider2DView.refresh();
-		v.background_(calculateColorForPoint.value(point.x,point.y));
-
+		v.background_(calculateColorForPoint.(point.x,point.y));
 	});
+
 	sliderView.valueAction_(brightness);
 	sliderView.background_(Color.white);
 	sliderView.mouseMoveAction = sliderView.mouseDownAction;
@@ -70,10 +70,11 @@
 		var dist = origin.dist(Point(x,y));
 		if((dist <= radius),{point.set(x,y)},{});
 	});
+
 	slider2DView.mouseMoveAction = slider2DView.mouseDownAction;
 	slider2DView.background = Color.clear;
 
-	slider2DView.drawFunc = ({
+	slider2DView.drawFunc = {
 
 		var color = calculateColorForPoint.value(pointDelta.x,pointDelta.y);
 
@@ -99,23 +100,23 @@
 			r = 255;
 			arduino.dmxc_(1,color.red*r,color.green*r,color.blue*r);
 		};
-	});
+	};
 
 	//--------------------------------------------------------------------------------
 	//
 	//--------------------------------------------------------------------------------
 	colorView.background_(Color.gray);
 	colorView.drawFunc = ({
-		numOfPixels.do({|i|
+		numOfPixels.do{|i|
 
 			var j = i % diameter;
 			var k = floor(i / diameter);
-			Pen.strokeColor = calculateColorForPoint.value(j,k);
+		Pen.strokeColor = calculateColorForPoint.(j,k);
 			Pen.moveTo(j@k);
 			Pen.lineTo(j+1@k);
 			Pen.stroke;
 
-		});
+		};
 	});
 
 	//--------------------------------------------------------------------------------

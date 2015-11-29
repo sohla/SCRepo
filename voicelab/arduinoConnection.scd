@@ -29,15 +29,16 @@
 (
 
 
-var arduino;
+var arduino = nil;
 
 try{
-arduino = RduinoDMX(SerialPort.devices.last,115200);
-}{|error| [\Connecting:error.errorString].postln};
+	arduino = RduinoDMX(SerialPort.devices.last,115200);
+}{|error|
+	[\Connecting:error.errorString].postln;
+};
 
-a = false;
-case{arduino.notNil}{"a is true".postln};
-
-
+//case{arduino.notNil}{"arduino is connected.".postln};
+arduino!?({"arduino is connected.".postln});
+"but we can still do stuff..."
 )
 
