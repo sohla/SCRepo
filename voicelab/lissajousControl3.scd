@@ -92,44 +92,14 @@
 			));
 
 
-		],[View().layout_(
-			HLayout(
-				[Button()
-					.states_([["store"]])
-					.action_({|b|
-							var currentHash = data.hash;
-
-							// if list is empty, alloc memory
-							listView.items??({listView.items = Array.newClear});
-
-							// check if hash alreadys exists
-							listView.items.find([currentHash])??{
-								listView.items = listView.items.add(data.hash);
-							};
-					})
-				],[Button()
-					.states_([["delete"]])
-					.action_({|b|
-							listView.value.postln;
-
-							case{listView.value.notNil}{
-								listView.items.removeAt(listView.value);
-								listView.items_(listView.items);
-							};
-					})
-				])
-			)]
-
-
-		)],[
-			listView = ListView()
+		])
 	]);
 	);
 	//--------------------------------------------------------------------------------
 
 	window.onClose = {
 		~routine.stop;
-		case{arduino.notNil}{
+		arduino!?{
 			3.do({|i|arduino.dmxc_(i+1,0,0,0)});
 			arduino.close;
 		};
@@ -148,17 +118,31 @@
 	~routine = Routine{ |in|
 		inf.do{|i|
 			var x,y,c,r;
-
+			var colors = [];
+			var dif = 0.02;
 			x = ~calcWithFAS.(i,data[\x][\frq],data[\x][\amp],data[\x][\add]);
 			y = ~calcWithFAS.(i,data[\y][\frq],data[\y][\amp],data[\y][\add]);
 
-			c = Color.hsv(max(min(x,0.999),0.0),1,max(min(y,0.999),0.0),1);
 
-			xyView.background_(c);
+
+			3.do({|i|
+			colors = colors.add(Color.hsv(
+				max(min(x - (i * dif),0.999),0.0),
+				1,
+				max(min(y - (i * dif),0.999),0.0)
+				,1
+			));
+		});
+
+
+		xyView.background_(colors[0]);
 			xyView.setXYActive(x,y);
-			case{arduino.notNil}{
+			arduino!?{
 				r = 255;
-				arduino.dmxc_(1,c.red*r,c.green*r,c.blue*r);
+				3.do({|i|
+					c = colors[i];
+					arduino.dmxc_(i+1,c.red*r,c.green*r,c.blue*r);
+				});
 			};
 			fps.wait;
 		}

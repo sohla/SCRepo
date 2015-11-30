@@ -43,7 +43,7 @@
 		var sat = origin.dist(Point(x,y)) / radius;
 
 		if( hue > 0.999, {hue = 0.0},{});
-		if( sat > 0.999, {sat = 0.0},{});
+		if( sat > 0.999, {sat = 1.0},{});
 
 		Color.hsv(hue,sat,brightness,1)
 	});
@@ -76,7 +76,16 @@
 
 	slider2DView.drawFunc = {
 
-		var color = calculateColorForPoint.value(pointDelta.x,pointDelta.y);
+		var color,colors = [];
+		var dif = 30;
+
+		3.do({|i|
+			colors = colors.add(calculateColorForPoint.value(
+				pointDelta.x + (i * dif),
+				pointDelta.y + (i * dif))
+			);
+		});
+		color = colors[0];
 
 		Pen.strokeColor = Color.gray;
 		Pen.fillColor = Color.black.alpha_(brightness.linlin(0,1,1,0));
@@ -96,9 +105,11 @@
 
 		pointDelta.tween(point);
 
-		case{arduino.notNil}{
+		arduino!?{
 			r = 255;
-			arduino.dmxc_(1,color.red*r,color.green*r,color.blue*r);
+			3.do({|i|
+			arduino.dmxc_(i+1,colors[i].red*r,colors[i].green*r,colors[i].blue*r);
+			});
 		};
 	};
 

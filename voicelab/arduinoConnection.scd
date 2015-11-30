@@ -42,3 +42,12 @@ arduino!?({"arduino is connected.".postln});
 "but we can still do stuff..."
 )
 
+
+
+
+
+a = nil
+
+a??({"YES".postln})
+
+

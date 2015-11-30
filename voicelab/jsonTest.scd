@@ -44,11 +44,11 @@ Dictionary.newFrom(b["keyPaths"]).keys.asSortedList.postln;
 
 b = "~/Music/VoiceLab/testdata.json".asAbsolutePath;
 a = ~dictionaryFromJSONFile.(b)
-
+a.hash
 p = "~/Music/VoiceLab/saveddata.json".asAbsolutePath;
 ~writeJSONFileWithDictionary.(p,a);
 
 
 c = "~/Music/VoiceLab/saveddata.json".asAbsolutePath;
 d = ~dictionaryFromJSONFile.(b)
-
+d.hash
