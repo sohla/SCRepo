@@ -1,3 +1,6 @@
+// JSON/JSONSerializer required
+
+
 (
 g = File("~/Music/VoiceLab/template.json".asAbsolutePath,"r");
 	a = g.readAllString;
@@ -5,7 +8,6 @@ g = File("~/Music/VoiceLab/template.json".asAbsolutePath,"r");
 Dictionary.newFrom(b["keyPaths"]).keys.asSortedList.postln;
 	g.close;
 )
-
 
 (
 
