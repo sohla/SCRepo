@@ -77,7 +77,7 @@
 	slider2DView.drawFunc = {
 
 		var color,colors = [];
-		var dif = 30;
+		var dif = 0;
 
 		3.do({|i|
 			colors = colors.add(calculateColorForPoint.value(
@@ -87,10 +87,6 @@
 		});
 		color = colors[0];
 
-		Pen.strokeColor = Color.gray;
-		Pen.fillColor = Color.black.alpha_(brightness.linlin(0,1,1,0));
-		Pen.addOval(Rect(0,0.neg,diameter,diameter));
-		Pen.fillStroke;
 
 		Pen.strokeColor = Color.white;
 		Pen.fillColor = color;
