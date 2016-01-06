@@ -28,7 +28,20 @@
 	var childMicGroup,listenGroup;
 	var micInGroup;
 
-	var lxX=0,lxY=0,lxTask,lxUI;
+	var diameter = 380;
+	var radius = diameter / 2;
+	var origin = Point(radius,radius);
+	var numOfPixels = diameter * diameter;
+	var point = Point(radius,radius);
+	var pointDelta = Point(radius,radius);
+	var size = 30;
+	var brightness = 1.0;
+	var calculateColorForPoint,tween;
+
+	var colorView = UserView().resize_(5).bounds_(Rect(0,0,diameter,diameter));
+	var slider2DView = UserView().resize_(5);
+
+	var lxX=0,lxY=0;
 	var tx=0,ty=0;
 	//------------------------------------------------------
 	// FUNCTIONS
@@ -41,6 +54,8 @@
 	var startRecordingQuestion,stopRecordingQuestion;
 
 	var bgMusicStart, bgMusicStop, bgRoutine;
+
+	var fps = 1.0/30.0;
 
 	// contect locally so we can send msgs
 	broadcaster = NetAddr("127.0.0.1", NetAddr.langPort);
@@ -185,28 +200,6 @@
 		bgMusicStart.value;
 
 		s.queryAllNodes;
-
-
-		lxTask = Task.new({ inf.do({ |i|
-
-			{
-				 tx = (lxX + (0.04 * sin(0.0001*i*(180.0/pi)))).clip(0,0.999);
-				 ty = (lxY + (0.04 * cos(0.0001*i*(180.0/pi)))).clip(0,0.999);
-
-				c = Color.hsv(tx,1,ty,1);
-				lxUI.background_(c);
-				arduino!?{
-					r = 255;
-					3.do({|i|
-						arduino.dmxc_(i+1,c.red*r,c.green*r,c.blue*r);
-					});
-				};
-
-			}.defer;
-
-			0.02.wait;
-
-		})}).play;
 
 		// return path
 		sessionArchivePath;
@@ -378,8 +371,96 @@
 	//------------------------------------------------------
 	// GUI
 	//------------------------------------------------------
+	pointDelta.addUniqueMethod(\tween,{|self,point|
+		var friction = 0.05;
+		self.x = (friction * point.x) + ((1 - friction) * self.x);
+		self.y = (friction * point.y) + ((1 - friction) * self.y);
+	});
+
+	//--------------------------------------------------------------------------------
+	//
+	//--------------------------------------------------------------------------------
+
+	slider2DView.mouseDownAction = ({|v,x,y|
+		var dist = origin.dist(Point(x,y));
+		if((dist <= radius),{point.set(x,y)},{});
+	});
+
+	slider2DView.mouseMoveAction = slider2DView.mouseDownAction;
+	slider2DView.background = Color.clear;
+
+	slider2DView.drawFunc = {
+
+		var color,colors = [];
+		var dif = 0;
+
+		3.do({|i|
+			colors = colors.add(calculateColorForPoint.value(
+				pointDelta.x + (i * dif),
+				pointDelta.y + (i * dif))
+			);
+		});
+		color = colors[0];
 
 
+		Pen.strokeColor = Color.white;
+		Pen.fillColor = color;
+
+		Pen.translate(pointDelta.x,pointDelta.y);
+
+		Pen.addOval(Rect(size.half.neg,size.half.neg,size,size));
+		Pen.fillStroke;
+		Pen.translate(pointDelta.x.neg,pointDelta.y.neg);
+
+
+		pointDelta.tween(point);
+
+		arduino!?{
+			r = 255;
+			3.do({|i|
+			arduino.dmxc_(i+1,colors[i].red*r,colors[i].green*r,colors[i].blue*r);
+			});
+		};
+	};
+
+	//--------------------------------------------------------------------------------
+	//
+	//--------------------------------------------------------------------------------
+	colorView.background_(Color.gray);
+	colorView.drawFunc = ({
+		numOfPixels.do{|i|
+
+			var j = i % diameter;
+			var k = floor(i / diameter);
+		Pen.strokeColor = calculateColorForPoint.(j,k);
+			Pen.moveTo(j@k);
+			Pen.lineTo(j+1@k);
+			Pen.stroke;
+
+		};
+	});
+
+	//--------------------------------------------------------------------------------
+	//
+	//--------------------------------------------------------------------------------
+
+
+	calculateColorForPoint = ({|x,y|
+		var angle = atan2(x - radius, y - radius);
+		var hue = ((angle + pi) / 2pi);
+		var sat = origin.dist(Point(x,y)) / radius;
+
+
+
+		if( sat > 1.25, {hue = 1.0;brightness=0;},{});
+		if( sat > 1.25, {sat = 1.0;},{});
+
+		if( hue > 0.999, {hue = 0.0},{});
+		if( sat > 0.999, {sat = 1.0;},{});
+
+
+		Color.hsv(hue,sat,brightness,1);
+	});
 
 	//------------------------------------------------------
 	initGUI = ({
@@ -742,8 +823,6 @@
 							stopRecorder.value;
 							bgMusicStop.value;
 						// listenSynth.free;
-							lxTask.stop;
-							lxTask.free;
 
 						// backgroundGroup.free;
 						// childMicGroup.free;
@@ -764,13 +843,14 @@
 
 				View().layout_(VLayout(
 
-					lxUI= Slider2D()
-						.background_(Color.black())
-			        	.action_({|sl|
-							lxX = sl.x;
-							lxY = sl.y;
-						});
-					));
+
+				StackLayout(colorView,slider2DView).mode_(\stackAll).index_(1)
+				//colorView
+				// .action_({|sl|
+				// 	lxX = sl.x;
+				// 	lxY = sl.y;
+				// });
+					)).minWidth_(430);
 			));
 
 		});
@@ -842,6 +922,14 @@
 
 
 	});
+	~routine = Routine{ |in|
+		inf.do{|i|
+			slider2DView.refresh();
+			fps.wait;
+		}
+	};
+
+	~routine.play(AppClock);
 
 
 	//------------------------------------------------------
