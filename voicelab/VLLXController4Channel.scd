@@ -5,8 +5,6 @@
 	var origin = Point(radius,radius);
 	var numOfPixels = diameter * diameter;
 	var baseRect = Rect(0,0,diameter,diameter);
-	var imageView = UserView().resize_(5).bounds_(Rect(0,0,diameter,diameter));
-
 	var fps = 1.0/30.0;
 	var arduino;
 
@@ -34,7 +32,7 @@
 			\view,nil])
 	];
 
-	var channelView = UserView(w,imageView.bounds);
+	var channelView = UserView(w,baseRect.bounds);
 	var lockButton = Button(w,Rect(20,10,150,40))
 		.states_([
 			["Lock Off",Color.black],
@@ -43,6 +41,31 @@
 	.action_{|b|
 	};
 
+	var autoButton = Button(w,Rect(20,60,150,40))
+		.states_([
+			["Auto Off",Color.black],
+			["Auto On",Color.red]
+	])
+	.action_{|b|
+			case
+			{ b.value == 0}{
+				~autoRun.stop;
+			}
+			{ b.value == 1}{
+				~autoRun = Routine{ |in|
+				inf.do{|i|
+					var r = 40;
+					var x = r.half + (diameter - r).rand;
+					var y = r.half + (diameter - r).rand;
+
+					channels.do{|lc,li| lc.[\point].set(x,y)};
+
+					3.wait;
+				}
+			};
+			~autoRun.play(AppClock);
+		}
+	};
 	var calculateColorForPoint = ({|x,y|
 		var angle = atan2(x - radius, y - radius);
 		var hue = ((angle + pi) / 2pi);
@@ -68,20 +91,6 @@
 	};
 
 
-	//--------------------------------------------------------------------------------
-    imageView.drawFunc = ({
-
-		numOfPixels.do{|i|
-
-			var j = i % diameter;
-			var k = floor(i / diameter);
-			Pen.strokeColor = calculateColorForPoint.(j,k);
-			Pen.moveTo(j@k);
-			Pen.lineTo(j+1@k);
-			Pen.stroke;
-
-		};
-    });
 	//--------------------------------------------------------------------------------
 
 	channels.do{|channel,i|
@@ -134,7 +143,7 @@
 	channel[\view].animate_(true);
 
 	channel[\pointDelta].addUniqueMethod(\tween,{|self,point|
-		var friction = 0.05;
+		var friction = 0.01;
 		self.x = (friction * point.x) + ((1 - friction) * self.x);
 		self.y = (friction * point.y) + ((1 - friction) * self.y);
 	});
@@ -151,18 +160,21 @@
 			arduino.close;
 		};
 
-	~routine.stop;
+		~routine.stop;
+		~autoRun.stop;
+
 	};
 
 	//--------------------------------------------------------------------------------
+
+
+
+//--------------------------------------------------------------------------------
 
 	~routine = Routine{ |in|
 		inf.do{|i|
 		 channels.do{|channel,i|
 
-		// 	channel[\color] = Color.fromHexString(
-		// 		image.getPixel(channel[\pointDelta].x.asInt,channel[\pointDelta].y.asInt).asHexString(6)
-		// 	);
 			channel[\color] = calculateColorForPoint.(channel[\pointDelta].x.asInt,channel[\pointDelta].y.asInt);
 
 			//[\x,channel[\pointDelta].x,\y,channel[\pointDelta].y,\color,channel[\color]].postln;
@@ -172,7 +184,6 @@
 					arduino.dmxc_(i+1,c.red*r,c.green*r,c.blue*r);
 				};
 			};
-			//w.refresh();
 			fps.wait;
 
 
