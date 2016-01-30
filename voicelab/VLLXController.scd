@@ -7,7 +7,7 @@
 	var baseRect = Rect(0,0,diameter,diameter);
 	var fps = 1.0/30.0;
 	var arduino;
-	var brightness = 0;
+	var brightness = 30;
 
 	var channels = Array[
 		Dictionary.newFrom(Array[
@@ -21,16 +21,17 @@
 
 	var channelView = UserView(w,baseRect.bounds);
 	var onButton = Slider(w,Rect(20,10,150,40))
-	.action_{|b|
-		brightness = 255 * b.value.asFloat;
-	};
+		.value_(brightness/255)
+		.action_{|b|
+			brightness = 255 * b.value.asFloat;
+		};
 
 	var autoButton = Button(w,Rect(20,60,150,40))
 		.states_([
 			["Auto Off",Color.black],
 			["Auto On",Color.red]
 	])
-	.action_{|b|
+		.action_{|b|
 			case
 			{ b.value == 0}{
 				~autoRun.stop;
@@ -185,5 +186,5 @@
 
 	~routine.play(AppClock);
 
-
+	autoButton.valueAction  = 1;
 )
