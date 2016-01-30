@@ -37,9 +37,10 @@
 	var size = 30;
 	var brightness = 1.0;
 	var calculateColorForPoint,tween;
-
+	var angle = 0;
 	var colorView = UserView().resize_(5).bounds_(Rect(0,0,diameter,diameter));
 	var slider2DView = UserView().resize_(5);
+		var autoBtn;
 
 	var lxX=0,lxY=0;
 	var tx=0,ty=0;
@@ -57,7 +58,7 @@
 
 	var fps = 1.0/30.0;
 
-GUI.qt;
+	//GUI.qt;
 	// contect locally so we can send msgs
 	broadcaster = NetAddr("127.0.0.1", NetAddr.langPort);
 
@@ -348,7 +349,7 @@ GUI.qt;
 
 	bgMusicStart = ({
 
-		p = "~/Music/VoiceLab/VoiceLab_audio/Backing Atmos - complex.aif".standardizePath;
+		p = "~/Music/VoiceLab/Backing Atmos - complex.aif".standardizePath;
 		//bgSynth = Synth.head(backgroundGroup,\playBuffer,[\buffer,Buffer.read(s, p),\amp,0.1]);
 
 	 bgFile = SoundFile.openRead(p);
@@ -447,9 +448,11 @@ GUI.qt;
 
 
 	calculateColorForPoint = ({|x,y|
+
+
 		var angle = atan2(x - radius, y - radius);
 		var hue = ((angle + pi) / 2pi);
-		var sat = origin.dist(Point(x,y)) / radius;
+	var sat = origin.dist(Point(x,y)) / (radius-40);
 		brightness=1;
 
 
@@ -745,34 +748,9 @@ GUI.qt;
 						pluginIndex = menu.value;
 					}),
 
-					Button()
+					autoBtn = Button()
 						.maxHeight_(btnHeight)
-						.states_([["Delete"]])
-				        .action_({ arg butt;
-
-							var key = listView.items.at(listView.value);
-							var path = appPath.asAbsolutePath+/+sessionTitle+/+"Questions"+/+key;
-
-							if(File.exists(path),{
-
-								File.delete(path);
-
-								sessionData["keyPaths"].removeAt(key.asString);
-								p = appPath.asAbsolutePath+/+sessionTitle+/+"session.vls";
-
-								sessionData.writeArchive(p);
-								sessionData = Object.readArchive(p);
-
-								refreshGUI.value;
-
-							},{
-									("Error : Can't find Question to delete").postln;
-							});
-
-						})
-
-
-
+				.states_([["Auto Off",Color.black],["Auto On",Color.red]])
 					],[
 					Button()
 						.maxHeight_(btnHeight)
@@ -851,7 +829,7 @@ GUI.qt;
 				// 	lxX = sl.x;
 				// 	lxY = sl.y;
 				// });
-					)).minWidth_(430);
+				)).minWidth_(400);
 			));
 
 		});
@@ -864,7 +842,7 @@ GUI.qt;
 				sessionData["keyPaths"].values.collect(_.asInteger).asSortedList.postln;
 				// repopulate in order of assigned midi note
 				sessionData["keyPaths"].values.asSortedList.collect(_.asInteger).do({ |val|
-					t = sessionData["keyPaths"].findKeyForValue(val.asString);
+					t = sessionData["keyPathGs"].findKeyForValue(val.asString);
 					listView.items = listView.items.add(t);
 				});
 				//t = listView.items.at(listView.value).key;
@@ -914,9 +892,8 @@ GUI.qt;
 			bgMusicStop.value;
 
 			onPlayLevel.free;
-			//listenSynth.free;
 			arduino!?{
-				3.do({|i|arduino.dmxc_(i+1,0,0,0)});
+				1.do({|i|arduino.dmxc_(i+1,0,0,0)});
 					arduino.close;
 				};
 			});
@@ -925,6 +902,18 @@ GUI.qt;
 	});
 	~routine = Routine{ |in|
 		inf.do{|i|
+
+			var range = 10;
+			var x = diameter.half + (sin( (pi/180) * angle) * diameter.half * 0.95);
+			var y = diameter.half + (cos( (pi/180) * angle ) * diameter.half * 0.95);
+
+			case
+			{ autoBtn.value == 1}{
+					angle = angle + 0.4;
+					point.set(x,y);
+			};
+
+
 			slider2DView.refresh();
 			fps.wait;
 		}
@@ -934,8 +923,8 @@ GUI.qt;
 
 
 	//------------------------------------------------------
-
 	initGUI.value;
+	autoBtn.valueAction  = 1;
 
 )
 
