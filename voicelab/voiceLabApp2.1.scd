@@ -842,7 +842,7 @@
 				sessionData["keyPaths"].values.collect(_.asInteger).asSortedList.postln;
 				// repopulate in order of assigned midi note
 				sessionData["keyPaths"].values.asSortedList.collect(_.asInteger).do({ |val|
-					t = sessionData["keyPathGs"].findKeyForValue(val.asString);
+					t = sessionData["keyPaths"].findKeyForValue(val.asString);
 					listView.items = listView.items.add(t);
 				});
 				//t = listView.items.at(listView.value).key;
