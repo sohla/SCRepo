@@ -793,7 +793,7 @@
 
 				).minWidth_(400),
 
-				View().layout_(VLayout(
+			View().maxHeight_(700).layout_(VLayout(
 
 
 				StackLayout(colorView,slider2DView).mode_(\stackAll).index_(1)
@@ -802,7 +802,7 @@
 				// 	lxX = sl.x;
 				// 	lxY = sl.y;
 				// });
-				)).minWidth_(400);
+			)).minWidth_(400);
 			));
 
 		});
