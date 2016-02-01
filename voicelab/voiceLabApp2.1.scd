@@ -28,6 +28,7 @@
 	var childMicGroup,listenGroup;
 	var micInGroup;
 
+	var brightness = 1.0;
 	var diameter = 380;
 	var radius = diameter / 2;
 	var origin = Point(radius,radius);
@@ -35,7 +36,6 @@
 	var point = Point(radius,radius);
 	var pointDelta = Point(radius,radius);
 	var size = 30;
-	var brightness = 1.0;
 	var calculateColorForPoint,tween;
 	var angle = 0;
 	var colorView = UserView().resize_(5).bounds_(Rect(0,0,diameter,diameter));
@@ -113,12 +113,12 @@
 			// load  session data
 			sessionData = Object.readArchive(path);
 
-			completefunc.value;
+		completefunc.();
 
 			// return
 			path;
 		},{
-			errorfunc.value;
+		errorfunc.();
 		});
 	};
 
@@ -150,16 +150,16 @@
 				// load  session data
 				sessionData = Object.readArchive(path);
 
-				//refreshGUI.value();
-				completefunc.value;
+				//refreshGUI.();
+			completefunc.();
 			},{
 				// not a .vls file, so reload load dialog
-				//loadSession.value(path);
-				errorfunc.value;
+				//loadSession.(path);
+			errorfunc.();
 			});
 		},{
 
-			cancelfunc.value;
+		cancelfunc.();
 		});
 
 
@@ -200,7 +200,7 @@
 		playbackGroup = Group.new;
 
 		listenSynth = Synth.head(listenGroup,\listenToMic);
-		bgMusicStart.value;
+	bgMusicStart.();
 
 		s.queryAllNodes;
 
@@ -291,7 +291,7 @@
 		},{
 		});
 
-		stopRecorder.value;
+	stopRecorder.();
 
 		s.queryAllNodes;
 		a.onFree({
@@ -302,7 +302,7 @@
 			});
 
 			{
-				completionFunc.value;
+			completionFunc.();
 				s.queryAllNodes;
 
 			}.defer;
@@ -342,6 +342,8 @@
 		recorderSynth.free;
 		micSynth.free;
 
+
+	//• Buffer.freeAll;
 		recBuffer.close;
 		recBuffer.postln;
 		recBuffer.free;
@@ -386,7 +388,8 @@
 
 	slider2DView.mouseDownAction = ({|v,x,y|
 		var dist = origin.dist(Point(x,y));
-		point.set(x,y);
+		if((dist <= radius),{point.set(x,y)},{});
+
 	});
 
 	slider2DView.mouseMoveAction = slider2DView.mouseDownAction;
@@ -398,10 +401,11 @@
 		var dif = 0;
 
 		3.do({|i|
-			colors = colors.add(calculateColorForPoint.value(
+			colors = colors.add(calculateColorForPoint.(
 				pointDelta.x + (i * dif),
-				pointDelta.y + (i * dif))
-			);
+				pointDelta.y + (i * dif),
+				brightness
+		));
 		});
 		color = colors[0];
 
@@ -435,7 +439,7 @@
 
 			var j = i % diameter;
 			var k = floor(i / diameter);
-		Pen.strokeColor = calculateColorForPoint.(j,k);
+			Pen.strokeColor = calculateColorForPoint.(j,k,0.9);
 			Pen.moveTo(j@k);
 			Pen.lineTo(j+1@k);
 			Pen.stroke;
@@ -448,23 +452,21 @@
 	//--------------------------------------------------------------------------------
 
 
-	calculateColorForPoint = ({|x,y|
+	calculateColorForPoint = ({|x,y,z|
+
 
 
 		var angle = atan2(x - radius, y - radius);
 		var hue = ((angle + pi) / 2pi);
-	var sat = origin.dist(Point(x,y)) / (radius-40);
-		brightness=1;
+		var sat = origin.dist(Point(x,y)) / (radius-40);
 
-
-		if( sat > 1.25, {hue = 1.0;brightness=0;},{});
+		if( sat > 1.25, {hue = 1.0;z=0;},{});
 		if( sat > 1.25, {sat = 1.0;},{});
 
 		if( hue > 0.999, {hue = 0.0},{});
 		if( sat > 0.999, {sat = 1.0;},{});
 
-
-		Color.hsv(hue,sat,brightness,1);
+		Color.hsv(hue,sat,z,1);
 	});
 
 	//------------------------------------------------------
@@ -490,8 +492,8 @@
 						pluginIndex = 0;
 						pluginView.value = pluginIndex;
 						mainView.index = 1;
-						say.value("New, Voice Lab Session");
-						createSession.value;
+						say.("New, Voice Lab Session");
+						createSession.();
 					});
 
 		//------------------------------------------------------
@@ -511,18 +513,18 @@
 						}.defer(1);
 						pluginIndex = 0;
 						pluginView.value = pluginIndex;
-						say.value("Open Voice Lab Session");
-						loadSession.value(createSession.value,{
+						say.("Open Voice Lab Session");
+						loadSession.(createSession.(),{
 							b.states = [["Open Session"]];
 							b.refresh;
-							stopRecorder.value;
+							stopRecorder.();
 							s.freeAll;
 							s.queryAllNodes;
 
 
 						},{
 							mainView.index = 1;
-							refreshGUI.value;
+							refreshGUI.();
 						},{
 
 								errorText.string = "You must select Voice Lab session (.vls) file";
@@ -543,13 +545,13 @@
 					.action_({|b|
 						b.states = [["processing session files...",Color.new255(226, 49, 140)]];
 						b.refresh;
-						say.value("Creating Voice Lab Session from Template");
+						say.("Creating Voice Lab Session from Template");
 						pluginIndex = 0;
 						pluginView.value = pluginIndex;
 						{
-						loadTemplate.value(createSession.value,{
+						loadTemplate.(createSession.(),{
 							mainView.index = 1;
-							refreshGUI.value;
+							refreshGUI.();
 						},{
 								errorText.string = "Can't seem to find template files.";
 								mainView.index = 2;
@@ -586,7 +588,7 @@
 						oldTitle = textField.object.value;
 						newTitle = textField.string++".wav";
 
-						addQuestion.value(qpath+/+oldTitle,qpath+/+newTitle,getNextNoteNumber.value);
+						addQuestion.(qpath+/+oldTitle,qpath+/+newTitle,getNextNoteNumber.value);
 
 						("Finished recording "++qpath+/+newTitle).postln;
 						("Deleting recording "++qpath+/+oldTitle).postln;
@@ -597,7 +599,7 @@
 						s.queryAllNodes;
 
 						mainView.index = 1;
-						refreshGUI.value;
+						refreshGUI.();
 
 					})
 					.minWidth_(400)
@@ -648,6 +650,8 @@
 
 
 			View().layout_( HLayout(
+
+				//------------------------------------------------------
 				listView = ListView()
 					.maxHeight_(700)
 					.font_(Font("Helvetica", 24))
@@ -656,6 +660,7 @@
 					}),
 				View().layout_( GridLayout.rows([
 
+					//------------------------------------------------------
 					Button()
 						.maxHeight_(btnHeight)
 						.states_([["PREV"]])
@@ -663,6 +668,7 @@
 							if(listView.value > 0,{listView.value = listView.value - 1});
 						}),
 
+					//------------------------------------------------------
 					playButton = Button()
 						.maxHeight_(btnHeight)
 						.states_([["PLAY"]])
@@ -675,13 +681,13 @@
 								t = listView.items.at(listView.value);
 								p = appPath.asAbsolutePath+/+sessionTitle+/+"Questions"+/+t;
 
-								playQuestion.value(p,{
+								playQuestion.(p,{
 
 									// check if there is another question
 									// if so, move to next and start recording kid
 									if(listView.value + 1 < listView.items.size,{
 										listView.value = listView.value + 1;
-										startRecorder.value(p.basename.splitext[0]);
+										startRecorder.(p.basename.splitext[0]);
 									},{
 										"LAST".postln;
 
@@ -693,6 +699,7 @@
 						}),
 
 
+					//------------------------------------------------------
 					Button()
 						.maxHeight_(btnHeight)
 						.states_([["NEXT"]])
@@ -704,54 +711,36 @@
 
 					],[
 
-					Button()
-						.maxHeight_(btnHeight)
-						.states_([
-							["Record"],
-							["Stop",bgColor:Color.red]
-						])
-						.action_({|b|
+				Slider()
+				.maxHeight_(btnHeight-40)
+				.value_(1.0)
+				.action_({|sld|
+					brightness = sld.value.asFloat;
+				}),
+					//------------------------------------------------------
+					UserView()
+						.drawFunc_({
+							if(recordBuffer.class == Buffer,{
+								Pen.fillColor_( Color.red(0.7,1.0));
+							},{
+								Pen.fillColor_( Color.grey( 0.0, 0.01 ));
+							});
+							Pen.fillRect( Rect( 0, 10, 120, 120));
+							Pen.fillColor= Color.new255(226, 49, 140);
+							Pen.strokeColor= Color.new255(226, 49, 140);
+							Pen.fillOval(Rect.aboutPoint(Point(60, 55+10), 20*scale, 20*scale));
+						})
+						.animate_(true)
+						.clearOnRefresh_(true)
+						.mouseDownAction_({ stopRecorder.() }),
 
-							switch(b.value,
-								0,{
-									{
-										// stop recording
-										stopRecordingQuestion.value;
 
-										t = recordedQuestionTitle;
-										n = recordedQuestionTitle.replace("Recording","Question");
-
-										textFieldMessage.string = "Save Question as";
-										textField.object = { t };
-										textField.valueAction_(n.splitext[0]);
-										mainView.index = 3;
-
-									}.defer(0.4);// so we don't loose last bit of buffer
-
-								},
-								1,{
-									// record
-
-									g = Date.getDate.format("%H_%M_%S");
-									recordedQuestionTitle = "Recording"++g++".wav";
-
-									startRecordingQuestion.value(recordedQuestionTitle);
-								}
-							);
-
-						}),
-
-					pluginView = PopUpMenu()
-					.maxHeight_(btnHeight)
-					.items_(pluginNames)
-					.action_({|menu|
-						pluginIndex = menu.value;
-					}),
-
+					//------------------------------------------------------
 					autoBtn = Button()
 						.maxHeight_(btnHeight)
-				.states_([["Auto Off",Color.black],["Auto On",Color.red]])
+						.states_([["Auto Off",Color.black],["Auto On",Color.red]])
 					],[
+					//------------------------------------------------------
 					Button()
 						.maxHeight_(btnHeight)
 						.states_([
@@ -762,53 +751,38 @@
 							switch(b.value,
 								0,{
 
-									stopRecordingQuestion.value;
-									startRecorder.value(spokenQuestionTitle.basename.splitext[0]);
+									stopRecordingQuestion.();
+									startRecorder.(spokenQuestionTitle.basename.splitext[0]);
 								},
 								1,{
-									stopRecorder.value;
+									stopRecorder.();
 
 									g = Date.getDate.format("%H_%M_%S");
 									spokenQuestionTitle = "SpokenQuestion"++g++".wav";
 
-									startRecordingQuestion.value(spokenQuestionTitle);
+									startRecordingQuestion.(spokenQuestionTitle);
 
 								}
 							);
 						}),
-					UserView()
-						.drawFunc_({
-							if(recordBuffer.class == Buffer,{
-								Pen.fillColor_( Color.red(0.5,1.0));
-							},{
-								Pen.fillColor_( Color.grey( 0.0, 0.1 ));
-							});
-							Pen.fillRect( Rect( 0, 0, 120, 120));
-							Pen.fillColor= Color.new255(226, 49, 140);
-							Pen.strokeColor= Color.new255(226, 49, 140);
-							Pen.fillOval(Rect.aboutPoint(Point(60, 55), 20*scale, 20*scale));
-						})
-						.animate_(true)
-						.clearOnRefresh_(false)
-						.mouseDownAction_({ stopRecorder.value }),
+					//------------------------------------------------------
+					pluginView = PopUpMenu()
+					.maxHeight_(btnHeight)
+					.items_(pluginNames)
+					.action_({|menu|
+						pluginIndex = menu.value;
+					}),
 
-
+					//------------------------------------------------------
 					Button()
 						.maxHeight_(btnHeight)
 						.states_([["Exit"]])
 						.action_({|b|
 							listView.items = Array.newClear;
-//							stopRecordingQuestion.value;
-							stopRecorder.value;
-							bgMusicStop.value;
-						// listenSynth.free;
-
-						// backgroundGroup.free;
-						// childMicGroup.free;
-						// micInGroup.free;
-						// listenGroup.free;
-						// playbackGroup.free;
-
+							//stopRecordingQuestion.(); ????
+							stopRecorder.();
+							bgMusicStop.();
+							//Buffer.freeAll;
 							s.freeAll;
 							s.queryAllNodes;
 							mainView.index = 0;
@@ -869,27 +843,28 @@
 			.layout_( VLayout(
 				mainView = StackLayout(
 
-					loadView.value,
-					sessionView.value,
-					errorView.value,
-					textFieldView.value
+					loadView.(),
+					sessionView.(),
+					errorView.(),
+					textFieldView.()
 
 				);
 			))
 
 			.toFrontAction_({
-				say.value("welcome to, voicelab");
+				say.("welcome to, voicelab");
 
 				})
 			.front;
 
 		window.drawFunc = {
 			Pen.addRect(window.view.bounds.insetBy(2));
-			Pen.fillAxialGradient(window.view.bounds.leftTop, window.view.bounds.rightBottom, Color.rand, Color.rand);
+			Pen.fillAxialGradient(window.view.bounds.leftTop, window.view.bounds.rightBottom,
+				Color.rand, Color.rand);
 		};
 
 		window.onClose = ({
-			bgMusicStop.value;
+			bgMusicStop.();
 
 			onPlayLevel.free;
 			arduino!?{
@@ -923,7 +898,7 @@
 
 
 	//------------------------------------------------------
-	initGUI.value;
+	initGUI.();
 	autoBtn.valueAction  = 1;
 
 )
