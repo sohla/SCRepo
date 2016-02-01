@@ -158,6 +158,7 @@
 				errorfunc.value;
 			});
 		},{
+
 			cancelfunc.value;
 		});
 
@@ -476,6 +477,92 @@
 		var scale = 1.0;
 		var listView;
 		var pluginView;
+
+		var newSessionButton, openSessionButton, templateSessionButton;
+
+
+		//------------------------------------------------------
+		newSessionButton = Button()
+					.states_([["New Session"]])
+					.minWidth_(400)
+					.minHeight_(70)
+					.action_({|b|
+						pluginIndex = 0;
+						pluginView.value = pluginIndex;
+						mainView.index = 1;
+						say.value("New, Voice Lab Session");
+						createSession.value;
+					});
+
+		//------------------------------------------------------
+
+		openSessionButton = Button()
+					.states_([["Open Session"]])
+					.minWidth_(400)
+					.minHeight_(70)
+					.focusGainedAction_({|b|
+						b.states = [["Open Session"]];
+						b.refresh;
+					})
+					.action_({|b|
+						{
+						b.states = [["processing session files...",Color.new255(226, 49, 140)]];
+						b.refresh;
+						}.defer(1);
+						pluginIndex = 0;
+						pluginView.value = pluginIndex;
+						say.value("Open Voice Lab Session");
+						loadSession.value(createSession.value,{
+							b.states = [["Open Session"]];
+							b.refresh;
+							stopRecorder.value;
+							s.freeAll;
+							s.queryAllNodes;
+
+
+						},{
+							mainView.index = 1;
+							refreshGUI.value;
+						},{
+
+								errorText.string = "You must select Voice Lab session (.vls) file";
+								mainView.index = 2;
+
+						})
+					});
+		//------------------------------------------------------
+		templateSessionButton = Button()
+					.maxHeight_(100)
+					.states_([["Template Session"]])
+					.minWidth_(400)
+					.minHeight_(70)
+					.focusGainedAction_({|b|
+						b.states = [["Template Session"]];
+						b.refresh;
+					})
+					.action_({|b|
+						b.states = [["processing session files...",Color.new255(226, 49, 140)]];
+						b.refresh;
+						say.value("Creating Voice Lab Session from Template");
+						pluginIndex = 0;
+						pluginView.value = pluginIndex;
+						{
+						loadTemplate.value(createSession.value,{
+							mainView.index = 1;
+							refreshGUI.value;
+						},{
+								errorText.string = "Can't seem to find template files.";
+								mainView.index = 2;
+
+						})
+						}.defer(1)
+
+					});
+		//------------------------------------------------------
+		//------------------------------------------------------
+		//------------------------------------------------------
+		//------------------------------------------------------
+
 		//------------------------------------------------------
 		textFieldView = ({
 			View().layout_( VLayout(
@@ -543,79 +630,9 @@
 			View().layout_( VLayout(
 				StaticText().string_("Welcome to VoiceLab").align_(\center).font_(Font(size:48)),
 
-				[Button()
-					.states_([["New Session"]])
-					.action_({|b|
-						pluginIndex = 0;
-						pluginView.value = pluginIndex;
-						mainView.index = 1;
-						say.value("New, Voice Lab Session");
-						createSession.value;
-					})
-					.minWidth_(400)
-					.minHeight_(70)
-					, align:\center],
-
-				[Button()
-					.states_([["Open Session"]])
-					.focusGainedAction_({|b|
-						b.states = [["Open Session"]];
-						b.refresh;
-					})
-
-					.action_({|b|
-						{
-						b.states = [["processing session files...",Color.new255(226, 49, 140)]];
-						b.refresh;
-						}.defer(1);
-						pluginIndex = 0;
-						pluginView.value = pluginIndex;
-						say.value("Open Voice Lab Session");
-						loadSession.value(createSession.value,{
-							b.states = [["Open Session"]];
-							b.refresh;
-
-						},{
-							mainView.index = 1;
-							refreshGUI.value;
-						},{
-								errorText.string = "You must select Voice Lab session (.vls) file";
-								mainView.index = 2;
-
-						})
-					})
-					.minWidth_(400)
-					.minHeight_(70)
-					, align:\center],
-
-				[Button()
-					.maxHeight_(100)
-					.states_([["Template Session"]])
-					.focusGainedAction_({|b|
-						b.states = [["Template Session"]];
-						b.refresh;
-					})
-					.action_({|b|
-						b.states = [["processing session files...",Color.new255(226, 49, 140)]];
-						b.refresh;
-						say.value("Creating Voice Lab Session from Template");
-						pluginIndex = 0;
-						pluginView.value = pluginIndex;
-						{
-						loadTemplate.value(createSession.value,{
-							mainView.index = 1;
-							refreshGUI.value;
-						},{
-								errorText.string = "Can't seem to find template files.";
-								mainView.index = 2;
-
-						})
-						}.defer(1)
-
-					})
-					.minWidth_(400)
-					.minHeight_(70)
-					, align:\center]
+				[newSessionButton, align:\center],
+				[openSessionButton, align:\center],
+				[templateSessionButton, align:\center]
 
 				)
 			);
@@ -723,25 +740,8 @@
 							);
 
 						}),
-					// Button()
-					// .maxHeight_(btnHeight)
-					// .states_([["Import"]])
-					// .action_({ arg butt;
-					//
-					// 	File.openDialog("Select an awesome new question",{|path|
-					//
-					// 		// copy this file to our questions dir
-					// 		var newPath = appPath.asAbsolutePath+/+sessionTitle+/+"Questions";
-					//
-					// 		addQuestion.value(path,newPath+/+path.basename,getNextNoteNumber.value());
-					//
-					// 		refreshGUI.value;
-					// 		},{
-					// 			// cancel file open dialog
-					// 	});
-					// }),
 
-						pluginView = PopUpMenu()
+					pluginView = PopUpMenu()
 					.maxHeight_(btnHeight)
 					.items_(pluginNames)
 					.action_({|menu|
