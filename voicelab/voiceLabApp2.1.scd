@@ -342,12 +342,11 @@
 		recorderSynth.free;
 		micSynth.free;
 
-
-	//• Buffer.freeAll;
-		recBuffer.close;
-		recBuffer.postln;
-		recBuffer.free;
-		recBuffer.postln;
+		Buffer.freeAll;
+	// recBuffer.close;
+	// recBuffer.postln;
+	// recBuffer.free;
+	// recBuffer.postln;
 	});
 
 	bgMusicStart = ({
@@ -782,7 +781,7 @@
 							//stopRecordingQuestion.(); ????
 							stopRecorder.();
 							bgMusicStop.();
-							//Buffer.freeAll;
+							Buffer.freeAll;
 							s.freeAll;
 							s.queryAllNodes;
 							mainView.index = 0;
