@@ -856,6 +856,7 @@
 				})
 			.front;
 
+
 		window.drawFunc = {
 			Pen.addRect(window.view.bounds.insetBy(2));
 			Pen.fillAxialGradient(window.view.bounds.leftTop, window.view.bounds.rightBottom,
