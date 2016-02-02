@@ -8,7 +8,7 @@ SynthDef(\ringme, {|buffer = 0, pitch = 51, range = 1,delay = 0.04, decay = 0.19
 	var root = 42;
 	var dly;
 	//player = SoundIn.ar(0);
-	player = PlayBuf.ar(1,buffer,BufRateScale.kr(buffer),loop: 1) ;
+	player = PlayBuf.ar(2,buffer,BufRateScale.kr(buffer),loop: 1) ;
 		fol = (PeakFollower.ar(player,0.1) * range).lag(0,0.7);
 
 	modulator = SinOsc.ar( pitch.midicps + fol.midicps,0,player) ;

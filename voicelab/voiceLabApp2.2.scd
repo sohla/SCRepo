@@ -849,7 +849,7 @@
 		}, '/onPlayLevel');
 		//------------------------------------------------------
 
-		window = Window("",Rect(0, 200, Window.screenBounds.width, Window.screenBounds.height/2))
+		window = Window("",Rect(0, 0, Window.screenBounds.width, Window.screenBounds.height/2))
 			.layout_( VLayout(
 				mainView = StackLayout(
 
@@ -887,8 +887,8 @@
 		inf.do{|i|
 
 			var range = 10;
-			var x = diameter.half + (sin( (pi/180) * angle) * diameter.half * 0.95);
-			var y = diameter.half + (cos( (pi/180) * angle ) * diameter.half * 0.95);
+			var x = diameter.half + (sin( (pi/180) * angle) * diameter.half * 0.15);
+			var y = diameter.half + (cos( (pi/180) * angle ) * diameter.half * 0.15);
 
 			case
 			{ autoBtn.value == 1}{
