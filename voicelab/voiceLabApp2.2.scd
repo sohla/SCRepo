@@ -80,7 +80,7 @@
 
 	disconnectArduino = {
 				arduino!?{
-				3.do({|i|arduino.dmxc_(i+1,0,0,0)});
+					3.do({|i|arduino.dmxc_(i+1,0,0,0)});
 					arduino.close;
 				};
 
@@ -849,7 +849,7 @@
 		}, '/onPlayLevel');
 		//------------------------------------------------------
 
-		window = Window("",Rect(0, 0, Window.screenBounds.width, Window.screenBounds.height/2))
+		window = Window("",Rect(0, 200, Window.screenBounds.width, Window.screenBounds.height/2))
 			.layout_( VLayout(
 				mainView = StackLayout(
 
@@ -896,7 +896,6 @@
 					point.set(x,y);
 			};
 
-
 			slider2DView.refresh();
 			fps.wait;
 		}
@@ -908,7 +907,7 @@
 	//------------------------------------------------------
 	initGUI.();
 	autoBtn.valueAction  = 1;
-	arduino!?{3.do({|i|arduino.dmxc_(i+1,255, 81, 97)})};
+	//arduino!?{3.do({|i|arduino.dmxc_(i+1,255, 81, 97)});"hi".postln;}.defer(2);
 
 )
 
