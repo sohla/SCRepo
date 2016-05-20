@@ -5,13 +5,14 @@
 {
 
 	var pba,pbb,sn,sc,cmp,si,verb;
+	p = ("~/Music/SCSamples/spookySinging.wav").standardizePath;
 
-	d = Buffer.read(s,"Applications/SuperCollider3.6/sounds/SFX_1021_15.wav");
+	d = Buffer.read(s,p);
 
 	si = SoundIn.ar(0);
 
-	pba = PlayBuf.ar(2,d,BufRateScale.kr(d)/8,loop: 1);
-	pbb = PlayBuf.ar(1,d,BufRateScale.kr(d)/4,loop: 1);
+	pba = PlayBuf.ar(2,d,BufRateScale.kr(d)/1,loop: 1);
+	pbb = PlayBuf.ar(2,d,BufRateScale.kr(d)/2,loop: 1);
 
 	sn = PeakFollower.ar(si,0.01);
 

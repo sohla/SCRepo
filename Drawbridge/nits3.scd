@@ -21,9 +21,9 @@ Buffer.freeAll
 
 
 
-p = ("~/Music/sounds/kantilan"++i++".wav").standardizePath;
+p = ("~/Music/SCSamples/ding.wav").standardizePath;
 b = Buffer.read(s, p);
-z = Synth(\dbSampler,[\bufnum, b.bufnum,\degree,0]);
+z = Synth(\dbSampler,[\bufnum, b.bufnum,\degree,1]);
 
 Server.default.makeGui
 

@@ -17,7 +17,7 @@ SynthDef(\warp, {arg buffer = 0, envbuf = -1, ws = 0.5, pch = 1.0;
 	var sp,verb;
 	var splayCount = 2;
 
-	mx = LFSaw.kr( (1.0/(5.0)) * MouseX.kr(0.01, 1.0) ,1,0.5,0.5);
+	mx = LFSaw.kr( (1.0/(65.0)) * MouseX.kr(0.01, 1.0) ,1,0.5,0.5);
 
 	my = MouseY.kr(0.4,0.5,1.0);//splay
 
@@ -39,7 +39,7 @@ FreqScope.new(1300, 200, 0);
 
 
 
-p = ("~/Music/sounds/speech.wav").standardizePath;
+p = ("~/Music/SCSamples/63 Elephant Many In A Herd.aif").standardizePath;
 p = ("~/Music/sounds/pedAlarm1.wav").standardizePath;
 c = Buffer.read(s, p);
 z = Synth(\warp,[\buffer,c,\ws,0.3,\pch,(69).midicps / 435.0]);
