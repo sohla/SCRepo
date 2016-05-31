@@ -7,12 +7,20 @@
 	var pba,pbb,sn,sc,cmp,si,verb;
 	p = ("~/Music/SCSamples/spookySinging.wav").standardizePath;
 
+<<<<<<< HEAD
+=======
+	p = ("~/Music/sounds/emilyCasual.wav").standardizePath;
+>>>>>>> jmc
 	d = Buffer.read(s,p);
 
 	si = SoundIn.ar(0);
 
 	pba = PlayBuf.ar(2,d,BufRateScale.kr(d)/1,loop: 1);
+<<<<<<< HEAD
 	pbb = PlayBuf.ar(2,d,BufRateScale.kr(d)/2,loop: 1);
+=======
+	pbb = PlayBuf.ar(1,d,BufRateScale.kr(d)/1.01,loop: 1);
+>>>>>>> jmc
 
 	sn = PeakFollower.ar(si,0.01);
 
@@ -28,7 +36,7 @@
 	verb = FreeVerb2.ar(cmp,cmp,0.35,0.7,0.0);
 
 
-	[verb,verb,verb,verb]
+	[verb,verb]
 
 
 
