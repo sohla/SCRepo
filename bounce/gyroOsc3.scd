@@ -142,6 +142,7 @@ w.onClose = {
 	alt.free;
 	rrate.free;
 };
+CmdPeriod.doOnce({w.close});
 
 
 )
