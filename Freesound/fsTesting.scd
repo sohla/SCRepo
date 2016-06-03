@@ -39,7 +39,7 @@ Freesound.refreshToken;
 //
 
 (
-FSSound.textSearch( query: "cough", filter: "type:wav duration:[1 TO 4]",params:('page':2), action:{|p|
+FSSound.textSearch( query: "shout", filter: "type:wav duration:[1 TO 4]",params:('page':2), action:{|p|
 	~snd = p[0]; // first result
 	~snd.name.postln;
 

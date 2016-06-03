@@ -19,7 +19,7 @@ Freesound.getAuthorizationPage
 
 // 3. Open the URL that shows in the post window in a web browser
 // 4. Within the nex 10 minutes, request your first token:
-Freesound.getToken("90ff273c33df44dd3fd67700c740a61f87bcebe5")
+Freesound.getToken("TJaM5MN4akiswsiJGgufuwjpchE0v3")
 // This will save the token in a file besides the Freesound class file (you can change this path if you need to manage multiple tokens). This token will last 24h. From then on you can renew it e.g. each time you start a session:
 
 (
