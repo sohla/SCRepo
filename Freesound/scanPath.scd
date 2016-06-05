@@ -10,7 +10,7 @@ dir.pathMatch.do{|a|
 
 
 	if(	File.type(a) == \directory){
-		recursiveSearch.(a.catArgs("*"),fileName)// recursive call into child dir
+		recursiveSearch.(a.catArgs("*"),fileName,foundFunc)// recursive call into child dir
 
 	}
 	{ // we are a file...further testing
