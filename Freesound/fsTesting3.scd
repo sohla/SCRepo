@@ -19,7 +19,7 @@ Freesound.getAuthorizationPage
 
 // 3. Open the URL that shows in the post window in a web browser
 // 4. Within the nex 10 minutes, request your first token:
-Freesound.getToken("f9d981718d607f8dd5875b50c6493600a142a7e5")
+Freesound.getToken("MDLKFgD3Dl2ATGoVnCDoFb9FY0G9cI")
 // This will save the token in a file besides the Freesound class file (you can change this path if you need to manage multiple tokens). This token will last 24h. From then on you can renew it e.g. each time you start a session:
 
 (
@@ -60,27 +60,37 @@ SynthDef("help_mp3_02", { |bufnum = 0|
 // let's download the mp3 file then play it
 (
 FSSound.textSearch(
-	query: "Food-and-Drink",
-	filter: "duration:[0 TO 10]",
+	query: "forest",
+	filter: "duration:[60 TO 120]",
 	params:('page':1),
 	action: {|p|
 
-		// var snd = p[0]; // first result
-		p.do({|snd|
+		// p.do({|snd|
+		//
+		// 	var str = "";
+		//
+		// 	str = str + snd.name.splitext[0];
+		// 	str = str + snd.tags;
+		//
+		// 	str.postln;
+		//
+		//
+		// });
 
-			var str = "";
+		var snd = p[0]; // first result
+		var path = PathName.new("~/Music/SoundNarative/").asAbsolutePath;
 
-			str = str + snd.name.splitext[0];
-			str = str + snd.tags;
+		snd.postln;
+		snd.name.postln;
+		snd.tags.postln;
 
-			str.postln;
+		snd.images.waveform_l.postln;
 
 
-		});
-
-		// snd.name.postln;
-		// snd.channels.asInteger.postln;
-
+		snd.retrievePreview(path,{|a|
+			"retrievePreview".post;
+			a.postln;
+		},"hq","mp3");
 
 	});
 )

@@ -1,7 +1,7 @@
 (
 SynthDef("help_mp3_01", { |bufnum = 0|
 	var son;
-	 son = DiskIn.ar(1, bufnum);
+	 son = DiskIn.ar(2, bufnum);
 	Out.ar(0, son!2);
 }).load(s);
 )
@@ -57,4 +57,27 @@ m.playing;
 x.free;
 b.close; b.free;
 m.finish;
+
+
+
+(
+
+	p = PathName.new("~/Music/SoundNarative/Comical Screams.mp3").asAbsolutePath;
+	b = MP3.readToBuffer(s, p,action:{|a|
+		"done".postln;
+		b.numChannels.postln;
+		b.bufnum.postln;
+		{
+			PlayBuf.ar(b.numChannels,b.bufnum,BufRateScale.kr(b.bufnum),doneAction:2)
+			* EnvGen.kr(Env.asr(1.8,1.0,1.8,\sine))
+
+		}.play;
+
+	});
+
+)
+
+b
+b.free;
+
 
