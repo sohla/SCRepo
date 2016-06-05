@@ -12,6 +12,8 @@ addStack =({|index|
 	var view  = stackView.(index);
 	searchViews = searchViews.insert(index,view);
 	{window.layout.add(searchViews[index]);}.defer;
+	"addStack->".post;
+	searchViews.postln;
 });
 
 //------------------------------------------------------
@@ -20,7 +22,10 @@ addStack =({|index|
 removeStack =({|index|
 	searchViews[index].removeAll;
 	searchViews[index].remove;
-	searchViews = searchViews.put(index,nil);// put nil and never use again!
+	searchViews = searchViews.put(index,0);// put 0 and never use again!
+
+	"removeStack->".post;
+	searchViews.postln;
 });
 
 //------------------------------------------------------
@@ -33,7 +38,7 @@ newSearchView =({|i|
 			.font_(Font(size:48))
 			.action_({|a|
 				"action".postln;
-			searchViews[i].layout.index = stackIndexes.find([\queryIdx]);
+				searchViews[i].layout.index = stackIndexes.find([\queryIdx]);
 				// hack! ever growing array!
 				addStack.(i+1);
 			})
@@ -84,7 +89,6 @@ FSSound.textSearch(
 
 
 			Routine{
-				window.background_(Color.rand);
 				addResult.value(i,str);
 				str.postln;
 			}.play(AppClock);
@@ -137,14 +141,20 @@ resultsView =({|i|
 addResult =({|i,resultString|
 
 	var makeEntry = {
-		var view = View().background_(Color.hsv((0.165*i),1.0,1.0).vary(0.4,0.4,0.9,0.4)).layout_(
-	        HLayout(
-				StaticText().string_( resultString ).minWidth_(100),
-				CheckBox().string_("Fade").action_({|a|a.value.postln;}).maxWidth_(50),
-				Button().states_([["Play"]]).action_({"PLAY".postln;}).maxWidth_(50)
+		var view = View()
+			.background_(Color.hsv((0.165*i),1.0,1.0).vary(0.4,0.4,0.9,0.4))
+			.layout_( HLayout(
+				 Button()
+				.states_([[
+					resultString,
+					Color.black,
+					Color.hsv((0.165*i),1.0,1.0).vary(0.4,0.4,0.9,0.4)
+				]])
+				.action_({"PLAY".postln;})
+				.minHeight_(80)
 	        )
 	    );
-
+		view.layout.margins = [0,0,0,0];
 	    view;
 	};
 
@@ -180,7 +190,6 @@ addStack.(0);
 
 
 
-//searchViews[0].children(ScrollView)[0].canvas.layout.add( Button() );
 
 window.onClose = ({
 
