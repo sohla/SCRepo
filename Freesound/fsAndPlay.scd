@@ -1,6 +1,6 @@
 (
 FSSound.textSearch(
-	query: "low rumble",
+	query: "cave drip",
 	filter: "duration:[20 TO 40]",
 	params:('page':1),
 	action: {|p|
