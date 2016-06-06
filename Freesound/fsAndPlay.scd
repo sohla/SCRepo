@@ -1,6 +1,6 @@
 (
 FSSound.textSearch(
-	query: "truck drivepass",
+	query: "low rumble",
 	filter: "duration:[20 TO 40]",
 	params:('page':1),
 	action: {|p|
@@ -25,7 +25,7 @@ FSSound.textSearch(
 			b.numChannels.postln;
 			b.bufnum.postln;
 			{
-				PlayBuf.ar(b.numChannels,b.bufnum,BufRateScale.kr(b.bufnum),doneAction:2)
+				PlayBuf.ar(b.numChannels,b.bufnum,BufRateScale.kr(b.bufnum),loop:1,doneAction:2)
 				* EnvGen.kr(Env.asr(1.8,1.0,1.8,\sine))
 
 			}.play;
