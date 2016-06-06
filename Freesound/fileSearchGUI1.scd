@@ -31,7 +31,7 @@ newSearchView =({|i|
 			.action_({|a|
 				"action".postln;
 				searchViews[i].layout.index = 1;
-			addStack.(i+1);
+				addStack.(i+1);
 			})
 		)
 	);
@@ -125,7 +125,7 @@ window = Window("",Rect(0,0,Window.screenBounds.width, Window.screenBounds.heigh
 window.layout = HLayout();
 
 // add our first stack
-addStack.(i);
+addStack.(0);
 
 
 window.onClose = ({

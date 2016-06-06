@@ -1,6 +1,6 @@
 (
 
-var window, mainView,newSearchView,stackView,queryView,resultsView,waitingView;
+var window, mainView,newSearchView,stackView,queryView,resultsView,waitingView,playView;
 var addStack,removeStack,addResult;
 var searchViews = [];
 var stackIndexes = [\newSearchIdx,\queryIdx,\waitingIdx,\resultsIdx];
@@ -170,7 +170,7 @@ stackView =({|i|
 	View().layout_( StackLayout(
 			newSearchView.(i),
 			queryView.(i),
-		waitingView.(i),
+			waitingView.(i),
 			resultsView.(i)
 		)
 	);
