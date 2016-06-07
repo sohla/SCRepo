@@ -35,3 +35,12 @@ search.(
 )
 
 
+// much much faster
+a = ("find /Volumes/Steph2015/Samples\:Loops\:SFX/* -iname \"*kick*\" ").unixCmdGetStdOutLines
+a.size
+a[a.size-1]
+
+// and checking file exensions
+b = ("find /Volumes/Steph2015/Samples\:Loops\:SFX/* -iname \"*kick*\" -a
+\\( -iname \"*.aif\" -o -iname \"*.aiff\" -o -iname \"*.wav\"   \\)").unixCmdGetStdOutLines;
+b.size
