@@ -1,39 +1,37 @@
 (
 
 
-var dirPath = PathName.new("~/Music/*");
-var count = 0;
-var recursiveSearch = {|dir, fileName, foundFunc|
+//var dirPath = PathName.new("~/Music/*");
+var dirPath = PathName.new("/Volumes/Steph2015/Samples:Loops:SFX/");
 
 
-dir.pathMatch.do{|a|
+var search = {|dir, fileTypes, searchString, itrFunc, completeFunc|
 
+	var count = 0;
 
-	if(	File.type(a) == \directory){
-		recursiveSearch.(a.catArgs("*"),fileName,foundFunc)// recursive call into child dir
+	dirPath.filesDo({|pathname|
+		if(	"^.*\.(%)$".format(fileTypes).matchRegexp(pathname.fileName)){
 
-	}
-	{ // we are a file...further testing
-
-
-		//a.basename.splitext[0].postln; count = count + 1;
-
-			if(	"^.*\.(wav|wave|aif|aiff|caf|flac)$".matchRegexp(a.basename))
-			{
-				if(("(?i)"++fileName).matchRegexp(a.basename)){
-				//a.basename.postln;
-				foundFunc.value(a);
+			if(pathname.fileName.find(searchString,true) != nil){
+				//		if(("(?i)"++searchString).matchRegexp(pathname.fileName.basename)){
+				itrFunc.(pathname,count);
 				count = count + 1;
-				}
 			}
-	};
+		}
+	});
+	completeFunc.(count);
 
 };
 
-};
+search.(
+	dirPath,
+	"wav|wave|aif|aiff|caf|flac",
+	"bird",// using '.' will give every file
+	{|a,i| "% : %".format(i,a).postln},
+	{|c|("sound files found"+c).postln;}
+);
 
-recursiveSearch.(dirPath,"kick",{|a| a.postln});
-("sound files found"+count).postln;
+
 )
 
 
