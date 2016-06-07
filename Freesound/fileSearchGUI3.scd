@@ -1,9 +1,19 @@
+// (
+// Freesound.clientId = "f2880da706c6d92d7ce3";
+// Freesound.clientSecret = "bfa791a021762f7c6cb70088c720855a0c5f8f49";
+// Freesound.authType = "oauth2";
+// Freesound.refreshToken;
+// )
+//
+
+
 (
 
 var window, mainView,newSearchView,stackView,queryView,resultsView,waitingView,playView;
-var addStack,removeStack,addResult;
+var addStack,removeStack,addResult,switchToStack;
 var searchViews = [];
 var stackIndexes = [\newSearchIdx,\queryIdx,\waitingIdx,\resultsIdx,\playIdx];
+var dir = PathName.new("~/Music/SoundNarative/");
 
 //------------------------------------------------------
 // addStack
@@ -65,14 +75,103 @@ waitingView =({|i|
 //------------------------------------------------------
 // playView
 //------------------------------------------------------
-playView =({|i|
-	View().layout_( HLayout(
-		StaticText()
-			.string_("PLAY")
-		.align_(\center)
-			.font_(Font(size:48))
-		)
-	);
+playView =({|i,sndResult|
+
+	var buffer,sfv,slider,view;
+
+	//• encapsulate as a service (either freesound or a HD)
+	sndResult.retrievePreview(dir.asAbsolutePath,{|a|
+
+		p = dir +/+ PathName(sndResult.name.splitext[0]++".mp3");
+		buffer = MP3.readToBuffer(s, p.asAbsolutePath,action:{|a|
+
+		// buffer.numChannels.switch(
+		//
+		// 	1,{s.sendMsg("/s_new", "bufplayerMono", 1001, 0, 0,\bufnum, buffer.bufnum);},
+		// 	2,{s.sendMsg("/s_new", "bufplayerStereo", 1001, 0, 0,\bufnum, buffer.bufnum);}
+		//
+		// );
+
+			Routine{
+				buffer.loadToFloatArray(action:{ |data|
+
+					{
+						sfv.setData(data,
+							512,// QT not using this
+							0,
+							buffer.numChannels,
+							buffer.sampleRate.asInteger // need to cast!?!
+						);
+
+					view.enabled_(true);
+					}.defer;
+
+
+
+
+				// slider.action_({|c|
+				// 	s.sendMsg("/n_set",1001,\volume,c.value);
+				// });
+
+			});
+
+			}.play(AppClock);
+		});
+	},"hq","mp3");
+
+
+	view = View().layout_(
+	GridLayout.rows(
+			[
+				Button().states_([["cancel"]]).action_({
+
+					buffer.close;
+					buffer.free;
+
+					searchViews[i].layout.index = stackIndexes.find([\newSearchIdx]);
+					removeStack.(i);
+
+				}).maxWidth_(50),
+
+				StaticText()
+					.string_(sndResult.name.splitext[0])
+					.align_(\center)
+					.font_(Font(size:24))
+			],[
+				[sfv = SoundFileView()
+					.maxHeight_(120)
+					.gridOn_(false)
+					.backColor_(Color.grey)
+					.rmsColor_(Color.blue.alpha_(0.4))
+					.peakColor_(Color.blue.alpha_(0.3))
+					//.selectionColor_(0, Color.black.alpha_(0.2))
+
+					,columns:2]
+
+
+		],[
+				[Button().minHeight_(40).states_([["Play"]]),columns:2]
+
+		],[
+
+				CheckBox().string_("auto-fade"),
+				CheckBox().string_("loop")
+
+
+		],[
+				StaticText().string_("volume").maxWidth_(100),
+				Slider()
+					.orientation_(\horizontal)
+					.maxHeight_(40)
+					.value_(1.0)
+
+		]
+	)
+	).enabled_(false);
+
+
+
+
 });
 
 
@@ -85,6 +184,8 @@ queryView =({|i|
 
 		searchViews[i].layout.index = stackIndexes.find([\waitingIdx]);
 
+		//• encapsulate as a service (either freesound or a HD)
+
 		//freesound basic text search
 		FSSound.textSearch(
 			query: a.string,
@@ -93,12 +194,9 @@ queryView =({|i|
 			action: {|p|
 				searchViews[i].layout.index = stackIndexes.find([\resultsIdx]);
 				p.do({|snd|
-					var str = "";
-					str = str + snd.name.splitext[0];
 
 					Routine{
-						addResult.value(i,str);
-						str.postln;
+						addResult.(i,snd);
 					}.play(AppClock);
 
 				});
@@ -137,16 +235,22 @@ resultsView =({|i|
 	canvas.layout.add(nil); // stretch remaining empty space
 
 	scroll.canvas = canvas;
-	scroll.front;
+	//scroll.front;
 	scroll.hasHorizontalScroller_(false);
 
 });
-
-///------------------------------------------------------
+//------------------------------------------------------
 // addResult
 //------------------------------------------------------
 
-addResult =({|i,resultString|
+addResult =({|i,sndResult|
+
+
+	var buttonAction = {|button|
+
+		searchViews[i].layout.add(playView.(i,sndResult).front);
+		searchViews[i].layout.index = stackIndexes.find([\playIdx]);
+	};
 
 	var makeEntry = {
 		var view = View()
@@ -154,16 +258,11 @@ addResult =({|i,resultString|
 			.layout_( HLayout(
 				 Button()
 				.states_([[
-					resultString,
+					sndResult.name.splitext[0],
 					Color.black,
 					Color.hsv((0.165*i),1.0,1.0).vary(0.4,0.4,0.9,0.4)
 				]])
-				.action_({
-					"PLAY".postln;
-
-
-					searchViews[i].layout.index = stackIndexes.find([\playIdx]);
-				})
+				.action_(buttonAction)
 				.minHeight_(80)
 	        )
 	    );
@@ -185,7 +284,7 @@ stackView =({|i|
 			queryView.(i),
 			waitingView.(i),
 			resultsView.(i),
-		playView.()
+			//playView.(i)
 
 		)
 	);
@@ -195,8 +294,8 @@ stackView =({|i|
 // build UI
 //------------------------------------------------------
 window = Window("",Rect(0,0,Window.screenBounds.width, Window.screenBounds.height/3)
-	.center_(Window.availableBounds.center))
-	.front;
+//	.center_(Window.availableBounds.center)
+	).front;
 
 window.layout = HLayout();
 
