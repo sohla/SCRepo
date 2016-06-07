@@ -1,4 +1,14 @@
 (
+SynthDef("bufplayer", { |numChannels, bufnum = 0|
+	var son = PlayBuf.ar(numChannels,bufnum,BufRateScale.kr(bufnum),loop:1,doneAction:2)
+			* EnvGen.kr(Env.asr(1.8,1.0,1.8,\sine));
+
+	Out.ar(0, son!2);
+}).load(s);
+)
+
+
+(
 var dir = PathName.new("~/Music/SoundNarative/");
 var buffer,sfv,synth;
 
@@ -13,7 +23,7 @@ sfv.setSelectionColor(0, Color.black.alpha_(0.2));  // set...( index, value )
 
 
 FSSound.textSearch(
-	query: "jungle loop",
+	query: "120 synth loop",
 	filter: "duration:[1 TO 4]",
 	params:('page':1),
 	action: {|snd|
