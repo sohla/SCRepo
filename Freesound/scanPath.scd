@@ -90,15 +90,28 @@ b.size
 
 //short hand version
 
-
-a = "aif|aiff|wav"; // extension list
+c = 0;
+a = "aif|aiff|wav|wave|mp3"; // extension list
 //p = "/Volumes/Steph2015/Samples:Loops:SFX/*"; // searh dir
 p = "~/Music/*";
 
 z = "water"; // search string
 
+
 // start building find command string
-c = ("find % -iname \"*%*\" -a \\(").format(p,z);
+c = ("find % \\(").format(p);
+
+// itr each word in search string
+z.split($ ).do({|ss|
+	c = c ++ (" -iname \"*%*\" -a").format(ss);
+});
+
+c = c.copyFromStart(c.size-3)++ " \\) -a \\(";
+
+//c = ("find % \\( -iname \"*%*\" \\) -a \\(").format(p,z);
+//c.postln;
+
+
 // add each of the extensions in the find
 a.split($|).do({|type|type.postln;
 	c = c ++ " -iname \"*.%\" -o".format(type);
@@ -106,11 +119,11 @@ a.split($|).do({|type|type.postln;
 // remove last -o
 c = c.copyFromStart(c.size-3)++ " \\)";
 // complete the command string
-//d = d ++ " \\)";
+
 // send it off and get results, fast
 e = c.unixCmdGetStdOutLines;
 
-d.postln;
+e.postln;
 e.size;
 )
 
