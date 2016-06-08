@@ -5,8 +5,6 @@
 // Freesound.refreshToken;
 // )
 //
-
-
 (
 
 var window, mainView,newSearchView,stackView,queryView,resultsView,waitingView,playView;
@@ -15,6 +13,7 @@ var searchViews = [];
 var stackIndexes = [\newSearchIdx,\queryIdx,\waitingIdx,\resultsIdx,\playIdx];
 var dir = PathName.new("~/Music/SoundNarative/");
 
+s.boot;
 //------------------------------------------------------
 // addStack
 //------------------------------------------------------
@@ -79,11 +78,15 @@ playView =({|i,sndResult|
 
 	var buffer,sfv,slider,view;
 
-	//• encapsulate as a service (either freesound or a HD)
-	sndResult.retrievePreview(dir.asAbsolutePath,{|a|
+	var cancelButtonAction = {|button|
+		buffer.close;
+		buffer.free;
+		searchViews[i].layout.index = stackIndexes.find([\newSearchIdx]);
+		removeStack.(i);
 
-		p = dir +/+ PathName(sndResult.name.splitext[0]++".mp3");
-		buffer = MP3.readToBuffer(s, p.asAbsolutePath,action:{|a|
+	};
+
+	var playButtonAction = {|button|
 
 		// buffer.numChannels.switch(
 		//
@@ -91,6 +94,17 @@ playView =({|i,sndResult|
 		// 	2,{s.sendMsg("/s_new", "bufplayerStereo", 1001, 0, 0,\bufnum, buffer.bufnum);}
 		//
 		// );
+
+	};
+
+
+	//• encapsulate as a service (either freesound or a HD)
+	sndResult.retrievePreview(dir.asAbsolutePath,{|a|
+		"*".postln;
+		sndResult.postln;
+		p = dir +/+ PathName(sndResult.name.splitext[0]++".mp3");
+		buffer = MP3.readToBuffer(s, p.asAbsolutePath,action:{|a|
+
 
 			Routine{
 				buffer.loadToFloatArray(action:{ |data|
@@ -123,15 +137,10 @@ playView =({|i,sndResult|
 	view = View().layout_(
 	GridLayout.rows(
 			[
-				Button().states_([["cancel"]]).action_({
-
-					buffer.close;
-					buffer.free;
-
-					searchViews[i].layout.index = stackIndexes.find([\newSearchIdx]);
-					removeStack.(i);
-
-				}).maxWidth_(50),
+				Button()
+					.states_([["cancel"]])
+					.maxWidth_(50)
+					.action_({|b|cancelButtonAction.(b)}),
 
 				StaticText()
 					.string_(sndResult.name.splitext[0])
@@ -150,7 +159,12 @@ playView =({|i,sndResult|
 
 
 		],[
-				[Button().minHeight_(40).states_([["Play"]]),columns:2]
+				[Button()
+					.minHeight_(40)
+					.states_([["Play"]])
+					.action_({|b|playButtonAction.(b)})
+
+				,columns:2]
 
 		],[
 
@@ -294,7 +308,7 @@ stackView =({|i|
 // build UI
 //------------------------------------------------------
 window = Window("",Rect(0,0,Window.screenBounds.width, Window.screenBounds.height/3)
-//	.center_(Window.availableBounds.center)
+	.center_(Window.availableBounds.center)
 	).front;
 
 window.layout = HLayout();
