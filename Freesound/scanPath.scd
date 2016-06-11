@@ -2,8 +2,8 @@
 (
 
 
-//var dirPath = "/Volumes/Steph2015/Samples:Loops:SFX/*";
-var dirPath = "~/Music/*";
+var dirPath = "/Volumes/Steph2015/Samples:Loops:SFX/*".postln;
+//var dirPath = "~/Music/*";
 
 // faster search
 // can improve on search term using regex....
@@ -11,8 +11,21 @@ var dirPath = "~/Music/*";
 var fastSearch = {|dir, fileTypes, searchString, itrFunc, completeFunc|
 
 	// start building find command string
-	var cs = ("find % -iname \"*%*cave*\" -a \\(").format(dir,searchString);
+	var cs = ("find % \\(").format(dir);
+
+//	var cs = ("find % -iname \"*%*\" -a \\(").format(dir,searchString);
 	var data = 0;
+
+
+	// itr each word in search string
+	searchString.split($ ).do({|ss|
+			cs = cs ++ (" -iname \"*%*\" -%").format(ss,"a");//(o)R/(a)ND
+	});
+
+	cs = cs.copyFromStart(cs.size-3)++ " \\) -a \\(";
+
+	cs.postln;
+
 	// add each of the extensions in the find
 	fileTypes.split($|).do({|type|type.postln;
 		cs = cs ++ " -iname \"*.%\" -o".format(type);
@@ -50,8 +63,8 @@ var search = {|dir, fileTypes, searchString, itrFunc, completeFunc|
 // let's do the search
 fastSearch.(
 	dirPath,
-	"wav|wave|aif|aiff|caf|flac|mp3",
-	"water",// using '.' will give every file
+	"wav|wave|aif|aiff",
+	"cave",// using '.' will give every file
 	{|a,i| "% : %".format(i,a).postln},
 	{|c|("sound files found"+c).postln;}
 );
@@ -92,24 +105,26 @@ b.size
 
 c = 0;
 a = "aif|aiff|wav|wave|mp3"; // extension list
+
 //p = "/Volumes/Steph2015/Samples:Loops:SFX/*"; // searh dir
 p = "~/Music/*";
 
-z = "water"; // search string
+z = "wind"; // search string
 
+t = "a"; // aND/oR the search string words
 
 // start building find command string
 c = ("find % \\(").format(p);
 
 // itr each word in search string
 z.split($ ).do({|ss|
-	c = c ++ (" -iname \"*%*\" -a").format(ss);
+	c = c ++ (" -iname \"*%*\" -%").format(ss,t);
 });
 
 c = c.copyFromStart(c.size-3)++ " \\) -a \\(";
 
 //c = ("find % \\( -iname \"*%*\" \\) -a \\(").format(p,z);
-//c.postln;
+c.postln;
 
 
 // add each of the extensions in the find
