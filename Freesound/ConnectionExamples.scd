@@ -1,10 +1,31 @@
 (
 ~notifier = Object();
-~recipient = { "I've been notified!".postln };
+~recipient = { |a,b,c| [a,b,c].value.post;"I've been notified!".postln };
+~notifier.addDependant(~recipient);
+~notifier.changed(\foo, "bar");
+~notifier.removeDependant(~recipient);
+)
+
+
+
+
+
+
+
+(
+~notifier = Object();
+~recipient = { |a,b,c| [a,b,c].value.post;"I've been notified!".postln };
 ~connection = Connection(~notifier, ~recipient);
 ~notifier.changed(\foo, "bar");
 ~connection.disconnect();
 )
+
+
+
+
+
+
+
 
 (
 ~sliders = 20.collect { Slider() };
@@ -21,17 +42,25 @@
 )
 
 (
-~sliders = 20.collect { Slider() };
+~sliders = 20.collect { |i|Slider().action_({		[i,~data[i]].postln;
+}) };
 ~numbers = 20.collect { NumberBox().fixedWidth_(30) };
+~data = 20.collect{(value:0)};
 ~view = View(bounds:600@200).layout_(GridLayout.rows(~sliders, ~numbers)).front;
 ~connections = ConnectionList.newFrom(
 	~sliders.collect {
 		|slider, i|
 		slider.signal(\value).connectTo(~numbers[i].valueSlot);
+		//slider.signal(\value).connectTo(~data[i].valueSlot(\no));
+
+		//~numbers[i].signal(\value).connectTo(slider.valueSlot);
 	}
 );
+//~numbers[0].value_(0.3).changed(\value,0.3);
 ~view.onClose = { ~connections.disconnect };
+
 )
+
 
 (
 ~object = Object();

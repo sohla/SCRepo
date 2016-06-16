@@ -53,9 +53,9 @@ var stackIndexes = [\newSearchIdx,\queryIdx,\waitingIdx,\resultsIdx,\playIdx];
 var dir = PathName.new("~/Music/SoundNarative/");
 var fastSearch;
 
-var dirPath = "/Volumes/Steph2015/*".postln;
+//var dirPath = "/Volumes/Steph2015/*".postln;
 //var dirPath = "/Volumes/Steph2015/Samples:Loops:SFX/*".postln;
-//var dirPath = "~/Music/*";
+var dirPath = "~/Music/*";
 
 s.boot;
 

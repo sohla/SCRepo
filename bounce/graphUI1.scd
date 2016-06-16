@@ -2,47 +2,37 @@
 (
 var window, routine, graphView, drawGrid, sliderView;
 var updateGraphView;
-var data;
 var freq = 1, amp = 0.5;
 var idx = 0;
 var width = 640, height = 480, theta = 0;
-//------------------------------------------------------
-data = Array.fill(512,0);
-data = Array.fill(data.size, { |i| 0.5 - (((i/512 * 2pi * freq).sin * 0.5) * amp)});
-
-
-
+var data = Array.fill(512,0);
 
 //------------------------------------------------------
 updateGraphView = {|view|
 
-	 Pen.strokeColor_(Color.blue(0.8));
-	// Pen.line(0@150,800@300);
-
 	Pen.smoothing_(true);
-	// data.do({|val,i|
+	Pen.strokeColor_(Color.blue(0.8));
 
 	idx = idx.mod(data.size-1);
 
 	v = data[idx];
-	[idx,v].postln;
+	//[idx,v].postln;
 
-		if(idx==0, {
+	if(idx==0, {
 		view.clearDrawing;
-			Pen.moveTo(p);
+		Pen.moveTo(p);
+	}, {
+		drawGrid.draw();
 
-		}, {
-					drawGrid.draw();
+		Pen.moveTo(p);
+		p= Point(idx+1, v*(view.bounds.height-40) + 20);
+		Pen.lineTo(p);
+	});
 
-			Pen.moveTo(p);
-			p= Point(idx+1, v*(view.bounds.height-40) + 20);
-			Pen.lineTo(p);
-		});
-		p= Point(idx, v*(view.bounds.height-40) + 20);
+	p= Point(idx, v*(view.bounds.height-40) + 20);
 
-// });
+	Pen.stroke;
 	idx = idx + 1;
-		Pen.stroke;
 
 };
 //------------------------------------------------------
@@ -56,7 +46,7 @@ window.layout.add(
 	graphView = UserView()
 	.drawFunc_(updateGraphView)
 	.animate_(true)
-	//.clearOnRefresh_(false)
+	.clearOnRefresh_(false)
 
 );
 window.layout.add(
@@ -87,9 +77,9 @@ routine = Routine { arg inval;
 		// postf("count: % beats: % seconds: % time: % \n",
 		// 	thisThread.beats - inval, thisThread.beats, thisThread.seconds, Main.elapsedTime
 		// );
-		data = Array.fill(data.size, { |i| 0.5 - (((i/512 * 2pi * freq).sin * 0.5) * amp)});
+		data = Array.fill(data.size, { |i| 0.5 - (((i/data.size * 2pi * freq).sin * 0.5) * amp)});
 
-		0.01.yield;
+		0.1.yield;
 
 	}
 };
