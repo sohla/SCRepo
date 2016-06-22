@@ -1,17 +1,18 @@
 // (
-// SynthDef("bufplayerMono", { |bufnum = 0, amp = 0.0, gate = 1|
+// (
+// SynthDef("bufplayerMono", { |bufnum = 0, amp = 1.0, gate = 1|
 // 	var son;
-// 	son = PlayBuf.ar(1,bufnum,BufRateScale.kr(bufnum),loop:1,doneAction:2)
-// 	* EnvGen.kr(Env.asr(2.8,1.0,2.8,\sine),gate,doneAction:2) * amp;
+// 	son = PlayBuf.ar(1,bufnum,BufRateScale.kr(bufnum) * 2,loop:1,doneAction:0)
+// 	* EnvGen.kr(Env.asr(0.02,1.0,0.1,\sine),gate,doneAction:0) * amp;
 //
 // 	Out.ar(0, son!2);
 // 	//	Out.ar(0, son!2);
 // }).load(s);
 //
-// SynthDef("bufplayerStereo", { |bufnum = 0, amp = 0.0, gate = 1|
+// SynthDef("bufplayerStereo", { |bufnum = 0, amp = 1.0, gate = 1|
 // 	var son;
-// 	son = PlayBuf.ar(2,bufnum,BufRateScale.kr(bufnum),loop:1,doneAction:2)
-// 	* EnvGen.kr(Env.asr(2.8,1.0,2.8,\sine),gate,doneAction:2) * amp;
+// 	son = PlayBuf.ar(2,bufnum,BufRateScale.kr(bufnum) * 2,loop:1,doneAction:0)
+// 	* EnvGen.kr(Env.asr(0.02,1.0,0.1,\sine),gate,doneAction:0) * amp;
 //
 // 	Out.ar(0, son);
 // 	//	Out.ar(0, son);
@@ -19,10 +20,6 @@
 //
 // )
 
-
-// folder selection
-// grab all samples in folder -> to buffers
-// layout buffers->synths->midi note
 
 //----
 
@@ -34,7 +31,7 @@ var window;
 var nodes = [], buffers = [];
 var soundFiles = [];
 
-var defaultPath = PathName.new("~/Music/SCSamples/mmsingloops1");
+var defaultPath = PathName.new("~/Music/SCSamples/mmsingloops2");
 var soundsPath = defaultPath;
 
 var openFolderDialog, onFolderPath;
@@ -78,6 +75,7 @@ onFolderPath = ({|path|
 	path.filesDo({|file,i|
 
 		var node = s.nextNodeID;
+		var state = false;
 
 		Buffer.read(s, file.absolutePath,action:{|buf|
 
@@ -85,19 +83,28 @@ onFolderPath = ({|path|
 		// nodes = nodes.add(node);
 			buf.numChannels.switch(
 				1,{s.sendMsg("/s_new", "bufplayerMono", node, 0, 0,
-					\bufnum, buf.bufnum,\amp,1.0);},
+					\bufnum, buf.bufnum,\gate,0.0);},
 				2,{s.sendMsg("/s_new", "bufplayerStereo", node, 0, 0,
-					\bufnum, buf.bufnum,\amp,1.0);
+					\bufnum, buf.bufnum,\gate,0.0);
 
 			});
 
 			MIDIFunc.noteOn({ |vel, num|
-				s.sendMsg("/n_set",node,\amp,1.0);
+				s.sendMsg("/n_set",node,\gate,1.0);
+				// s.sendMsg("/n_set",node,\gate,state.not);
 			},48+i);
 
 
 			MIDIFunc.noteOff({ |vel, num|
-				s.sendMsg("/n_set",node,\amp,1.0);
+
+				s.sendMsg("/n_set",node,\gate,0.0);
+
+				// s.sendMsg("/s_get",node, \gate);
+				// OSCpathResponder(s.addr, ['/n_set', node], { |time, resp, msg|
+				// 	state = msg[3].asBoolean;
+				// 	resp.remove;
+				// }).add;
+
 			},48+i);
 
 		});
