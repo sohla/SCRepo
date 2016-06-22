@@ -12,7 +12,7 @@
 ~freesoundProto = ~serviceProto.clone({
 	~basePath = "freesound";
 
-		~searchWithText = {|searchString, itrFunc, completeFunc|
+	~searchWithText = {|searchString, itrFunc, completeFunc|
 		"searching % for % ....".format(~basePath,searchString);
 
 		10.do({|i| itrFunc.(i);});
