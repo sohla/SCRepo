@@ -20,27 +20,27 @@
 //
 //
 
-(
-SynthDef("bufplayerMono", { |bufnum = 0, volume = 0.0, gate = 1|
-	var son;
-	son = PlayBuf.ar(1,bufnum,BufRateScale.kr(bufnum),loop:1,doneAction:2)
-	* EnvGen.kr(Env.asr(2.8,1.0,2.8,\sine),gate,doneAction:2) * volume;
-
-	Out.ar(0, [0,0,0,0,0,0,0,0,son!2]);
-//	Out.ar(0, son!2);
-}).load(s);
-
-SynthDef("bufplayerStereo", { |bufnum = 0, volume = 0.0, gate = 1|
-	var son;
-	son = PlayBuf.ar(2,bufnum,BufRateScale.kr(bufnum),loop:1,doneAction:2)
-	* EnvGen.kr(Env.asr(2.8,1.0,2.8,\sine),gate,doneAction:2) * volume;
-
-	Out.ar(0, [0,0,0,0,0,0,0,0,son[0],son[1]]);
-//	Out.ar(0, son);
-}).load(s);
-
-)
-
+// (
+// SynthDef("bufplayerMonoFS", { |bufnum = 0, volume = 0.0, gate = 1|
+// 	var son;
+// 	son = PlayBuf.ar(1,bufnum,BufRateScale.kr(bufnum),loop:1,doneAction:2)
+// 	* EnvGen.kr(Env.asr(2.8,1.0,2.8,\sine),gate,doneAction:2) * volume;
+//
+// 	Out.ar(0, son!2);
+// 	//	Out.ar(0, son!2);
+// }).load(s);
+//
+// SynthDef("bufplayerStereoFS", { |bufnum = 0, volume = 0.0, gate = 1|
+// 	var son;
+// 	son = PlayBuf.ar(2,bufnum,BufRateScale.kr(bufnum),loop:1,doneAction:2)
+// 	* EnvGen.kr(Env.asr(2.8,1.0,2.8,\sine),gate,doneAction:2) * volume;
+//
+// 	Out.ar(0, son);
+// 	//	Out.ar(0, son);
+// }).load(s);
+//
+// )
+//
 
 
 
@@ -171,8 +171,8 @@ playView =({|i,sndResult|
 			1,{"playing...".postln;
 
 			buffer.numChannels.switch(
-			1,{s.sendMsg("/s_new", "bufplayerMono", samplerNode, 0, 0,\bufnum, buffer.bufnum);},
-			2,{s.sendMsg("/s_new", "bufplayerStereo", samplerNode, 0, 0,\bufnum, buffer.bufnum);});
+			1,{s.sendMsg("/s_new", "bufplayerMonoFS", samplerNode, 0, 0,\bufnum, buffer.bufnum);},
+			2,{s.sendMsg("/s_new", "bufplayerStereoFS", samplerNode, 0, 0,\bufnum, buffer.bufnum);});
 			s.sendMsg("/n_set",samplerNode,\volume,sliderView.value);
 
 			},
@@ -187,10 +187,39 @@ playView =({|i,sndResult|
 		s.sendMsg("/n_set",samplerNode,\volume,slider.value);
 
 	};
-	sndResult.postln;
-	buffer = Buffer.read(s, sndResult);
-	buffer.postln;
+
+	var onBufferRead = {|localBuf|
+		localBuf.loadToFloatArray(action:{ |data|
+			{
+				sfv.setData(data,
+					512,// QT not using this
+					0,
+					localBuf.numChannels,
+					localBuf.sampleRate.asInteger // need to cast!?!
+				);
+				view.enabled_(true);
+			}.defer;
+		});
+	};
+
 	// //• encapsulate as a service (either freesound or a HD)
+
+	//• sndResult could be a path to local path or URL to freesound
+	//• if it's freesound, need to download, process mp3->local
+	//• local->buffer...let's go!
+
+
+
+
+
+	buffer = Buffer.read(s, sndResult,action:onBufferRead);
+
+	// load sound into buffer
+
+
+
+
+
 	// sndResult.retrievePreview(dir.asAbsolutePath,{|a|
 	// 	"*".postln;
 	// 	sndResult.postln;
@@ -198,27 +227,6 @@ playView =({|i,sndResult|
 	// 	buffer = MP3.readToBuffer(s, p.asAbsolutePath,action:{|a|
 	//
 	//
-			Routine{
-				buffer.loadToFloatArray(action:{ |data|
-
-					{
-						sfv.setData(data,
-							512,// QT not using this
-							0,
-							buffer.numChannels,
-							buffer.sampleRate.asInteger // need to cast!?!
-						);
-
-						view.enabled_(true);
-					}.defer;
-
-
-
-
-
-				});
-
-			}.play(AppClock);
 	// 	});
 	// },"hq","mp3");
 
@@ -292,6 +300,12 @@ queryView =({|i|
 
 		searchViews[i].layout.index = stackIndexes.find([\waitingIdx]);
 				searchViews[i].layout.index = stackIndexes.find([\resultsIdx]);
+
+		//• HD version
+		//• time to start making a protocol
+		//•
+		//• either search should return data including path, channels, length, shape?
+		//• soundInfo structure should be passed on to results view
 
 		fastSearch.(
 			dirPath,
