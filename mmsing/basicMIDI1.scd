@@ -1,24 +1,24 @@
-(
-(
-SynthDef("bufplayerMono", { |bufnum = 0, amp = 1.0, gate = 1|
-	var son;
-	son = PlayBuf.ar(1,bufnum,BufRateScale.kr(bufnum) * 1,loop:1,doneAction:0)
-	* EnvGen.kr(Env.asr(0.02,1.0,0.1,\sine),gate,doneAction:0) * amp;
+// (
+// (
+// SynthDef("bufplayerMono", { |bufnum = 0, amp = 1.0, gate = 1|
+// 	var son;
+// 	son = PlayBuf.ar(1,bufnum,BufRateScale.kr(bufnum) * 1,loop:1,doneAction:0)
+// 	* EnvGen.kr(Env.asr(0.02,1.0,0.1,\sine),gate,doneAction:0) * amp;
 
-	Out.ar(0, son!2);
-	//	Out.ar(0, son!2);
-}).load(s);
+// 	Out.ar(0, son!2);
+// 	//	Out.ar(0, son!2);
+// }).load(s);
 
-SynthDef("bufplayerStereo", { |bufnum = 0, amp = 1.0, gate = 1|
-	var son;
-	son = PlayBuf.ar(2,bufnum,BufRateScale.kr(bufnum) * 1,loop:1,doneAction:0)
-	* EnvGen.kr(Env.asr(0.02,1.0,0.1,\sine),gate,doneAction:0) * amp;
+// SynthDef("bufplayerStereo", { |bufnum = 0, amp = 1.0, gate = 1|
+// 	var son;
+// 	son = PlayBuf.ar(2,bufnum,BufRateScale.kr(bufnum) * 1,loop:1,doneAction:0)
+// 	* EnvGen.kr(Env.asr(0.02,1.0,0.1,\sine),gate,doneAction:0) * amp;
 
-	Out.ar(0, son);
-	//	Out.ar(0, son);
-}).load(s);
+// 	Out.ar(0, son);
+// 	//	Out.ar(0, son);
+// }).load(s);
 
-)
+// )
 
 
 //----
@@ -71,13 +71,43 @@ CmdPeriod.doOnce({window.close});
 
 onFolderPath = ({|path|
 
+		var nodes = [];
+		var state = false;
+
+		var noteOn = {|i|
+
+			{window.view.children[i].background_(window.view.children[i].background.alpha_(1));}.defer;
+			
+			s.sendMsg("/n_set",nodes[i],\gate,1.0);
+			
+			//s.sendMsg("/n_set",nodes[i],\gate,state.not);
+		};
+
+		var noteOff = {|i|
+			
+			{window.view.children[i].background_(window.view.children[i].background.alpha_(0.3));}.defer;
+			
+			s.sendMsg("/n_set",nodes[i],\gate,0.0);
+
+			// s.sendMsg("/s_get",nodes[i], \gate);
+			// OSCpathResponder(s.addr, ['/n_set', nodes[i]], { |time, resp, msg|
+			// 	state = msg[3].asBoolean;
+			// 	resp.remove;
+			// }).add;
+		};
+
+	//KeyCodeResponder.registerKeycode(KeyCodeResponder.normalModifier, 52 , { "enter".postln; });
+
 	buildWindow.();
 
 	path.filesDo({|file,i|
 
 		var node = s.nextNodeID;
-		var state = false;
 		var cols = 3;
+
+		nodes = nodes.add(node);
+		nodes.postln;
+		
 		Buffer.read(s, file.absolutePath,action:{|buf|
 
 		// buffers = buffers.add(buf);
@@ -90,33 +120,12 @@ onFolderPath = ({|path|
 
 			});
 
-			MIDIFunc.noteOn({ |vel, num|
-
-				{
-				window.view.children[i].background_(window.view.children[i].background.alpha_(1));
-				}.defer;
-				s.sendMsg("/n_set",node,\gate,1.0);
-				// s.sendMsg("/n_set",node,\gate,state.not);
-			},48+i);
-
-
-			MIDIFunc.noteOff({ |vel, num|
-				{
-				window.view.children[i].background_(window.view.children[i].background.alpha_(0.3));
-			}.defer;
-				s.sendMsg("/n_set",node,\gate,0.0);
-
-				// s.sendMsg("/s_get",node, \gate);
-				// OSCpathResponder(s.addr, ['/n_set', node], { |time, resp, msg|
-				// 	state = msg[3].asBoolean;
-				// 	resp.remove;
-				// }).add;
-
-			},48+i);
+			// MIDIFunc.noteOn({ |vel, num| noteOn.(i) },48+i);
+			// MIDIFunc.noteOff({ |vel, num| noteOff.(i) },48+i);
 
 		});
 
-		[i,node].postln;
+		//[i,node].postln;
 
 
 		window.layout.add(
@@ -124,10 +133,13 @@ onFolderPath = ({|path|
 			.background_(Color.rand.alpha_(0.3))
 				.string_(file.absolutePath.basename.splitext[0])
 				.align_(\center),
+				
 			(i/cols).floor,
 			i%cols);
-
+		
 	});
+	window.view.keyDownAction_({ |view,char,mod,uc,kc,key| noteOn.(key-49)});
+	window.view.keyUpAction_({ |view,char,mod,uc,kc,key| noteOff.(key-49)});
 
 });
 
@@ -158,3 +170,14 @@ MIDIIn.connectAll;
 buildMIDI.();
 
 )
+
+
+
+
+
+
+
+
+
+
+
