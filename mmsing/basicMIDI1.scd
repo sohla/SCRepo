@@ -31,7 +31,7 @@ var window;
 var nodes = [], buffers = [];
 var soundFiles = [];
 
-var defaultPath = PathName.new("~/Music/SCSamples/mmsingloops2");
+var defaultPath = PathName.new("~/Music/SCSamples/mmsingloops1");
 var soundsPath = defaultPath;
 
 var openFolderDialog, onFolderPath;
@@ -56,6 +56,8 @@ window = Window("")
 
 window.onClose = ({
 
+	MIDIdef.freeAll;
+	MIDIClient.disposeClient;
 	Buffer.freeAll;
 	s.freeAll;
 
@@ -71,42 +73,14 @@ CmdPeriod.doOnce({window.close});
 
 onFolderPath = ({|path|
 
-		var nodes = [];
-		var state = false;
-
-		var noteOn = {|i|
-
-			{window.view.children[i].background_(window.view.children[i].background.alpha_(1));}.defer;
-			
-			s.sendMsg("/n_set",nodes[i],\gate,1.0);
-			
-			//s.sendMsg("/n_set",nodes[i],\gate,state.not);
-		};
-
-		var noteOff = {|i|
-			
-			{window.view.children[i].background_(window.view.children[i].background.alpha_(0.3));}.defer;
-			
-			s.sendMsg("/n_set",nodes[i],\gate,0.0);
-
-			// s.sendMsg("/s_get",nodes[i], \gate);
-			// OSCpathResponder(s.addr, ['/n_set', nodes[i]], { |time, resp, msg|
-			// 	state = msg[3].asBoolean;
-			// 	resp.remove;
-			// }).add;
-		};
-
-	//KeyCodeResponder.registerKeycode(KeyCodeResponder.normalModifier, 52 , { "enter".postln; });
-
 	buildWindow.();
 
 	path.filesDo({|file,i|
 
 		var node = s.nextNodeID;
 		var cols = 3;
+		var state = false;
 
-		nodes = nodes.add(node);
-		nodes.postln;
 		
 		Buffer.read(s, file.absolutePath,action:{|buf|
 
@@ -120,8 +94,29 @@ onFolderPath = ({|path|
 
 			});
 
-			// MIDIFunc.noteOn({ |vel, num| noteOn.(i) },48+i);
-			// MIDIFunc.noteOff({ |vel, num| noteOff.(i) },48+i);
+			MIDIdef.noteOn("ON"+i,{ |vel, num| 
+
+				{window.view.children[i].background_(window.view.children[i].background.alpha_(1));}.defer;
+			
+				s.sendMsg("/n_set",node,\gate,1.0);
+
+				//s.sendMsg("/n_set",nodes[i],\gate,state.not);
+
+			},48+i);
+
+			MIDIdef.noteOff("OFF"+i,{ |vel, num| 
+
+				{window.view.children[i].background_(window.view.children[i].background.alpha_(0.3));}.defer;
+				
+				s.sendMsg("/n_set",node,\gate,0.0);
+
+				// s.sendMsg("/s_get",nodes[i], \gate);
+				// OSCpathResponder(s.addr, ['/n_set', nodes[i]], { |time, resp, msg|
+				// 	state = msg[3].asBoolean;
+				// 	resp.remove;
+				// }).add;
+
+			},48+i);
 
 		});
 
@@ -138,8 +133,13 @@ onFolderPath = ({|path|
 			i%cols);
 		
 	});
-	window.view.keyDownAction_({ |view,char,mod,uc,kc,key| noteOn.(key-49)});
-	window.view.keyUpAction_({ |view,char,mod,uc,kc,key| noteOff.(key-49)});
+
+	window.view.keyDownAction_({ |view,char,mod,uc,kc,key| 
+		MIDISim.noteOn(0,0,key,127);
+	});
+	window.view.keyUpAction_({ |view,char,mod,uc,kc,key| 
+		MIDISim.noteOff(0,0,key,0);
+	});
 
 });
 
@@ -162,7 +162,7 @@ soundsPath.isNil.if(
 //------------------------------------------------------
 buildMIDI = ({
 
-MIDIClient.init;
+MIDIClient.init;	
 MIDIIn.connectAll;
 
 });
@@ -170,14 +170,3 @@ MIDIIn.connectAll;
 buildMIDI.();
 
 )
-
-
-
-
-
-
-
-
-
-
-
