@@ -31,7 +31,7 @@ var window;
 var nodes = [], buffers = [];
 var soundFiles = [];
 
-var defaultPath = PathName.new("~/Music/SCSamples/mmsingloops1");
+var defaultPath = PathName.new("~/Music/SCSamples/mmsingloops5");
 var soundsPath = defaultPath;
 
 var openFolderDialog, onFolderPath;
@@ -47,7 +47,7 @@ window = Window("")
 		0,0,
 		Window.screenBounds.width/2,
 		Window.screenBounds.height/2)
-		//.center_(Window.availableBounds.center)
+		.center_(Window.availableBounds.center)
 	)
 	.front;
 
@@ -94,29 +94,35 @@ onFolderPath = ({|path|
 
 			});
 
-			MIDIdef.noteOn("ON"+i,{ |vel, num| 
+			MIDIdef.cc("ON"+i,{ |vel, num| 
 
-				{window.view.children[i].background_(window.view.children[i].background.alpha_(1));}.defer;
+				if(vel == 0,{
+					{window.view.children[i].background_(window.view.children[i].background.alpha_(1));}.defer;
 			
-				s.sendMsg("/n_set",node,\gate,1.0);
+					s.sendMsg("/n_set",node,\gate,1.0);
 
-				//s.sendMsg("/n_set",nodes[i],\gate,state.not);
+					//s.sendMsg("/n_set",nodes[i],\gate,state.not);
+				},{
 
-			},48+i);
+					{window.view.children[i].background_(window.view.children[i].background.alpha_(0.3));}.defer;
+					
+					s.sendMsg("/n_set",node,\gate,0.0);
+				});
+			},112+i);
 
-			MIDIdef.noteOff("OFF"+i,{ |vel, num| 
+			// MIDIdef.cc("OFF"+i,{ |vel, num| 
 
-				{window.view.children[i].background_(window.view.children[i].background.alpha_(0.3));}.defer;
+			// 	// {window.view.children[i].background_(window.view.children[i].background.alpha_(0.3));}.defer;
 				
-				s.sendMsg("/n_set",node,\gate,0.0);
+			// 	// s.sendMsg("/n_set",node,\gate,0.0);
 
-				// s.sendMsg("/s_get",nodes[i], \gate);
-				// OSCpathResponder(s.addr, ['/n_set', nodes[i]], { |time, resp, msg|
-				// 	state = msg[3].asBoolean;
-				// 	resp.remove;
-				// }).add;
+			// 	// s.sendMsg("/s_get",nodes[i], \gate);
+			// 	// OSCpathResponder(s.addr, ['/n_set', nodes[i]], { |time, resp, msg|
+			// 	// 	state = msg[3].asBoolean;
+			// 	// 	resp.remove;
+			// 	// }).add;
 
-			},48+i);
+			// },112+i);
 
 		});
 
@@ -170,3 +176,6 @@ MIDIIn.connectAll;
 buildMIDI.();
 
 )
+
+
+
