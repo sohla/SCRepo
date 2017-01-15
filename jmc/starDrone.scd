@@ -7,7 +7,7 @@
 	scale = #[0,2,5,7];
 
 	p = 10;
-	exciter = Decay.ar(LFDNoise0.ar(16000,0.00001), 0.1);
+	exciter = Decay.ar(LFDNoise0.ar(16000,0.00001), 0.5);
 	spec = Array.fill(2, {
 		`[
 			Array.fill(p, { arg i; (scale.choose  + root.choose).midicps } ),

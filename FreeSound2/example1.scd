@@ -22,6 +22,9 @@ FSSound.getSound(31362, {|f|
 ~snd.url;
 
 
+
+
+
 ~preview = ~snd.retrievePreview("/tmp/", {
         ~buf = Buffer.read(s, "/tmp/" ++ ~snd.previewFilename);
         "done!".postln;
@@ -29,3 +32,9 @@ FSSound.getSound(31362, {|f|
 
 "/tmp/" ++ ~snd.previewFilename.postln;
 ~buf.play;
+
+
+
+FSSound.textSearch(query:"",action:{|p|
+	p.dict.keys.postln;
+});

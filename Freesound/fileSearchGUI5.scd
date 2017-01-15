@@ -54,7 +54,7 @@ var dir = PathName.new("~/Music/SoundNarative/");
 var fastSearch;
 
 //var dirPath = "/Volumes/Steph2015/*".postln;
-//var dirPath = "/Volumes/Steph2015/Samples:Loops:SFX/*".postln;
+//var dirPath = "/Volumes/Steph2015/*".postln;
 var dirPath = "~/Music/*";
 
 s.boot;

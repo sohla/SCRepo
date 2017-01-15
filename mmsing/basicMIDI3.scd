@@ -29,7 +29,7 @@ var window;
 var nodes = [], buffers = [];
 var soundFiles = [];
 
-var defaultPath = PathName.new("~/Music/SCSamples/mmsingloops14");
+var defaultPath = PathName.new("~/Music/SCSamples/mmsingloops17");
 var soundsPath = defaultPath;
 
 var openFolderDialog, onFolderPath;
@@ -94,34 +94,26 @@ onFolderPath = ({|path|
 
 			MIDIdef.noteOn("ON"+i,{ |vel, num|
 
-				[num,vel].postln;
-				if(vel == 0,{
-					{window.view.children[i].background_(window.view.children[i].background.alpha_(1));}.defer;
+				["ON",i,num,vel].postln;
 
-					s.sendMsg("/n_set",node,\gate,1.0);
+				{window.view.children[i].background_(window.view.children[i].background.alpha_(1));}.defer;
 
-					//s.sendMsg("/n_set",nodes[i],\gate,state.not);
-				},{
+				s.sendMsg("/n_set",node,\gate,1.0);
 
-					{window.view.children[i].background_(window.view.children[i].background.alpha_(0.3));}.defer;
+			},36+i);
+
+			MIDIdef.noteOff("OFF"+i,{ |vel, num|
+				["OFF",i,num,vel].postln;
+{window.view.children[i].background_(window.view.children[i].background.alpha_(0.3));}.defer;
 
 					s.sendMsg("/n_set",node,\gate,0.0);
-				});
-			});
 
-			// MIDIdef.cc("OFF"+i,{ |vel, num|
+			},36+i);
 
-			// 	// {window.view.children[i].background_(window.view.children[i].background.alpha_(0.3));}.defer;
 
-			// 	// s.sendMsg("/n_set",node,\gate,0.0);
 
-			// 	// s.sendMsg("/s_get",nodes[i], \gate);
-			// 	// OSCpathResponder(s.addr, ['/n_set', nodes[i]], { |time, resp, msg|
-			// 	// 	state = msg[3].asBoolean;
-			// 	// 	resp.remove;
-			// 	// }).add;
 
-			// },112+i);
+
 
 		});
 
