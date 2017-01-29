@@ -157,6 +157,8 @@ playView =({|i,sndResult|
 
 	var cancelButtonAction = {|button|
 		s.sendMsg("/n_free", samplerNode);
+		//s.sendMsg("/n_set",samplerNode,\gate,0);
+		
 		buffer.close;
 		buffer.free;
 		searchViews[i].layout.index = stackIndexes.find([\newSearchIdx]);
@@ -237,53 +239,52 @@ playView =({|i,sndResult|
 				Button()
 					.states_([["cancel"]])
 					.maxWidth_(50)
+					.minHeight_(30)
 					.action_({|b|cancelButtonAction.(b)}),
 
 				StaticText()
 					.string_(sndResult.basename.splitext[0])
 					.align_(\center)
-					.font_(Font(size:24))
-			],[
-				[sfv = SoundFileView()
-					.maxHeight_(120)
-					.gridOn_(false)
-					.backColor_(Color.grey)
-					.rmsColor_(Color.blue.alpha_(0.4))
-					.peakColor_(Color.blue.alpha_(0.3))
-					//.selectionColor_(0, Color.black.alpha_(0.2))
-
-					,columns:2]
-
-
-		],[
-				[Button()
-					.minHeight_(40)
+					.font_(Font(size:24)),
+				
+				Button()
+					.minHeight_(30)
+					.maxWidth_(50)
 					.states_([
 						["Play"],
 						["Stop",Color.black,Color.green.alpha_(0.3)]])
-					.action_({|b|buttonAction.(b)})
+					.action_({|b|buttonAction.(b)}),
 
-				,columns:2]
-
-		],
-			// [
-			//
-			// 	CheckBox().string_("auto-fade"),
-			// 	CheckBox().string_("loop")
-			//
-			//
-			// ],
-			[
-				StaticText().string_("volume").maxWidth_(100),
+				
+				StaticText().string_("volume"),
+				
 				sliderView = Slider()
 					.orientation_(\horizontal)
 					.maxHeight_(40)
 					.value_(0.5)
 					.action_({|a|sliderAction.(a)});
 
+
+
+			],[
+				[sfv = SoundFileView()
+					.maxHeight_(120)
+					.gridOn_(false)
+					.backColor_(Color.white.alpha_(0.7))
+					.rmsColor_(Color.blue.alpha_(0.4))
+					.peakColor_(Color.blue.alpha_(0.3))
+					//.selectionColor_(0, Color.black.alpha_(0.2))
+
+					,columns:5],
+
+
+
 		]
-	)
-	).enabled_(false);
+	).setMinColumnWidth(1,350)
+	).enabled_(false)
+	.background_(Color.rand(0.1,0.9))
+	.maxHeight_(200)
+
 
 
 
@@ -363,19 +364,26 @@ resultsView =({|i|
 
 	var scroll = ScrollView(bounds:Rect(0,50,500,300).center_(Window.availableBounds.center));
 	var canvas = View();
+	var button;
 	var layout;
 
 	canvas.layout = VLayout();
-	canvas.layout.add(Button().states_([["cancel"]]).action_({
+	button = Button().states_([["cancel"]]).action_({
 		searchViews[i].layout.index = stackIndexes.find([\newSearchIdx]);
 		removeStack.(i);
-	}).maxWidth_(50));
+	}).maxWidth_(50);
 
 	canvas.layout.add(nil); // stretch remaining empty space
 
 	scroll.canvas = canvas;
 	//scroll.front;
 	scroll.hasHorizontalScroller_(false);
+
+	View().layout_( VLayout(
+			button,
+			scroll
+		)
+	);
 
 });
 //------------------------------------------------------
@@ -410,8 +418,8 @@ addResult =({|i,sndResult,count|
 		view.layout.margins = [0,0,0,0];
 	    view;
 	};
-
-	searchViews[i].children(ScrollView)[0].canvas.layout.add( makeEntry.() );
+	searchViews[i].children(View)[3].children(ScrollView)[0].canvas.layout.add( makeEntry.() );
+	//searchViews[i].children(ScrollView)[0].canvas.layout.add( makeEntry.() );
 
 });
 
@@ -434,11 +442,11 @@ stackView =({|i|
 //------------------------------------------------------
 // build UI
 //------------------------------------------------------
-window = Window("",Rect(0,0,Window.screenBounds.width, Window.screenBounds.height/3)
-	.center_(Window.availableBounds.center)
+window = Window("",Rect(0,0,Window.screenBounds.width*0.7, Window.screenBounds.height)
+	//.center_(Window.availableBounds.center)
 	).front;
 
-window.layout = HLayout();
+window.layout = VLayout();
 
 // add our first stack
 addStack.(0);
@@ -457,8 +465,6 @@ CmdPeriod.doOnce({window.close});
 
 
 )
-
-
 
 
 
