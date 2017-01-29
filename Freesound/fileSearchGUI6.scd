@@ -4,7 +4,7 @@
 // Freesound.authType = "oauth2";
 // Freesound.refreshToken;
 // )
-//
+
 
 // o = Server.local.options;
 // o.outDevice
@@ -406,8 +406,12 @@ addResult =({|i,sndResult,count|
 					Color.hsv((0.165*i),1.0,1.0).vary(0.4,0.4,0.9,0.4)
 				]])
 				.action_(buttonAction)
-				.minHeight_(80),
-
+				.minHeight_(80)
+				.maxWidth_(100),
+				
+				WebView().url_(sndResult.images.dict["waveform_l"])
+				.maxWidth_(360)
+				.enabled_(false)
 	        )
 	    );
 		view.layout.margins = [0,0,0,0];
@@ -415,7 +419,7 @@ addResult =({|i,sndResult,count|
 	};
 
 	searchViews[i].children(ScrollView)[0].canvas.layout.add( makeEntry.() );
-	sndResult.images.dict.postln;
+	//sndResult.images.dict["waveform_l"].postln;
 });
 
 //------------------------------------------------------

@@ -402,7 +402,9 @@ addResult =({|i,sndResult,count|
 					Color.hsv((0.165*i),1.0,1.0).vary(0.4,0.4,0.9,0.4)
 				]])
 				.action_(buttonAction)
-				.minHeight_(80)
+				.minHeight_(80),
+				WebView()
+				.maxWidth_(150)
 	        )
 	    );
 		view.layout.margins = [0,0,0,0];
