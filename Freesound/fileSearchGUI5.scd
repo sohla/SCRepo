@@ -239,7 +239,7 @@ playView =({|i,sndResult|
 				Button()
 					.states_([["cancel"]])
 					.maxWidth_(50)
-					.minHeight_(30)
+					.maxHeight_(30)
 					.action_({|b|cancelButtonAction.(b)}),
 
 				StaticText()

@@ -23,11 +23,12 @@ s.queryAllNodes;
 
 // talking to QLAb
 
-b = NetAddr.new("172.20.10.8", 53000);    // create the NetAddr
+b = NetAddr.new("10.1.1.3", 53000);    // create the NetAddr
 b.sendMsg("/qlab", "go");    // send the application the messa
 
-b.sendMsg("/select/2", "");    // send the application the messa
-b.sendMsg("/cue/5/start", "");    // send the application the messa
+b.sendMsg("/select/1", "");    // send the application the messa
+b.sendMsg("/cue/2/start", "");    // send the application the messa
+b.sendMsg("/cue/1/start", "");    // send the application the messa
 b.sendMsg("/cue/1/stop", "");    // send the application the messa
 
 b.sendMsg("/cue/2/translationX -100", "");    // send the application the messa
