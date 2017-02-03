@@ -14,13 +14,13 @@ mainView = {
 	View().layout_(
 
 		GridLayout.rows([
-			connectView.()
+			connectView.(),
+			[speakerView.(), rows:3]
 		],[
 			headerView.()
 		],[
 			levelsView.()
 		],[
-			speakerView.()
 		]);
 	);	
 };
@@ -29,37 +29,87 @@ mainView = {
 
 speakerView = {
 
-	var b = EnvelopeView(window, Rect(0, 0, 500, 500))
-    .drawLines_(false)
-    .selectionColor_(Color.red)
-    .drawRects_(true)
-    .resize_(5)
-    .step_(0.005)
-    .action_({arg b; [b.index, b.value].postln})
-    .thumbSize_(20)
 
-    .value_([[0.5, 0.5, 0.15, 0.85, 0.15, 0.85],[0.5,0.9,0.9,0.9,0.1,0.1]]);
+var speakerList, x=200, y=150, targx=200, targy=150;
+var atorad = (2pi) / 360, rtoang = 360.0 / (2pi);
+var targRotate, actRotate, targPoint, actPoint;
+var maxShiftPerFrame = 20, frameInterval = 0.01;
+var resched = false, count = 0;
+var panBus, widthBus, recButton;
+var a, b, c, e;
 
-    b.setString(0,"Listener");
-	b.setFillColor(0,Color.green);
+maxShiftPerFrame = maxShiftPerFrame * atorad;
+actPoint = Point(x, y) - Point(200, 200);
+panBus = Bus.control;
+widthBus = Bus.control.set(60);
 
-	b.setString(1,"Source");
-	b.setFillColor(1,Color.red);
+w = window;
+speakerList = [[-30, "L"], [30, "R"], [0, "C"], [-110, "Ls"], [110, "Rs"]];
+c = UserView()
+	.minHeight_(400)
+	.minWidth_(400)
+	.background_(Color.white.alpha_(0.2));
+c.canFocus = false;
 
-	b.setString(2,"L");
-	b.setFillColor(2,Color.grey);
+c.drawFunc = {
+    Color.black(0.8).set;
+    // draw the speaker layout
+    Pen.translate(200,200);
+    ((actPoint.theta + (0.5pi)).wrap2(pi) * rtoang).round(0.01).asString.drawCenteredIn(Rect.aboutPoint(0@170, 30, 10), Font.new("Arial", 10), Color.grey(0.8));
+    Pen.strokeOval(Rect.aboutPoint(0@0, 150, 150));
+    Pen.rotate(pi);
+    speakerList.do({|spkr|
+	    Color.green(0.8).set;
 
-	b.setString(3,"R");
-	b.setFillColor(3,Color.grey);
+        Pen.use({
+            Pen.rotate(spkr[0] * atorad);
+            Pen.moveTo(0@170);
+            Pen.strokeRect(r = Rect.aboutPoint(0@170, 30, 10));
+            if(spkr[0].abs < 90, {
+                Pen.use({
+                    Pen.translate(0, 170); 
+                    Pen.rotate(pi);
+                    spkr[1].drawCenteredIn(Rect.aboutPoint(0@0, 30, 10), 
+                        GUI.font.new("Arial", 10), Color.green(0.8));
+                });
+            },{ 
+                spkr[1].drawCenteredIn(r, GUI.font.new("Arial", 10), Color.green(0.8));
+            });
+        });
+    });
 
+    Pen.moveTo(0@0);
 
-	b.setString(4,"BL");
-	b.setFillColor(4,Color.grey);
+Color.red(0.8).set;
+    // draw the pan point
+    Pen.rotate(actPoint.theta + 0.5pi);
+    targPoint = Point(x, y) - Point(200, 200);
+    // trunc to avoid loops due to fp math
+    targRotate = (targPoint.theta - actPoint.theta).trunc(1e-15);
+    // wrap around
+    if(targRotate.abs > pi, {targRotate = (2pi - targRotate.abs) * targRotate.sign.neg}); 
+    actRotate = targRotate.clip2(maxShiftPerFrame).trunc(1e-15);
+    actPoint = actPoint.rotate(actRotate);
+    Pen.rotate(actRotate);
+    Pen.lineTo(0@150);
+    Pen.stroke;
+    Pen.fillOval(Rect.aboutPoint(0@150, 7, 7));
+    Pen.addWedge(0@0, 140, neg(e.value * 0.5) * atorad + 0.5pi, e.value * atorad);
+    Pen.stroke;
+    Color.grey(0.8).alpha_(0.1).set;
+    Pen.addWedge(0@0, 140, neg(e.value * 0.5) * atorad + 0.5pi, e.value * atorad);
+    Pen.fill;
 
-	b.setString(5,"BR");
-	b.setFillColor(5,Color.grey);
+    if((actRotate.abs > 0), {AppClock.sched(frameInterval, {w.refresh})}, {count = 0;});
+    if(count%4 == 0, {panBus.set((actPoint.theta + (0.5pi)).wrap2(pi) * rtoang)});
+};
+c.mouseMoveAction_({|v,inx,iny| x = inx; y = iny; w.refresh;});
+c.mouseDownAction_({|v,inx,iny| x = inx; y = iny; w.refresh;});
+e = EZSlider.new(w, 380@20, "Stereo Width", [0, 180].asSpec, {arg ez; widthBus.set(ez.value); w.refresh}, labelWidth: 80);
+e.labelView.setProperty(\stringColor,Color.grey(0.8));
 
-	b
+	c
+
 };
 //------------------------------------------------------
 levelsView = {
@@ -173,7 +223,7 @@ window = Window("")
 	.bounds_(Rect(
 		0,0,
 		Window.screenBounds.width/3,
-		Window.screenBounds.height)
+		Window.screenBounds.height/2)
 		.center_(Window.availableBounds.center)
 	)
 	.front;
