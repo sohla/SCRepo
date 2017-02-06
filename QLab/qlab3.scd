@@ -67,7 +67,7 @@ NetAddr.langPort
 NetAddr.disconnectAll
 
 // send to QLab
-b = NetAddr.new("10.1.1.3", 53000);
+b = NetAddr.new("10.1.1.12", 53000);
 b.sendMsg("/cue/2/start", "");
 b.disconnect
 
