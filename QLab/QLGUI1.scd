@@ -12,7 +12,7 @@ var panBus, widthBus;
 var speakerList;
 var onLevels;
 var level;
-	var slidersArray = [];
+var slidersArray = [];
 
 //------------------------------------------------------
 

@@ -67,7 +67,7 @@ NetAddr.langPort
 NetAddr.disconnectAll
 
 // send to QLab
-b = NetAddr.new("10.1.1.12", 53000);
+b = NetAddr.new("10.1.1.3", 53000);
 b.sendMsg("/cue/2/start", "");
 b.disconnect
 
@@ -84,10 +84,10 @@ b.sendMsg("/version");
 o.free;
 
 
-
+// get the unique ID of the workspace
 (
 a = "/workspaces";
-b = NetAddr.new("10.5.14.98", 53000);
+b = NetAddr.new("10.1.1.3", 53000);
 
 o = OSCFunc({ arg msg, time, addr, recvPort;
 	{
@@ -104,7 +104,7 @@ o.free;
 
 
 
-
+// list all the cues in the workspace
 (
 a = "/workspace/394E714B-AD2C-4058-ADA3-AB53C4052912/cueLists";
 b = NetAddr.new("10.1.1.3", 53000);
@@ -125,3 +125,46 @@ b.sendMsg(a);
 )
 o.free;
 
+
+
+// setup updat notification
+(
+a = "/workspace/394E714B-AD2C-4058-ADA3-AB53C4052912/updates";
+b = NetAddr.new("10.1.1.3", 53000);
+
+o = OSCFunc({ arg msg, time, addr, recvPort;
+	{
+		msg[1].postln;
+
+		// play selected vue within QLab
+		//b.sendMsg("/cue_id/"++msg[1]++"/start", "");
+
+	}.defer;
+},"/update/workspace/394E714B-AD2C-4058-ADA3-AB53C4052912/cueList/0/playbackPosition",recvPort:53001);
+b.sendMsg(a,1);
+)
+o.free;
+
+
+
+
+// get some details of a selected cue
+(
+a = "/workspace/394E714B-AD2C-4058-ADA3-AB53C4052912/updates";
+b = NetAddr.new("10.1.1.3", 53000);
+
+b.sendMsg("/cue_id/1/valuesForKeys", "[\"type\",\"sliderLevels\"]");
+b.sendMsg("/cue_id/1/sliderLevels");
+
+o = OSCFunc({ arg msg, time, addr, recvPort;
+	{
+		msg[1].postln;
+
+		// play selected vue within QLab
+		//b.sendMsg("/cue_id/"++msg[1]++"/start", "");
+
+	}.defer;
+},"/update/workspace/394E714B-AD2C-4058-ADA3-AB53C4052912/cueList/0/playbackPosition",recvPort:53001);
+b.sendMsg(a,1);
+)
+o.free;
