@@ -95,12 +95,12 @@ o = OSCFunc({ arg msg, time, addr, recvPort;
 		msg[0].postln;
 		d = msg[1].asString.parseYAML["data"][0];
 		d["uniqueID"].postln;
+		o.free;
 
 	}.defer;
 },"/reply"++a,recvPort:53001);
 b.sendMsg(a);
 )
-o.free;
 
 
 
@@ -136,7 +136,7 @@ o = OSCFunc({ arg msg, time, addr, recvPort;
 	{
 		msg[1].postln;
 
-		// play selected vue within QLab
+		// play selected cue within QLab
 		//b.sendMsg("/cue_id/"++msg[1]++"/start", "");
 
 	}.defer;
@@ -150,11 +150,10 @@ o.free;
 
 // get some details of a selected cue
 (
-a = "/workspace/394E714B-AD2C-4058-ADA3-AB53C4052912/updates";
 b = NetAddr.new("10.1.1.3", 53000);
 
-b.sendMsg("/cue_id/1/valuesForKeys", "[\"type\",\"sliderLevels\"]");
-b.sendMsg("/cue_id/1/sliderLevels");
+// b.sendMsg("/cue_id/1/valuesForKeys", "[\"type\",\"sliderLevels\"]");
+// b.sendMsg("/cue_id/1/sliderLevels");
 
 o = OSCFunc({ arg msg, time, addr, recvPort;
 	{
@@ -162,9 +161,39 @@ o = OSCFunc({ arg msg, time, addr, recvPort;
 
 		// play selected vue within QLab
 		//b.sendMsg("/cue_id/"++msg[1]++"/start", "");
+	
+		// to execute only once, we free this function
+		//o.free;
+	
 
 	}.defer;
 },"/update/workspace/394E714B-AD2C-4058-ADA3-AB53C4052912/cueList/0/playbackPosition",recvPort:53001);
+
+a = "/updates";
 b.sendMsg(a,1);
+
 )
+
+
 o.free;
+
+
+b = NetAddr.new("10.1.1.3", 53000);
+b.sendMsg("/selectedCues");
+b.sendMsg("/workspace/394E714B-AD2C-4058-ADA3-AB53C4052912/selectedCues");
+
+
+/*
+
+get workspaces unique id
+
+check /reply the status is ok
+
+
+
+
+
+*/
+
+
+

@@ -278,7 +278,7 @@ speakerBuffer = speakerArray.loadToBuffer;
 
 SynthDef('VBAP 5 chan', { |azi = 0, ele = 0, spr = 0, width = 60, vbapBuf|
 
-	var panned, source;
+	var panned, source;	
 	var imp = Impulse.kr(10);
 	var delimp = Delay1.kr(imp);
 
