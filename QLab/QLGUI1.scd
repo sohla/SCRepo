@@ -44,6 +44,20 @@ var targRotate, actRotate, targPoint, actPoint;
 var maxShiftPerFrame = 20, frameInterval = 0.01;
 var resched = false, count = 0;
 var a, b, c, e;
+var widthSpec = [0,180].asSpec;
+
+var widthSlider;
+
+
+widthSlider = Slider()
+			.orientation_(\horizontal)
+			.action_({|v|
+				//widthSpec.map(v.value).postln;
+				widthBus.set(widthSpec.map(v.value));
+				c.refresh;
+			});
+
+//widthSlider.value_();
 
 maxShiftPerFrame = maxShiftPerFrame * atorad;
 actPoint = Point(x, y) - Point(200, 200);
@@ -65,7 +79,7 @@ c.drawFunc = {
     Pen.strokeOval(Rect.aboutPoint(0@0, 150, 150));
     Pen.rotate(pi);
     speakerList.do({|spkr|
-	    Color.green(0.5).set;
+	    Color.grey(0.2).set;
 
         Pen.use({
             Pen.rotate(spkr[0] * atorad);
@@ -98,14 +112,14 @@ Color.red.alpha_(0.1).set;
     actPoint = actPoint.rotate(actRotate);
     Pen.rotate(actRotate);
     Pen.lineTo(0@150);
-	Color.red.alpha_(0.5).set;
+	Color.grey(0.5).set;
     Pen.stroke;
     Pen.fillOval(Rect.aboutPoint(0@150, 7, 7));
 	Color.red.alpha_(0.1).set;
-    Pen.addWedge(0@0, 140, neg(e.value * 0.5) * atorad + 0.5pi, e.value * atorad);
+    Pen.addWedge(0@0, 140, neg(widthSpec.map(widthSlider.value) * 0.5) * atorad + 0.5pi, widthSpec.map(widthSlider.value) * atorad);
     Pen.fill;
     Color.grey(0.8).alpha_(0.1).set;
-    Pen.addWedge(0@0, 140, neg(e.value * 0.5) * atorad + 0.5pi, e.value * atorad);
+    Pen.addWedge(0@0, 140, neg(widthSpec.map(widthSlider.value) * 0.5) * atorad + 0.5pi, widthSpec.map(widthSlider.value) * atorad);
     Pen.fill;
 
     if((actRotate.abs > 0), {AppClock.sched(frameInterval, {w.refresh})}, {count = 0;});
@@ -113,13 +127,26 @@ Color.red.alpha_(0.1).set;
 };
 c.mouseMoveAction_({|v,inx,iny| x = inx; y = iny; w.refresh;});
 c.mouseDownAction_({|v,inx,iny| x = inx; y = iny; w.refresh;});
-e = EZSlider.new(c, 380@20, "Stereo Width", [0, 180].asSpec, {arg ez; widthBus.set(ez.value); w.refresh}, labelWidth: 80);
-e.labelView.setProperty(\stringColor,Color.grey(0.8));
-e.value = 60;
 
-	c
+// widthBus.set(0.5);
+// w.refresh();
+// e = EZSlider.new(c, 380@20, "Stereo Width", [0, 180].asSpec, {arg ez; widthBus.set(ez.value); w.refresh}, labelWidth: 80);
+// e.labelView.setProperty(\stringColor,Color.grey(0.2));
+// e.value = 60;
+
+
+
+	(VLayout(
+		widthSlider,
+		Slider(),
+		c
+	));
+
+	// c
 
 };
+
+
 //------------------------------------------------------
 levelsView = {
 
@@ -135,7 +162,7 @@ levelsView = {
 			*{|i|Slider()
 				.minHeight_(200)
 				.maxWidth_(50)
-				.background_(if (i==0){Color.yellow}{Color.green(0.5)})
+				.background_(if (i==0){Color.grey(0.1)}{Color.grey(0.2)})
 			}!count;
 		)
 	};
@@ -146,7 +173,7 @@ levelsView = {
 			*{|i|TextField()
 				.minHeight_(30)
 				.maxWidth_(50)
-				.background_(if (i==0){Color.yellow}{Color.green(0.5)})
+				.background_(if (i==0){Color.grey(0.1)}{Color.grey(0.2)})
 				.string_("1.0")
 				.align_(\center)
 			}!count;
@@ -190,7 +217,7 @@ headerView = {
 				.minWidth_(50)
 				.string_("1")
 				.align_(\center)
-				.stringColor_(Color.green)
+				.stringColor_(Color.grey)
 				.background_(Color.grey),
 
 			nameTextView = StaticText()
@@ -261,7 +288,7 @@ onLevels = OSCFunc({|msg, time, addr, recvPort|
 	{
 
 		level = msg[5].ampdb.linexp(-40, 0, 1, 2.0) - 1.0;
-		[msg[3],level].postln;
+		//[msg[3],level].postln;
 
 		slidersArray[msg[3]].value_(level);
 	}.defer;
