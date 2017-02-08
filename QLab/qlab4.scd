@@ -185,6 +185,9 @@ b.sendMsg("/workspace/394E714B-AD2C-4058-ADA3-AB53C4052912/selectedCues");
 
 /*
 
+connect with QLab 
+
+
 get workspaces unique id
 
 check /reply the status is ok
@@ -195,5 +198,41 @@ check /reply the status is ok
 
 */
 
+
+
+// listen to reply : use defer to post!!!
+
+a = "192.168.1.128";
+b = NetAddr.new(a, 53000);
+
+o = OSCFunc({ arg msg, time, addr, recvPort;
+	{
+		[msg, time, addr, recvPort].postln;
+
+	}.defer;
+},"/reply/version",recvPort:53001);
+
+
+(
+
+var appRequest = {|address,message,resultFunc|
+
+	var of;
+	of = OSCFunc({ arg msg, time, addr, recvPort;
+		{
+			resultFunc.(msg);
+			of.free;
+		}.defer;
+	},"/reply"++message,recvPort:53001);
+
+	address.sendMsg(message);
+};
+
+	a = "192.168.1.128";
+	b = NetAddr.new(a, 53000);
+
+	appRequest.(b,"/version",{|result| result.postln;});
+	appRequest.(b,"/workspaces",{|result| result.postln;});
+)
 
 
