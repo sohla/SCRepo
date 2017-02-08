@@ -94,7 +94,7 @@ o = OSCFunc({ arg msg, time, addr, recvPort;
 //		[msg, time, addr, recvPort].postln;
 		msg[0].postln;
 		d = msg[1].asString.parseYAML["data"][0];
-		d["uniqueID"].postln;
+		d["workspaceID"].postln;
 		o.free;
 
 	}.defer;
@@ -152,7 +152,7 @@ o.free;
 (
 b = NetAddr.new("10.1.1.3", 53000);
 
- b.sendMsg("/cue_id/1/valuesForKeys", "[\"type\",\"sliderLevels\"]");
+ b.sendMsg("/workspace/394E714B-AD2C-4058-ADA3-AB53C4052912/cue_id/1/valuesForKeys", "[\"type\",\"sliderLevels\"]");
 // b.sendMsg("/cue_id/1/sliderLevels");
 
 o = OSCFunc({ arg msg, time, addr, recvPort;
@@ -224,13 +224,19 @@ check /reply the status is ok
 	var netAddr = NetAddr.new(ip, 53000);
 
 	var version;
-	var displayName;
-	var uniqueID;
+	var workspaceName;
+	var workspaceID;
+	var cueID;
+	var cueName;
 
 	var wsNotify;
 
+	var appRequest;
+	var onCueSelected;
 
-	var onCueSelected = {|active,address,name,resultFunc|
+//------------------------------------------------------
+
+	onCueSelected = {|active,address,name,resultFunc|
 
 		active.if({
 			wsNotify = OSCFunc({ arg msg, time, addr, recvPort;
@@ -253,7 +259,8 @@ check /reply the status is ok
 
 
 
-	var appRequest = {|address,message,resultFunc|
+//------------------------------------------------------
+	appRequest = {|address,message,resultFunc,a=nil|
 
 		var of = OSCFunc({ arg msg, time, addr, recvPort;
 			{
@@ -264,16 +271,14 @@ check /reply the status is ok
 			}.defer;
 		},"/reply"++message,recvPort:53001);
 
-		address.sendMsg(message);
+		address.sendMsg(message,a);
 	};
 
+//------------------------------------------------------
 
 
-
-
-
-
-
+	// do the work....
+	// everything is wrapped up in a callback
 
 	appRequest.(netAddr,"/version",{|result| 
 
@@ -281,23 +286,37 @@ check /reply the status is ok
 
 		appRequest.(netAddr,"/workspaces",{|result| 
 			
-			displayName = result.data[0]["displayName"];
-			uniqueID = result.data[0]["uniqueID"];
+			workspaceName = result.data[0]["displayName"];
+			workspaceID = result.data[0]["uniqueID"];
 
-			["|QLab| Version :"+version, "Workspace :"+displayName].postln;
+			["|QLab| Version :"+version, "Workspace :"+workspaceName].postln;
 
-			onCueSelected.(true,netAddr,uniqueID,{|result|
+			onCueSelected.(true,netAddr,workspaceID,{|result|
 
-				["cue id",result].postln;
+				
+				cueID = result;
+				["cue selected id",result].postln;
 
 				// playing around with data\
-				appRequest.(netAddr,"/workspace/"++uniqueID++"/selectedCues",{|result| 
-					result.data[0]["uniqueID"].postln;
-				});
+				// appRequest.(netAddr,"/workspace/"++workspaceID++"/selectedCues",{|result| 
+				// 	result.data[0]["workspaceID"].postln;
+				// });
 
 				// get ALL the data
 
-				// update locally
+				// cue was selected in QLab so update everything locally
+
+
+				appRequest.(netAddr,"/cue_id/"++cueID++"/valuesForKeys",{|result| 
+					result.data.postln;
+				}, "[
+					\"displayName\",
+					\"number\",
+					\"type\",
+					\"sliderLevels\"
+				]");
+
+
 
 			});
 
