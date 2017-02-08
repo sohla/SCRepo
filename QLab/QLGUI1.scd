@@ -179,6 +179,7 @@ levelsView = {
 				.minHeight_(30)
 				.maxWidth_(50)
 				.background_(if (i==0){Color.grey(0.1)}{Color.grey(0.2)})
+				.stringColor_(Color.grey)
 				.string_("1.0")
 				.align_(\center)
 			}!count;
@@ -197,6 +198,7 @@ levelsView = {
 	slidersArray.do({|o,i|
 		o.action_({|sl|
 			valuesArray[i].value = sl.value.asStringPrec(2);
+			":".postln;
 		});
 	});
 
@@ -295,7 +297,7 @@ onLevels = OSCFunc({|msg, time, addr, recvPort|
 		level = msg[5].ampdb.linexp(-40, 0, 1, 2.0) - 1.0;
 		//[msg[3],level].postln;
 
-		slidersArray[msg[3]+1].value_(level);
+		slidersArray[msg[3]+1].valueAction_(level);
 	}.defer;
 
 }, '/onLevels');
