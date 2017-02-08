@@ -152,7 +152,7 @@ o.free;
 (
 b = NetAddr.new("10.1.1.3", 53000);
 
-// b.sendMsg("/cue_id/1/valuesForKeys", "[\"type\",\"sliderLevels\"]");
+ b.sendMsg("/cue_id/1/valuesForKeys", "[\"type\",\"sliderLevels\"]");
 // b.sendMsg("/cue_id/1/sliderLevels");
 
 o = OSCFunc({ arg msg, time, addr, recvPort;
@@ -180,6 +180,13 @@ o.free;
 
 b = NetAddr.new("10.1.1.3", 53000);
 b.sendMsg("/selectedCues");
+
+
+b.sendMsg("/workspace/oscTest/select/next");
+b.sendMsg("/workspace/oscTest/select/previous");
+
+b.sendMsg("/workspace/oscTest/selectedCues");
+
 b.sendMsg("/workspace/394E714B-AD2C-4058-ADA3-AB53C4052912/selectedCues");
 	
 
@@ -202,37 +209,103 @@ check /reply the status is ok
 
 // listen to reply : use defer to post!!!
 
-a = "192.168.1.128";
-b = NetAddr.new(a, 53000);
 
-o = OSCFunc({ arg msg, time, addr, recvPort;
-	{
-		[msg, time, addr, recvPort].postln;
 
-	}.defer;
-},"/reply/version",recvPort:53001);
+
+
+
+//------------------------------------------------------
+//------------------------------------------------------
 
 
 (
+	var debug = true;
+	var ip = "10.1.1.3";
+	var netAddr = NetAddr.new(ip, 53000);
 
-var appRequest = {|address,message,resultFunc|
+	var version;
+	var displayName;
+	var uniqueID;
 
-	var of;
-	of = OSCFunc({ arg msg, time, addr, recvPort;
-		{
-			resultFunc.(msg);
-			of.free;
-		}.defer;
-	},"/reply"++message,recvPort:53001);
+	var wsNotify;
 
-	address.sendMsg(message);
-};
 
-	a = "192.168.1.128";
-	b = NetAddr.new(a, 53000);
+	var onCueSelected = {|active,address,name,resultFunc|
 
-	appRequest.(b,"/version",{|result| result.postln;});
-	appRequest.(b,"/workspaces",{|result| result.postln;});
+		active.if({
+			wsNotify = OSCFunc({ arg msg, time, addr, recvPort;
+				{
+					//[">>",msg].postln;
+
+					resultFunc.(msg[1]);
+
+				}.defer;
+			},"/update/workspace/"++name++"/cueList/0/playbackPosition",recvPort:53001);
+			"starting workspace updates...".postln;
+			address.sendMsg("/updates",1);
+		},{
+			"stopping workspace updates".postln;
+			address.sendMsg("/updates",0);
+			wsNotify.free;
+		});
+	};
+
+
+
+
+	var appRequest = {|address,message,resultFunc|
+
+		var of = OSCFunc({ arg msg, time, addr, recvPort;
+			{
+				msg.addUniqueMethod(\data, { |to| to[1].asString.parseYAML["data"] });
+				//[">>",msg].postln;
+				resultFunc.(msg);
+				of.free;
+			}.defer;
+		},"/reply"++message,recvPort:53001);
+
+		address.sendMsg(message);
+	};
+
+
+
+
+
+
+
+
+
+	appRequest.(netAddr,"/version",{|result| 
+
+		version = result.data;
+
+		appRequest.(netAddr,"/workspaces",{|result| 
+			
+			displayName = result.data[0]["displayName"];
+			uniqueID = result.data[0]["uniqueID"];
+
+			["|QLab| Version :"+version, "Workspace :"+displayName].postln;
+
+			onCueSelected.(true,netAddr,uniqueID,{|result|
+
+				["cue id",result].postln;
+
+				// playing around with data\
+				appRequest.(netAddr,"/workspace/"++uniqueID++"/selectedCues",{|result| 
+					result.data[0]["uniqueID"].postln;
+				});
+
+				// get ALL the data
+
+				// update locally
+
+			});
+
+
+			{onCueSelected.(false,netAddr)}.defer(5);
+
+		});
+
+	});
+
 )
-
-
