@@ -14,6 +14,7 @@ b.sendMsg("/cue/2/sliderLevel/2", -4.0);
 (
 b = NetAddr.new("10.1.1.3", 53000);
 b.sendMsg("/cue/1/start", "");
+b.sendMsg("/cue/1/stop", "");
 
 r = Routine({|in|
 	var f;
@@ -219,7 +220,9 @@ check /reply the status is ok
 
 
 (
-	var debug = true;
+
+
+
 	var ip = "10.1.1.3";
 	var netAddr = NetAddr.new(ip, 53000);
 
@@ -229,10 +232,13 @@ check /reply the status is ok
 	var cueID;
 	var cueName;
 
-	var wsNotify;
+
+
+
 
 	var appRequest;
 	var onCueSelected;
+	var wsNotify;
 
 //------------------------------------------------------
 
@@ -242,7 +248,7 @@ check /reply the status is ok
 			wsNotify = OSCFunc({ arg msg, time, addr, recvPort;
 				{
 					//[">>",msg].postln;
-
+					//msg[1].asString.parseYAML["status"].postln;
 					resultFunc.(msg[1]);
 
 				}.defer;
@@ -266,6 +272,7 @@ check /reply the status is ok
 			{
 				msg.addUniqueMethod(\data, { |to| to[1].asString.parseYAML["data"] });
 				//[">>",msg].postln;
+				//msg[1].asString.parseYAML["status"].postln;
 				resultFunc.(msg);
 				of.free;
 			}.defer;

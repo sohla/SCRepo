@@ -14,6 +14,62 @@ var onLevels;
 var level;
 var slidersArray = [];
 
+
+var ip = "10.1.1.3";
+var netAddr;
+
+var version = 0;
+var workspaceName = "-";
+var workspaceID = -1;
+var cueID = -1;
+var cueName = "-";
+
+var appRequest;
+var onCueSelected;
+var wsNotify;
+
+var startConnection,stopConnection;
+//------------------------------------------------------
+
+	onCueSelected = {|active,address,name,resultFunc|
+
+		active.if({
+			wsNotify = OSCFunc({ arg msg, time, addr, recvPort;
+				{
+					//[">>",msg].postln;
+					//msg[1].asString.parseYAML["status"].postln;
+					resultFunc.(msg[1]);
+
+				}.defer;
+			},"/update/workspace/"++name++"/cueList/0/playbackPosition",recvPort:53001);
+			"starting workspace updates...".postln;
+			address.sendMsg("/updates",1);
+		},{
+			"stopping workspace updates".postln;
+			address.sendMsg("/updates",0);
+			wsNotify.free;
+		});
+	};
+
+
+
+
+//------------------------------------------------------
+	appRequest = {|address,message,resultFunc,a=nil|
+
+		var of = OSCFunc({ arg msg, time, addr, recvPort;
+			{
+				msg.addUniqueMethod(\data, { |to| to[1].asString.parseYAML["data"] });
+				//[">>",msg].postln;
+				//msg[1].asString.parseYAML["status"].postln;
+				resultFunc.(msg);
+				of.free;
+			}.defer;
+		},"/reply"++message,recvPort:53001);
+
+		address.sendMsg(message,a);
+	};
+
 //------------------------------------------------------
 
 speakerList = [ [60, "R"], [0, "C"], [120, "Rs"],[-60, "L"],[-120, "Ls"],[-180, "Ll"]];
@@ -198,7 +254,6 @@ levelsView = {
 	slidersArray.do({|o,i|
 		o.action_({|sl|
 			valuesArray[i].value = sl.value.asStringPrec(2);
-			":".postln;
 		});
 	});
 
@@ -222,14 +277,14 @@ headerView = {
 				.minHeight_(50)
 				.maxWidth_(50)
 				.minWidth_(50)
-				.string_("1")
+				.string_(cueID)
 				.align_(\center)
-				.stringColor_(Color.grey)
+				.stringColor_(Color.black)
 				.background_(Color.grey),
 
 			nameTextView = StaticText()
 				.maxHeight_(50)
-				.string_("  Name of Cue")
+				.string_(" "+cueName)
 				.align_(\left)
 				.stringColor_(Color.black)
 				.background_(Color.grey),
@@ -251,12 +306,29 @@ headerView = {
 //------------------------------------------------------
 
 connectView = {
+
+	var textField;
+
 	View().layout_( HLayout(
-	TextField()
-		.maxWidth_(200)
-		.string_("10.1.1.3"),
+	textField = TextField()
+		.string_(ip),
 	Button()
-		.states_([["Connect"]])
+	.maxWidth_(150)
+		.states_([["Connect",Color.green(0.6)],["Disconnect",Color.red(0.6)]])
+		.action_({|b|
+
+			b.value.asBoolean.if({
+				textField.enabled = false;
+				"GO".postln;
+
+				netAddr = NetAddr.new(ip, 53000);
+				startConnection.();
+
+			},{
+				textField.enabled = true;
+				stopConnection.();
+			});
+		});
 	))
 
 };
@@ -280,6 +352,7 @@ window.layout.add(mainView.());
 
 window.onClose = ({
 
+	//stopConnection.();
 	onLevels.free;
 	Buffer.freeAll;
 	s.freeAll;
@@ -287,6 +360,74 @@ window.onClose = ({
 });
 CmdPeriod.doOnce({window.close});
 
+//------------------------------------------------------
+
+startConnection = {
+
+
+	appRequest.(netAddr,"/version",{|result| 
+
+		version = result.data;
+
+		appRequest.(netAddr,"/workspaces",{|result| 
+			
+			workspaceName = result.data[0]["displayName"];
+			workspaceID = result.data[0]["uniqueID"];
+
+			["|QLab| Version :"+version, "Workspace :"+workspaceName].postln;
+
+			onCueSelected.(true,netAddr,workspaceID,{|result|
+
+				
+				cueID = result;
+				["cue selected id",result].postln;
+
+
+				// playing around with data\
+				// appRequest.(netAddr,"/workspace/"++workspaceID++"/selectedCues",{|result| 
+				// 	result.data[0]["workspaceID"].postln;
+				// });
+
+				// get ALL the data
+
+				// cue was selected in QLab so update everything locally
+
+
+				appRequest.(netAddr,"/cue_id/"++cueID++"/valuesForKeys",{|result| 
+					result.data.postln;
+
+
+					//• err no auto update?
+					numberTextView.string_(result.data["number"]);
+					nameTextView.string_(" "+result.data["displayName"]);
+
+
+					window.refresh;
+
+				}, "[
+					\"displayName\",
+					\"number\",
+					\"type\",
+					\"sliderLevels\"
+				]");
+
+
+			});
+
+
+
+		});
+
+	})
+
+};
+
+
+stopConnection = {
+	
+	onCueSelected.(false,netAddr);
+
+};
 
 //------------------------------------------------------
 
