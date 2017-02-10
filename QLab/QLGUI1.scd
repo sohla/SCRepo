@@ -21,8 +21,8 @@ var netAddr;
 var version = 0;
 var workspaceName = "-";
 var workspaceID = -1;
-var cueID = -1;
-var cueName = "-";
+ var cueID = -1;
+// var cueName = "-";
 
 var appRequest;
 var onCueSelected;
@@ -277,14 +277,14 @@ headerView = {
 				.minHeight_(50)
 				.maxWidth_(50)
 				.minWidth_(50)
-				.string_(cueID)
+				.string_("-")
 				.align_(\center)
 				.stringColor_(Color.black)
 				.background_(Color.grey),
 
 			nameTextView = StaticText()
 				.maxHeight_(50)
-				.string_(" "+cueName)
+				.string_(" _")
 				.align_(\left)
 				.stringColor_(Color.black)
 				.background_(Color.grey),
@@ -352,7 +352,14 @@ window.layout.add(mainView.());
 
 window.onClose = ({
 
+	
 	//stopConnection.();
+	if(netAddr != nil){
+		"stopping workspace updates".postln;
+		netAddr.sendMsg("/updates",0)
+	};
+	wsNotify.free;
+
 	onLevels.free;
 	Buffer.freeAll;
 	s.freeAll;
@@ -393,7 +400,7 @@ startConnection = {
 				// cue was selected in QLab so update everything locally
 
 
-				appRequest.(netAddr,"/cue_id/"++cueID++"/valuesForKeys",{|result| 
+				appRequest.(netAddr,"/cue_id/"++result++"/valuesForKeys",{|result| 
 					result.data.postln;
 
 
@@ -402,8 +409,6 @@ startConnection = {
 					nameTextView.string_(" "+result.data["displayName"]);
 
 
-					window.refresh;
-
 				}, "[
 					\"displayName\",
 					\"number\",
@@ -411,10 +416,7 @@ startConnection = {
 					\"sliderLevels\"
 				]");
 
-
 			});
-
-
 
 		});
 
@@ -439,6 +441,10 @@ onLevels = OSCFunc({|msg, time, addr, recvPort|
 		//[msg[3],level].postln;
 
 		slidersArray[msg[3]+1].valueAction_(level);
+
+		if(netAddr != nil){
+			netAddr.sendMsg("/cue_id/"++cueID++"/sliderLevel/"++(msg[3]+1), ampdb(level));
+		};
 	}.defer;
 
 }, '/onLevels');
