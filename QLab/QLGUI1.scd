@@ -13,7 +13,9 @@ var speakerList;
 var onLevels;
 var level;
 var slidersArray = [];
+var levelsArray = [];
 
+var isEditing = false;
 
 var ip = "10.1.1.3";
 var netAddr;
@@ -122,8 +124,9 @@ speakerView = {
 		.minHeight_(400)
 		.minWidth_(400)
 		.canFocus_(false)
-		.mouseMoveAction_({|v,inx,iny| x = inx; y = iny; roundView.refresh;})
-		.mouseDownAction_({|v,inx,iny| x = inx; y = iny; roundView.refresh;})
+		.mouseMoveAction_({|v,inx,iny| isEditing = true; x = inx; y = iny; roundView.refresh;})
+		.mouseDownAction_({|v,inx,iny| isEditing = true; x = inx; y = iny; roundView.refresh;})
+		.mouseUpAction_({|v,inx,iny| isEditing = false;})
 		.drawFunc_({
 
 			var atorad = (2pi) / 360, rtoang = 360.0 / (2pi);
@@ -213,19 +216,22 @@ levelsView = {
 
 	var count = 9;
 	var layout;
-	var sliders,values;
+	var sliders,values,levels;
 	//var slidersArray = [];
 	var valuesArray = [];
+	var sliderLevelPair;
+
+	sliderLevelPair = { [
+
+		LevelIndicator(w, Rect(0, 0, 4, 100))
+			.background_(Color.grey(0.5))
+			.maxWidth_(4),
+		Slider(w, Rect(0, 0, 10, 100))
+	] } ! count ;
 
 	sliders = {
-		HLayout (
 
-			*{|i|Slider()
-				.minHeight_(200)
-				.maxWidth_(50)
-				.background_(if (i==0){Color.grey(0.1)}{Color.grey(0.2)})
-			}!count;
-		)
+		HLayout(*sliderLevelPair.collect { |x| HLayout(*x).spacing_(0) });
 	};
 
 	values = {
@@ -250,10 +256,16 @@ levelsView = {
 
 	slidersArray = layout.children(Slider);
 	valuesArray = layout.children(TextField);
+	levelsArray = layout.children(LevelIndicator);
+
+	levelsArray.do({|o,i|
+		o.value = 0.8;
+	});
+
 
 	slidersArray.do({|o,i|
 		o.action_({|sl|
-			valuesArray[i].value = sl.value.asStringPrec(2);
+			//valuesArray[i].value = sl.value.asStringPrec(2);
 		});
 	});
 
@@ -292,11 +304,21 @@ headerView = {
 			VLayout( 
 				Button()
 					.states_([["▲"]])
-					.maxWidth_(30),
+					.maxWidth_(30)
+					.action_({
+						if(netAddr != nil){
+							netAddr.sendMsg("/workspace/"++workspaceID++"/select/previous");
+						};
+					}),
 
 				Button()
 					.states_([["▼"]])
-					.maxWidth_(30),
+					.maxWidth_(30)
+					.action_({
+						if(netAddr != nil){
+							netAddr.sendMsg("/workspace/"++workspaceID++"/select/next");
+						};
+					}),
 
 			)
 		);	
@@ -409,6 +431,14 @@ startConnection = {
 					nameTextView.string_(" "+result.data["displayName"]);
 
 
+					9.do({ |i|
+						//result.data["sliderLevels"][i].asFloat.class.postln;
+						levelsArray[i].value = result.data["sliderLevels"][i].asFloat.dbamp;
+
+					});
+					
+
+
 				}, "[
 					\"displayName\",
 					\"number\",
@@ -437,12 +467,12 @@ onLevels = OSCFunc({|msg, time, addr, recvPort|
 
 	{
 
-		level = msg[5].ampdb.linexp(-40, 0, 1, 2.0) - 1.0;
+		level = msg[5].ampdb.linexp(-40, 12, 1, 2.0) - 1.0;
 		//[msg[3],level].postln;
 
-		slidersArray[msg[3]+1].valueAction_(level);
 
-		if(netAddr != nil){
+		if(netAddr != nil && isEditing){
+		slidersArray[msg[3]+1].valueAction_(level);
 			netAddr.sendMsg("/cue_id/"++cueID++"/sliderLevel/"++(msg[3]+1), ampdb(level));
 		};
 	}.defer;
