@@ -305,6 +305,7 @@ headerView = {
 				Button()
 					.states_([["▲"]])
 					.maxWidth_(30)
+					.minHeight_(30)
 					.action_({
 						if(netAddr != nil){
 							netAddr.sendMsg("/workspace/"++workspaceID++"/select/previous");
@@ -313,10 +314,33 @@ headerView = {
 
 				Button()
 					.states_([["▼"]])
+					.minHeight_(30)
 					.maxWidth_(30)
 					.action_({
 						if(netAddr != nil){
 							netAddr.sendMsg("/workspace/"++workspaceID++"/select/next");
+						};
+					}),
+
+			),
+			VLayout( 
+				Button()
+					.states_([["▶︎"]])
+					.maxWidth_(30)
+					.minHeight_(30)
+					.action_({
+						if(netAddr != nil){
+							netAddr.sendMsg("/cue_id/"++cueID++"/start");
+						};
+					}),
+
+				Button()
+					.states_([["◼"]])
+					.maxWidth_(30)
+					.minHeight_(30)
+					.action_({
+						if(netAddr != nil){
+							netAddr.sendMsg("/cue_id/"++cueID++"/stop");
 						};
 					}),
 
