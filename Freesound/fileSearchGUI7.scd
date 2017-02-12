@@ -277,7 +277,7 @@ playView =({|i,sndResult|
 		]
 	).setMinColumnWidth(1,350)
 	).enabled_(false)
-	.background_(Color.rand(0.1,0.9))
+	.background_(Color.red.hueBlend(Color.blue,1.0.rand).alpha_(0.3))
 	.maxHeight_(200)
 
 
@@ -457,25 +457,27 @@ addResult =({|i,sndResult,count|
 
 	var makeEntry = {
 		var view = View()
-			.background_(Color.hsv((0.165*i),1.0,1.0).vary(0.4,0.4,0.9,0.4))
+			//.background_(Color.hsv((0.165*i),1.0,1.0).vary(0.4,0.4,0.9,0.4))
 			.layout_( HLayout(
 				 Button()
 				.states_([[
 				count +"\t"+ sndResult.name.splitext[0] +
 				"\nDur:" + sndResult.duration,//•name
 					Color.black,
-					Color.hsv((0.165*i),1.0,1.0).vary(0.4,0.4,0.9,0.4)
+					//Color.hsv((0.165*i),1.0,1.0).vary(0.4,0.4,0.9,0.4)
+
+					Color.red.hueBlend(Color.blue,1.0.rand).alpha_(0.3)
 				]])
 				.action_(buttonAction)
 				.minHeight_(80)
-				.maxWidth_(100),
+				.maxWidth_(220),
 				
 				WebView().url_(sndResult.images.dict["waveform_l"])
 				.maxWidth_(360)
 				.enabled_(false)
 	        )
 	    );
-		view.layout.margins = [0,0,0,0];
+		view.layout.margins = [4,4,4,4];
 	    view;
 	};
 
@@ -504,7 +506,7 @@ stackView =({|i|
 //------------------------------------------------------
 // build UI
 //------------------------------------------------------
-window = Window("",Rect(0,0,Window.screenBounds.width * 0.7, Window.screenBounds.height)
+window = Window("",Rect(0,0,Window.screenBounds.width * 0.5, Window.screenBounds.height)
 	//.center_(Window.availableBounds.center)
 	).front;
 
