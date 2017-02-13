@@ -1,55 +1,10 @@
-// (
-// Freesound.clientId = "f2880da706c6d92d7ce3";
-// Freesound.clientSecret = "bfa791a021762f7c6cb70088c720855a0c5f8f49";
-// Freesound.authType = "oauth2";
-// Freesound.refreshToken({"success!".postln});
-// )
-
-
-// o = Server.local.options;
-// o.outDevice
-
-//
-// // Post the number of output channels
-//
-// o.numOutputBusChannels.postln;
-//
-// // Set them to a new number
-//
-// o.numOutputBusChannels = 10; // The next time it boots, this w
-//
-//
-
-// (
-// SynthDef("bufplayerMonoFS", { |bufnum = 0, volume = 0.0, gate = 1|
-// 	var son;
-// 	son = PlayBuf.ar(1,bufnum,BufRateScale.kr(bufnum),loop:1,doneAction:2)
-// 	* EnvGen.kr(Env.asr(2.8,1.0,2.8,\sine),gate,doneAction:2) * volume;
-//
-// 	Out.ar(0, son!2);
-// 	//	Out.ar(0, son!2);
-// }).load(s);
-//
-// SynthDef("bufplayerStereoFS", { |bufnum = 0, volume = 0.0, gate = 1|
-// 	var son;
-// 	son = PlayBuf.ar(2,bufnum,BufRateScale.kr(bufnum),loop:1,doneAction:2)
-// 	* EnvGen.kr(Env.asr(2.8,1.0,2.8,\sine),gate,doneAction:2) * volume;
-//
-// 	Out.ar(0, son);
-// 	//	Out.ar(0, son);
-// }).load(s);
-//
-// )
-//
-
-
 
 (
 
-var window, mainView,newSearchView,stackView,queryView,resultsView,waitingView,playView;
+var window, mainView,newSearchView,stackView,queryView,resultsView,playView;
 var addStack,removeStack,addResult,switchToStack;
 var searchViews = [];
-var stackIndexes = [\newSearchIdx,\queryIdx,\waitingIdx,\resultsIdx,\playIdx];
+var stackIndexes = [\newSearchIdx,\queryIdx,\resultsIdx,\playIdx];
 var dir = PathName.new("~/Music/SoundNarative/");
 var fastSearch;
 
@@ -143,24 +98,13 @@ newSearchView =({|i|
 	View().layout_( HLayout(
 		Button()
 			.string_("+")
-			.font_(Font(size:48))
+			.font_(Font(size:24))
 			.action_(buttonAction)
+			.maxWidth_(100)
 		)
 	);
 });
 
-//------------------------------------------------------
-// waitingView
-//------------------------------------------------------
-waitingView =({|i|
-	View().layout_( HLayout(
-		StaticText()
-			.string_("searching.....")
-		.align_(\center)
-			.font_(Font(size:24))
-		)
-	);
-});
 
 //------------------------------------------------------
 // playView
@@ -371,7 +315,10 @@ queryView =({|i|
 
 	var textFieldAction = {|a|
 
-		searchViews[i].layout.index = stackIndexes.find([\waitingIdx]);
+		var searchTerm = a.string;
+
+		a.string_("searching for "++searchTerm++"...");
+		a.enabled_(false);
 
 		//• HD version
 		//• time to start making a protocol
@@ -404,7 +351,7 @@ queryView =({|i|
 			"id,name,tags,username,license,previews,channels,images,type,download,duration";
 
 		FSSound.textSearch(
-			query: a.string,
+			query: searchTerm,
 			filter: "duration:[0 TO 30]",
 			params:('page':1),
 			action: {|p|
@@ -426,7 +373,7 @@ queryView =({|i|
 		TextField()
 			.string_("")
 			.align_(\center)
-			.font_(Font(size:48))
+			.font_(Font(size:24))
 			.stringColor_(Color.white)
 			.focusGainedAction_({|a|a.string ="";})//always clear
 			.action_(textFieldAction)
@@ -503,7 +450,7 @@ addResult =({|i,sndResult,count|
 	    view;
 	};
 
-	searchViews[i].children(View)[3].children(ScrollView)[0].canvas.layout.add( makeEntry.() );
+	searchViews[i].children(View)[2].children(ScrollView)[0].canvas.layout.add( makeEntry.() );
 
 	//searchViews[i].children(ScrollView)[0].canvas.layout.add( makeEntry.() );
 	//sndResult.images.dict["waveform_l"].postln;
@@ -517,9 +464,7 @@ stackView =({|i|
 	View().layout_( StackLayout(
 			newSearchView.(i),
 			queryView.(i),
-			waitingView.(i),
-			resultsView.(i),
-			//playView.(i)
+			resultsView.(i)
 
 		)
 	);
@@ -562,7 +507,9 @@ if(Freesound.token.isNil){
 
 };
 
-
+//------------------------------------------------------
+// close UI
+//------------------------------------------------------
 
 window.onClose = ({
 
@@ -580,3 +527,32 @@ CmdPeriod.doOnce({window.close});
 
 
 
+
+
+
+
+
+//------------------------------------------------------
+// synths
+//------------------------------------------------------
+// (
+// SynthDef("bufplayerMonoFS", { |bufnum = 0, volume = 0.0, gate = 1|
+// 	var son;
+// 	son = PlayBuf.ar(1,bufnum,BufRateScale.kr(bufnum),loop:1,doneAction:2)
+// 	* EnvGen.kr(Env.asr(2.8,1.0,2.8,\sine),gate,doneAction:2) * volume;
+//
+// 	Out.ar(0, son!2);
+// 	//	Out.ar(0, son!2);
+// }).load(s);
+//
+// SynthDef("bufplayerStereoFS", { |bufnum = 0, volume = 0.0, gate = 1|
+// 	var son;
+// 	son = PlayBuf.ar(2,bufnum,BufRateScale.kr(bufnum),loop:1,doneAction:2)
+// 	* EnvGen.kr(Env.asr(2.8,1.0,2.8,\sine),gate,doneAction:2) * volume;
+//
+// 	Out.ar(0, son);
+// 	//	Out.ar(0, son);
+// }).load(s);
+//
+// )
+//
