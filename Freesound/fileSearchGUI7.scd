@@ -2,7 +2,7 @@
 // Freesound.clientId = "f2880da706c6d92d7ce3";
 // Freesound.clientSecret = "bfa791a021762f7c6cb70088c720855a0c5f8f49";
 // Freesound.authType = "oauth2";
-// Freesound.refreshToken;
+// Freesound.refreshToken({"success!".postln});
 // )
 
 
@@ -53,11 +53,16 @@ var stackIndexes = [\newSearchIdx,\queryIdx,\waitingIdx,\resultsIdx,\playIdx];
 var dir = PathName.new("~/Music/SoundNarative/");
 var fastSearch;
 
+var monkeys = ["🙈","🙉","🙊"];
+var splash,splashTask;
+
 //var dirPath = "/Volumes/Steph2015/*".postln;
 //var dirPath = "/Volumes/Steph2015/Samples:Loops:SFX/*".postln;
 var dirPath = "~/Music/*";
 
 s.boot;
+
+QtGUI.palette = QPalette.dark;
 
 fastSearch = {|dir, fileTypes, searchString, itrFunc, completeFunc|
 
@@ -152,6 +157,8 @@ waitingView =({|i|
 //------------------------------------------------------
 playView =({|i,sndResult|
 
+	//• sndResult should be a struct with data
+
 	var buffer,sfv,sliderView,view;
 	var samplerNode = s.nextNodeID;
 
@@ -208,18 +215,22 @@ playView =({|i,sndResult|
 	//• if it's freesound, need to download, process mp3->local
 	//• local->buffer...let's go!
 
+	//• sndResult should be a struct with data
 
 
 
 
-//	buffer = Buffer.read(s, sndResult,action:onBufferRead);
+
+
+
 
 	// load sound into buffer
+	// sndResult could be :
 
+	// local
+	//buffer = Buffer.read(s, sndResult,action:onBufferRead);
 
-
-
-
+	// freesound
 	sndResult.retrievePreview(dir.asAbsolutePath,{|a|
 		"*".postln;
 		sndResult.postln;
@@ -406,7 +417,7 @@ queryView =({|i|
 			.string_("")
 			.align_(\center)
 			.font_(Font(size:48))
-			.stringColor_(Color.red)
+			.stringColor_(Color.white)
 			.focusGainedAction_({|a|a.string ="";})//always clear
 			.action_(textFieldAction)
 		)
@@ -449,6 +460,8 @@ resultsView =({|i|
 addResult =({|i,sndResult,count|
 
 
+	//• sndResult should be a struct with data
+
 	var buttonAction = {|button|
 
 		searchViews[i].layout.add(playView.(i,sndResult).front);
@@ -457,24 +470,23 @@ addResult =({|i,sndResult,count|
 
 	var makeEntry = {
 		var view = View()
-			//.background_(Color.hsv((0.165*i),1.0,1.0).vary(0.4,0.4,0.9,0.4))
 			.layout_( HLayout(
 				 Button()
 				.states_([[
 				count +"\t"+ sndResult.name.splitext[0] +
 				"\nDur:" + sndResult.duration,//•name
 					Color.black,
-					//Color.hsv((0.165*i),1.0,1.0).vary(0.4,0.4,0.9,0.4)
-
 					Color.red.hueBlend(Color.blue,1.0.rand).alpha_(0.3)
 				]])
 				.action_(buttonAction)
 				.minHeight_(80)
 				.maxWidth_(220),
 				
-				WebView().url_(sndResult.images.dict["waveform_l"])
+				WebView()
 				.maxWidth_(360)
 				.enabled_(false)
+				.html_("<body style = \" background: rgb(0,0,0);\"></body>")
+				.url_(sndResult.images.dict["waveform_l"])
 	        )
 	    );
 		view.layout.margins = [4,4,4,4];
@@ -510,11 +522,26 @@ window = Window("",Rect(0,0,Window.screenBounds.width * 0.5, Window.screenBounds
 	//.center_(Window.availableBounds.center)
 	).front;
 
-window.layout = VLayout();
+// splash view
+window.layout = VLayout(splash = StaticText().string_("connecting to freesound...").align_(\center));
+splashTask = Task({ { monkeys = monkeys.rotate(1);{splash.string_(monkeys[0]+"\nconnecting to freesound...");}.defer; 0.2.wait;}.loop }).start;
 
-// add our first stack
-addStack.(0);
+// refresh freesound token 
+Freesound.clientId = "f2880da706c6d92d7ce3";
+Freesound.clientSecret = "bfa791a021762f7c6cb70088c720855a0c5f8f49";
+Freesound.authType = "oauth2";
+Freesound.refreshToken({
+	{
+		splashTask.stop;
+		splash.remove();
+		"success!".postln;
 
+		//add our first stack
+		addStack.(0);
+
+}.defer(0.3); // for some reason we have to delay a little
+
+});
 
 
 
