@@ -56,14 +56,24 @@ var fastSearch;
 var monkeys = ["🙈","🙉","🙊"];
 var splash,splashTask;
 
+
+
 //var dirPath = "/Volumes/Steph2015/*".postln;
 //var dirPath = "/Volumes/Steph2015/Samples:Loops:SFX/*".postln;
 var dirPath = "~/Music/*";
 
-s.boot;
 
+
+
+s.boot;
 QtGUI.palette = QPalette.dark;
 
+
+
+
+//------------------------------------------------------
+// fastSearch
+//------------------------------------------------------
 fastSearch = {|dir, fileTypes, searchString, itrFunc, completeFunc|
 
 	// start building find command string
@@ -505,7 +515,7 @@ addResult =({|i,sndResult,count|
 stackView =({|i|
 
 	View().layout_( StackLayout(
-			newSearchView.(i),
+			//newSearchView.(i),
 			queryView.(i),
 			waitingView.(i),
 			resultsView.(i),
@@ -527,11 +537,11 @@ window.layout = VLayout(splash = StaticText().string_("connecting to freesound..
 splashTask = Task({ { monkeys = monkeys.rotate(1);{splash.string_(monkeys[0]+"\nconnecting to freesound...");}.defer; 0.2.wait;}.loop }).start;
 
 // refresh freesound token 
-Freesound.clientId = "f2880da706c6d92d7ce3";
-Freesound.clientSecret = "bfa791a021762f7c6cb70088c720855a0c5f8f49";
-Freesound.authType = "oauth2";
-Freesound.refreshToken({
-	{
+// Freesound.clientId = "f2880da706c6d92d7ce3";
+// Freesound.clientSecret = "bfa791a021762f7c6cb70088c720855a0c5f8f49";
+// Freesound.authType = "oauth2";
+// Freesound.refreshToken({
+// 	{
 		splashTask.stop;
 		splash.remove();
 		"success!".postln;
@@ -539,9 +549,9 @@ Freesound.refreshToken({
 		//add our first stack
 		addStack.(0);
 
-}.defer(0.3); // for some reason we have to delay a little
+// }.defer(0.3); // for some reason we have to delay a little
 
-});
+// });
 
 
 
