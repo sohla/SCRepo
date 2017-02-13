@@ -515,7 +515,7 @@ addResult =({|i,sndResult,count|
 stackView =({|i|
 
 	View().layout_( StackLayout(
-			//newSearchView.(i),
+			newSearchView.(i),
 			queryView.(i),
 			waitingView.(i),
 			resultsView.(i),
@@ -537,21 +537,30 @@ window.layout = VLayout(splash = StaticText().string_("connecting to freesound..
 splashTask = Task({ { monkeys = monkeys.rotate(1);{splash.string_(monkeys[0]+"\nconnecting to freesound...");}.defer; 0.2.wait;}.loop }).start;
 
 // refresh freesound token 
-// Freesound.clientId = "f2880da706c6d92d7ce3";
-// Freesound.clientSecret = "bfa791a021762f7c6cb70088c720855a0c5f8f49";
-// Freesound.authType = "oauth2";
-// Freesound.refreshToken({
-// 	{
-		splashTask.stop;
-		splash.remove();
-		"success!".postln;
+if(Freesound.token.isNil){
 
-		//add our first stack
-		addStack.(0);
+	Freesound.clientId = "f2880da706c6d92d7ce3";
+	Freesound.clientSecret = "bfa791a021762f7c6cb70088c720855a0c5f8f49";
+	Freesound.authType = "oauth2";
+	Freesound.refreshToken({
+		{
+			splashTask.stop;
+			splash.remove();
 
-// }.defer(0.3); // for some reason we have to delay a little
+			//add our first stack
+			addStack.(0);
 
-// });
+		}.defer(0.3); // for some reason we have to delay a little
+	});
+
+}{
+	splashTask.stop;
+	splash.remove();
+
+	//add our first stack
+	addStack.(0);
+
+};
 
 
 
