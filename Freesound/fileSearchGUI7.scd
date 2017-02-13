@@ -5,7 +5,7 @@ var window, mainView,newSearchView,stackView,queryView,resultsView,playView;
 var addStack,removeStack,addResult,switchToStack;
 var searchViews = [];
 var stackIndexes = [\newSearchIdx,\queryIdx,\resultsIdx,\playIdx];
-var dir = PathName.new("~/Music/SoundNarative/");
+var storeDir = PathName.new("~/Music/SoundNarative/");
 var fastSearch;
 
 var monkeys = ["🙈","🙉","🙊"];
@@ -29,7 +29,7 @@ QtGUI.palette = QPalette.dark;
 //------------------------------------------------------
 // fastSearch
 //------------------------------------------------------
-fastSearch = {|dir, fileTypes, searchString, itrFunc, completeFunc|
+fastSearch = {|dir, fileTypes, searchString, completeFunc|
 
 	// start building find command string
 	var cs = ("find % \\(").format(dir);
@@ -55,8 +55,7 @@ fastSearch = {|dir, fileTypes, searchString, itrFunc, completeFunc|
 	cs = cs.copyFromStart(cs.size-3)++ " \\)";
 	// send it off and get results, fast
 	data = cs.unixCmdGetStdOutLines;
-	data.do({|o,i|itrFunc.(o,i)});
-	completeFunc.(data.size);
+	completeFunc.(data); // what other info can we get?
 
 };
 
@@ -171,7 +170,7 @@ playView =({|i,sndResult|
 
 	//• sndResult should be a struct with data
 
-
+	//• need to think about storing all this data as well.
 
 
 
@@ -185,10 +184,10 @@ playView =({|i,sndResult|
 	//buffer = Buffer.read(s, sndResult,action:onBufferRead);
 
 	// freesound
-	sndResult.retrievePreview(dir.asAbsolutePath,{|a|
+	sndResult.retrievePreview(storeDir.asAbsolutePath,{|a|
 		"*".postln;
 		sndResult.postln;
-		p = dir +/+ PathName(sndResult.name.splitext[0]++".mp3");
+		p = storeDir +/+ PathName(sndResult.name.splitext[0]++".mp3");
 		buffer = MP3.readToBuffer(s, p.asAbsolutePath,action:onBufferRead);
 	},"hq","mp3");
 
@@ -335,6 +334,7 @@ queryView =({|i|
 		//
 		// 		//[i,a].postln;
 		// 		//Routine{
+		//		//• a should be a struct
 		// 		addResult.(i,a,count);
 		// 		//}.play(AppClock);
 		//
@@ -344,6 +344,18 @@ queryView =({|i|
 		// );
 
 		//• encapsulate as a service (either freesound or a HD)
+
+
+		// search(term,filter, {|response|
+
+		// 	searchViews[i].layout.index = stackIndexes.find([\resultsIdx]);
+
+		// 	response.do({ |snd,j|
+		// 		addResult.(i,snd,j);
+		// 	})
+
+		// }
+
 
 		//freesound basic text search
 
@@ -355,16 +367,17 @@ queryView =({|i|
 			filter: "duration:[0 TO 30]",
 			params:('page':1),
 			action: {|p|
-				var count = 0;
-				searchViews[i].layout.index = stackIndexes.find([\resultsIdx]);
-				p.do({|snd|
+				{				
+					searchViews[i].layout.index = stackIndexes.find([\resultsIdx]);
+					p.do({|snd,j|
+						// Routine{
+							
+							//• snd should be a struct
+							addResult.(i,snd,j);
 
-					Routine{
-						addResult.(i,snd,count);
-						count = count + 1;
-					}.play(AppClock);
-
-				});
+						// }.play(AppClock);
+					});
+				}.defer(0.1);
 			}
 		);
 	};
@@ -410,7 +423,9 @@ resultsView =({|i|
 		)
 	);
 
-});//------------------------------------------------------
+});
+
+//------------------------------------------------------
 // addResult
 //------------------------------------------------------
 
