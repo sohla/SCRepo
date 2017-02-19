@@ -212,7 +212,7 @@
 	
 
 		s.queryAllNodes;
-		("-"!12).postln;
+		("_"!12).postln;
 
 		// return path
 		sessionArchivePath;
@@ -285,7 +285,7 @@
 
 		("Recording "++t).postln;
 		s.queryAllNodes;
-		("-"!12).postln;
+		("_"!12).postln;
 
 
 	});
@@ -308,7 +308,7 @@
 			stopRecorder.();
 
 			s.queryAllNodes;
-			("-"!12).postln;
+			("_"!12).postln;
 			a.onFree({
 
 				if( pluginSynth != nil, {
@@ -319,7 +319,7 @@
 				{
 				completionFunc.();
 					s.queryAllNodes;
-					("-"!12).postln;
+					("_"!12).postln;
 
 				}.defer;
 			});
@@ -345,7 +345,7 @@
 		recorderSynth = Synth.after(micSynth,\diskOut, ["bufnum", recBuffer.bufnum]);
 		("Recording "++title).postln;
 		s.queryAllNodes;
-		("-"!12).postln;
+		("_"!12).postln;
 
 
 	});
@@ -563,7 +563,7 @@
 		textFieldView = ({
 			View().layout_( VLayout(
 
-				textFieldMessage = StaticText().string_("-").align_(\center).font_(Font(size:24)),
+				textFieldMessage = StaticText().string_("_").align_(\center).font_(Font(size:24)),
 				[textField = TextField()
 					.minWidth_(1000)
 					.minHeight_(70)
@@ -591,7 +591,7 @@
 						File.delete(qpath+/+oldTitle);
 
 						s.queryAllNodes;
-						("-"!12).postln;
+						("_"!12).postln;
 
 						mainView.index = 1;
 						refreshGUI.();
@@ -628,7 +628,8 @@
 				StaticText().string_("Welcome to VoiceLab").align_(\center).font_(Font(size:48)),
 
 				[newSessionButton, align:\center],
-				[templateSessionButton, align:\center]
+				[templateSessionButton, align:\center],
+				StaticText().string_("Polyglot 2017 : v2.4").align_(\center).font_(Font(size:12))
 
 				)
 			);
@@ -782,7 +783,7 @@
 							Buffer.freeAll;
 							s.freeAll;
 							s.queryAllNodes;
-							("-"!12).postln;
+							("_"!12).postln;
 							mainView.index = 0;
 							bgMusicStart.();
 
@@ -874,7 +875,7 @@
 			Buffer.freeAll;
 			s.freeAll;
 			s.queryAllNodes;
-			("-"!12).postln;
+			("_"!12).postln;
 
 		});
 
@@ -883,9 +884,9 @@
 	~routine = Routine{ |in|
 		inf.do{|i|
 
-			var range = 10;
-			var x = diameter.half + (sin( (pi/180) * angle) * diameter.half * 0.15);
-			var y = diameter.half + (cos( (pi/180) * angle ) * diameter.half * 0.15);
+			var range = 0.15;
+			var x = diameter.half + (sin( (pi/180) * angle) * diameter.half * range);
+			var y = diameter.half + (cos( (pi/180) * angle ) * diameter.half * range);
 
 			case
 			{ autoBtn.value == 1}{
