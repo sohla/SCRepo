@@ -305,33 +305,37 @@
 	playQuestion = ({ |path, completionFunc|
 
 
+		b = Buffer.read(s, path, action:{
 
-		a = Synth.head(playbackGroup,\playBuffer,[\buffer,Buffer.read(s, path),\amp,0.33]);
+			a = Synth.head(playbackGroup,\playBuffer,[\buffer,b,\amp,0.33]);
 
-		pluginNames[pluginIndex].postln;
 
-		if( pluginIndex > 0, {
-			pluginSynth = Synth.after(a,pluginNames[pluginIndex]);
-		},{
-		});
 
-		stopRecorder.();
+			pluginNames[pluginIndex].postln;
 
-		s.queryAllNodes;
-		("-"!12).postln;
-		a.onFree({
-
-			if( pluginSynth != nil, {
-				pluginSynth.free;
+			if( pluginIndex > 0, {
+				pluginSynth = Synth.after(a,pluginNames[pluginIndex]);
 			},{
 			});
 
-			{
-			completionFunc.();
-				s.queryAllNodes;
-				("-"!12).postln;
+			stopRecorder.();
 
-			}.defer;
+			s.queryAllNodes;
+			("-"!12).postln;
+			a.onFree({
+
+				if( pluginSynth != nil, {
+					pluginSynth.free;
+				},{
+				});
+
+				{
+				completionFunc.();
+					s.queryAllNodes;
+					("-"!12).postln;
+
+				}.defer;
+			});
 		});
 	});
 	//------------------------------------------------------
