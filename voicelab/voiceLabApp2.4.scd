@@ -298,8 +298,6 @@
 
 			a = Synth.head(playbackGroup,\playBuffer,[\buffer,b,\amp,0.33]);
 
-
-
 			pluginNames[pluginIndex].postln;
 
 			if( pluginIndex > 0, {
@@ -506,7 +504,7 @@
 		var listView;
 		var pluginView;
 
-		var newSessionButton, openSessionButton, templateSessionButton;
+		var newSessionButton, templateSessionButton;
 
 
 		//------------------------------------------------------
@@ -528,49 +526,6 @@
 						{createSession.();}.defer(1);
 					});
 
-		//------------------------------------------------------
-
-		openSessionButton = Button()
-					.states_([["Open Session"]])
-					.minWidth_(300)
-					.minHeight_(50)
-					.focusGainedAction_({|b|
-						b.states = [["Open Session"]];
-						b.refresh;
-					})
-					.action_({|b|
-						{
-						b.states = [["processing session files...",Color.new255(226, 49, 140)]];
-						b.refresh;
-						}.defer(1);
-						pluginIndex = 0;
-						pluginView.value = pluginIndex;
-						say.("Open Voice Lab Session");
-						loadSession.(createSession.(),{
-							b.states = [["Open Session"]];
-							b.refresh;
-							stopRecorder.();
-			// playbackGroup.free;
-			// //backgroundGroup.free;
-			// childMicGroup.free;
-			// listenGroup.free;
-			// micInGroup.free;
-
-							 s.freeAll;
-							s.queryAllNodes;
-							("-"!12).postln;
-
-
-						},{
-							mainView.index = 1;
-							refreshGUI.();
-						},{
-
-								errorText.string = "You must select Voice Lab session (.vls) file";
-								mainView.index = 2;
-
-						})
-					});
 		//------------------------------------------------------
 		templateSessionButton = Button()
 					.maxHeight_(100)
@@ -673,7 +628,6 @@
 				StaticText().string_("Welcome to VoiceLab").align_(\center).font_(Font(size:48)),
 
 				[newSessionButton, align:\center],
-				//[openSessionButton, align:\center],
 				[templateSessionButton, align:\center]
 
 				)
@@ -826,10 +780,6 @@
 							arduino!?{3.do({|i|arduino.dmxc_(i+1,255, 81, 97)})};
 
 							Buffer.freeAll;
-			// playbackGroup.free;
-			// childMicGroup.free;
-			// listenGroup.free;
-			// micInGroup.free;
 							s.freeAll;
 							s.queryAllNodes;
 							("-"!12).postln;
@@ -922,13 +872,6 @@
 			disconnectArduino.();
 
 			Buffer.freeAll;
-
-			// playbackGroup.free;
-			// backgroundGroup.free;
-			// childMicGroup.free;
-			// listenGroup.free;
-			// micInGroup.free;
-
 			s.freeAll;
 			s.queryAllNodes;
 			("-"!12).postln;
