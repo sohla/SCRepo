@@ -1,0 +1,41 @@
+(
+var window;
+
+window = Window("")
+	.bounds_(Rect(
+		0,0,
+		Window.screenBounds.width/2,
+		Window.screenBounds.height/2)
+		.center_(Window.availableBounds.center)
+	)
+	.front;
+
+window.layout = VLayout(
+	View()
+	.background_(Color.blue),
+	a = Button()
+		.action_({"A".postln}),
+	Button()
+		.action_({"B".postln}),
+	c = Button()
+		.action_({"C".postln;a.valueAction = 0;});
+	
+);
+
+
+View.globalKeyDownAction_({|view, char, modifiers, unicode, keycode, key|
+	[view, char, modifiers, unicode, keycode, key].postln;
+});
+
+
+
+window.onClose = ({
+
+	Buffer.freeAll;
+	s.freeAll;
+
+});
+CmdPeriod.doOnce({window.close});
+
+
+)
