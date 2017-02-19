@@ -16,14 +16,13 @@
 	var say;
 	var pluginSynth;
 	var bgFile;
-	var bgSynth;
+//	var bgSynth;
 
 	var playQuestion;
 
 	var pluginIndex = 0;
 	var pluginNames = #["OFF","pitchme","shiftme","ringme"];
 
-	var createGroups, destroyGroups;
 	var playbackGroup;
 	var backgroundGroup;
 	var childMicGroup,listenGroup;
@@ -73,11 +72,11 @@
 	//
 	//--------------------------------------------------------------------------------
 
-	// try{
-	// 	arduino = RduinoDMX(SerialPort.devices.last,115200);
-	// }{|error|
-	// 	[\Connecting:error.errorString].postln;
-	// };
+	try{
+		arduino = RduinoDMX(SerialPort.devices.last,115200);
+	}{|error|
+		[\Connecting:error.errorString].postln;
+	};
 
 	disconnectArduino = {
 				arduino!?{
@@ -203,8 +202,11 @@
 		sessionData = Object.readArchive(sessionArchivePath);
 
 
-		createGroups.();
-
+		// build groups
+		childMicGroup = Group.new;
+		listenGroup = Group.new;
+		micInGroup  = Group.new;
+		playbackGroup = Group.new;
 
 		listenSynth = Synth.head(listenGroup,\listenToMic);
 	
@@ -214,19 +216,6 @@
 
 		// return path
 		sessionArchivePath;
-	};
-	//------------------------------------------------------
-	// GROUPS
-	//------------------------------------------------------
-
-	createGroups = {
-
-
-		childMicGroup = Group.new;
-		listenGroup = Group.new;
-		micInGroup  = Group.new;
-		playbackGroup = Group.new;
-
 	};
 
 	//------------------------------------------------------
