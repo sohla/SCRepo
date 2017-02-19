@@ -23,6 +23,7 @@
 	var pluginIndex = 0;
 	var pluginNames = #["OFF","pitchme","shiftme","ringme"];
 
+	var createGroups, destroyGroups;
 	var playbackGroup;
 	var backgroundGroup;
 	var childMicGroup,listenGroup;
@@ -72,11 +73,11 @@
 	//
 	//--------------------------------------------------------------------------------
 
-	try{
-		arduino = RduinoDMX(SerialPort.devices.last,115200);
-	}{|error|
-		[\Connecting:error.errorString].postln;
-	};
+	// try{
+	// 	arduino = RduinoDMX(SerialPort.devices.last,115200);
+	// }{|error|
+	// 	[\Connecting:error.errorString].postln;
+	// };
 
 	disconnectArduino = {
 				arduino!?{
@@ -201,22 +202,32 @@
 		// load  session data
 		sessionData = Object.readArchive(sessionArchivePath);
 
-		backgroundGroup = Group.new;
+
+		createGroups.();
+
+
+		listenSynth = Synth.head(listenGroup,\listenToMic);
+	
+
+		s.queryAllNodes;
+		("-"!12).postln;
+
+		// return path
+		sessionArchivePath;
+	};
+	//------------------------------------------------------
+	// GROUPS
+	//------------------------------------------------------
+
+	createGroups = {
+
 
 		childMicGroup = Group.new;
 		listenGroup = Group.new;
 		micInGroup  = Group.new;
 		playbackGroup = Group.new;
 
-		listenSynth = Synth.head(listenGroup,\listenToMic);
-	bgMusicStart.();
-
-		s.queryAllNodes;
-
-		// return path
-		sessionArchivePath;
 	};
-
 
 	//------------------------------------------------------
 	// UTILS
@@ -258,7 +269,8 @@
 
 	//------------------------------------------------------
 	stopRecorder = ({
-		if(recordBuffer.class == Buffer,{
+
+		if(recordBuffer != nil,{
 			recordBuffer.close;
 			recordBuffer.free;
 			recordBuffer = nil;
@@ -284,12 +296,15 @@
 
 		("Recording "++t).postln;
 		s.queryAllNodes;
+		("-"!12).postln;
 
 
 	});
 
 	//------------------------------------------------------
 	playQuestion = ({ |path, completionFunc|
+
+
 
 		a = Synth.head(playbackGroup,\playBuffer,[\buffer,Buffer.read(s, path),\amp,0.33]);
 
@@ -303,6 +318,7 @@
 		stopRecorder.();
 
 		s.queryAllNodes;
+		("-"!12).postln;
 		a.onFree({
 
 			if( pluginSynth != nil, {
@@ -313,6 +329,7 @@
 			{
 			completionFunc.();
 				s.queryAllNodes;
+				("-"!12).postln;
 
 			}.defer;
 		});
@@ -337,6 +354,8 @@
 		recorderSynth = Synth.after(micSynth,\diskOut, ["bufnum", recBuffer.bufnum]);
 		("Recording "++title).postln;
 		s.queryAllNodes;
+		("-"!12).postln;
+
 
 	});
 
@@ -360,8 +379,10 @@
 
 	bgMusicStart = ({
 
-		// p = "~/Music/VoiceLab/Backing Atmos - complex.aif".standardizePath;
-		p = "~/Music/VoiceLab/bamboo1.wav".standardizePath;
+		backgroundGroup = Group.new;
+
+		p = "~/Music/VoiceLab/Backing Atmos - complex.aif".standardizePath;
+		//p = "~/Music/VoiceLab/bamboo1.wav".standardizePath;
 
 		//bgSynth = Synth.head(backgroundGroup,\playBuffer,[\buffer,Buffer.read(s, p),\amp,0.1]);
 
@@ -369,7 +390,6 @@
 	 bgRoutine = Routine { arg inval;
 	 	loop {
 	 		e = bgFile.cue((out:0,group:backgroundGroup,amp:0.4),playNow:true,closeWhenDone:true);
-	 		bgFile.duration.postln;
 	 		bgFile.duration.wait;
 	 	}
 	 }.play(AppClock);
@@ -377,6 +397,8 @@
 	 });
 
 	bgMusicStop = ({
+
+	backgroundGroup.free;
 	 bgRoutine.stop;
 	 bgFile.close;
 	//	bgSynth.free;
@@ -535,8 +557,15 @@
 							b.states = [["Open Session"]];
 							b.refresh;
 							stopRecorder.();
-							s.freeAll;
+			// playbackGroup.free;
+			// //backgroundGroup.free;
+			// childMicGroup.free;
+			// listenGroup.free;
+			// micInGroup.free;
+
+							 s.freeAll;
 							s.queryAllNodes;
+							("-"!12).postln;
 
 
 						},{
@@ -614,6 +643,7 @@
 						File.delete(qpath+/+oldTitle);
 
 						s.queryAllNodes;
+						("-"!12).postln;
 
 						mainView.index = 1;
 						refreshGUI.();
@@ -803,9 +833,15 @@
 							arduino!?{3.do({|i|arduino.dmxc_(i+1,255, 81, 97)})};
 
 							Buffer.freeAll;
+			// playbackGroup.free;
+			// childMicGroup.free;
+			// listenGroup.free;
+			// micInGroup.free;
 							s.freeAll;
 							s.queryAllNodes;
+							("-"!12).postln;
 							mainView.index = 0;
+							bgMusicStart.();
 
 
 						})
@@ -859,7 +895,8 @@
 		}, '/onPlayLevel');
 		//------------------------------------------------------
 
-		window = Window("",Rect(0, 0, Window.screenBounds.width, Window.screenBounds.height/2))
+		window = Window("",Rect(0, 0, Window.screenBounds.width, Window.screenBounds.height/2).center_(Window.availableBounds.center))
+
 			.layout_( VLayout(
 				mainView = StackLayout(
 
@@ -892,8 +929,16 @@
 			disconnectArduino.();
 
 			Buffer.freeAll;
+
+			// playbackGroup.free;
+			// backgroundGroup.free;
+			// childMicGroup.free;
+			// listenGroup.free;
+			// micInGroup.free;
+
 			s.freeAll;
 			s.queryAllNodes;
+			("-"!12).postln;
 
 		});
 
@@ -920,6 +965,7 @@
 	//we want the LX to run all the time...
 	~routine.play(AppClock);
 
+	bgMusicStart.();
 
 	//------------------------------------------------------
 	initGUI.();
