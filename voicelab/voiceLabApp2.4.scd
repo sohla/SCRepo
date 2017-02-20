@@ -204,11 +204,9 @@
 
 		// build groups
 		childMicGroup = Group.new;
-		listenGroup = Group.new;
 		micInGroup  = Group.new;
 		playbackGroup = Group.new;
 
-		listenSynth = Synth.head(listenGroup,\listenToMic);
 	
 
 		s.queryAllNodes;
@@ -296,7 +294,7 @@
 
 		b = Buffer.read(s, path, action:{
 
-			a = Synth.head(playbackGroup,\playBuffer,[\buffer,b,\amp,0.33]);
+			a = Synth.head(playbackGroup,\playBuffer,[\buffer,b,\amp,1.0]);
 
 			pluginNames[pluginIndex].postln;
 
@@ -362,10 +360,10 @@
 		micSynth.free;
 
 		//Buffer.freeAll;
-	 recBuffer.close;
-	 recBuffer.postln;
-	 recBuffer.free;
-	 recBuffer.postln;
+		 recBuffer.close;
+		 recBuffer.postln;
+		 recBuffer.free;
+		 recBuffer.postln;
 	});
 
 	bgMusicStart = ({
@@ -380,7 +378,8 @@
 	 bgFile = SoundFile.openRead(p);
 	 bgRoutine = Routine { arg inval;
 	 	loop {
-	 		e = bgFile.cue((out:0,group:backgroundGroup,amp:0.4),playNow:true,closeWhenDone:true);
+	 		e = bgFile.cue((out:0,group:backgroundGroup,amp:0.02),playNow:true,closeWhenDone:true);
+	 		f = bgFile.cue((out:2,group:backgroundGroup,amp:0.4),playNow:true,closeWhenDone:true);
 	 		bgFile.duration.wait;
 	 	}
 	 }.play(AppClock);
@@ -787,6 +786,10 @@
 							mainView.index = 0;
 							bgMusicStart.();
 
+							listenGroup = Group.new;
+							listenSynth = Synth.head(listenGroup,\listenToMic);
+
+
 
 						})
 					])
@@ -903,6 +906,10 @@
 	~routine.play(AppClock);
 
 	bgMusicStart.();
+
+	listenGroup = Group.new;
+	listenSynth = Synth.head(listenGroup,\listenToMic);
+
 
 	//------------------------------------------------------
 	initGUI.();

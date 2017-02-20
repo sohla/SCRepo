@@ -18,7 +18,11 @@ window.layout = VLayout(
 	Button()
 		.action_({"B".postln}),
 	c = Button()
-		.action_({"C".postln;a.valueAction = 0;});
+		.action_({"C".postln;a.valueAction = 0;})
+		.keyDownAction_({ |view,char,modifiers,unicode,keycode|
+
+			[view,char,modifiers,unicode,keycode].postln;
+		});
 	
 );
 
@@ -39,4 +43,6 @@ CmdPeriod.doOnce({window.close});
 
 
 )
+
+
 
