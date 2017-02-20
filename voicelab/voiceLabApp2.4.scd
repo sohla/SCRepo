@@ -28,7 +28,9 @@
 	var childMicGroup,listenGroup;
 	var micInGroup;
 
-	var brightness = 1.0;
+	var lxDepth = 0.9;
+	var lxSpeed = 1.0;
+	var lxAuto = true;
 	var diameter = 380;
 	var radius = diameter / 2;
 	var origin = Point(radius,radius);
@@ -113,10 +115,7 @@
 			SoundFile.collect(appPath.asAbsolutePath+/+"templateQuestions/*").do{ |f,i|
 
 				var newPath = appPath.asAbsolutePath+/+path.asRelativePath(appPath.absolutePath).dirname+/+"Questions";
-
 				SoundFile.normalize(f.path,newPath+/+f.path.basename,threaded:false);
-
-
 			};
 
 			// load  session data
@@ -420,21 +419,8 @@
 
 	slider2DView.drawFunc = {
 
-		var color,colors = [];
-		var dif = 0;
-
-		3.do({|i|
-			colors = colors.add(calculateColorForPoint.(
-				pointDelta.x + (i * dif),
-				pointDelta.y + (i * dif),
-				brightness
-		));
-		});
-		color = colors[0];
-
-
 		Pen.strokeColor = Color.white;
-		Pen.fillColor = color;
+		Pen.fillColor = Color.clear;
 
 		Pen.translate(pointDelta.x,pointDelta.y);
 
@@ -442,15 +428,6 @@
 		Pen.fillStroke;
 		Pen.translate(pointDelta.x.neg,pointDelta.y.neg);
 
-
-		pointDelta.tween(point);
-
-		arduino!?{
-			r = 255;
-			3.do({|i|
-			arduino.dmxc_(i+1,colors[i].red*r,colors[i].green*r,colors[i].blue*r);
-			});
-		};
 	};
 
 	//--------------------------------------------------------------------------------
@@ -477,8 +454,6 @@
 
 	calculateColorForPoint = ({|x,y,z|
 
-
-
 		var angle = atan2(x - radius, y - radius);
 		var hue = ((angle + pi) / 2pi);
 		var sat = origin.dist(Point(x,y)) / (radius-40);
@@ -504,7 +479,6 @@
 		var pluginView;
 
 		var newSessionButton, templateSessionButton;
-
 
 		//------------------------------------------------------
 		newSessionButton = Button()
@@ -635,7 +609,6 @@
 
 		});
 
-
 		//------------------------------------------------------
 		sessionView = ({
 
@@ -705,12 +678,23 @@
 
 					],[
 
-				Slider()
-				.maxHeight_(btnHeight-40)
-				.value_(1.0)
-				.action_({|sld|
-					brightness = sld.value.asFloat;
-				}),
+					GridLayout.rows([
+						Slider()
+							.maxHeight_(btnHeight-70)
+							.value_(lxDepth)
+							.action_({|sld|
+								lxDepth = sld.value.asFloat;
+							}),
+						Slider()
+							.maxHeight_(btnHeight-70)
+							.value_(lxSpeed)
+							.action_({|sld|
+								lxSpeed = sld.value.asFloat;
+							})
+					],[
+						StaticText().maxHeight_(24).string_("lx depth").align_(\center).font_(Font(size:11)),
+						StaticText().maxHeight_(24).string_("lx speed").align_(\center).font_(Font(size:11))
+					]),
 					//------------------------------------------------------
 					UserView()
 						.drawFunc_({
@@ -733,6 +717,10 @@
 					autoBtn = Button()
 						.maxHeight_(btnHeight)
 						.states_([["Auto Off",Color.black],["Auto On",Color.red]])
+						.value_(lxAuto)
+						.action_({|btn|
+							lxAuto = btn.value.asBoolean;
+						})
 					],[
 					//------------------------------------------------------
 					Button()
@@ -777,7 +765,7 @@
 							//stopRecordingQuestion.(); ????
 							stopRecorder.();
 							bgMusicStop.();
-							arduino!?{3.do({|i|arduino.dmxc_(i+1,255, 81, 97)})};
+							//arduino!?{3.do({|i|arduino.dmxc_(i+1,255, 81, 97)})};
 
 							Buffer.freeAll;
 							s.freeAll;
@@ -801,11 +789,6 @@
 
 
 				StackLayout(colorView,slider2DView).mode_(\stackAll).index_(1)
-				//colorView
-				// .action_({|sl|
-				// 	lxX = sl.x;
-				// 	lxY = sl.y;
-				// });
 			)).minWidth_(400);
 			));
 
@@ -827,22 +810,14 @@
 		};
 
 		//------------------------------------------------------
-		onPlayLevel = OSCFunc({|msg, time, addr, recvPort|
-    		{
+		onPlayLevel = OSCFunc({|msg, time, addr, recvPort|{
 				scale = msg[4].ampdb.linexp(-40, 0, 1, 2.0);
-//				if( msg[5].ampdb.linlin(-40, 0, 0, 1) > 0.3,{
-			// arduino.pw_(9,msg[5].ampdb.linexp(-40, 0, 5, 127));
-//			arduino.dmxc_(msg[5].ampdb.linexp(-40, 0, 10, 255),0,0);
-//				},{
-//					arduino.dmxc_(30,0,0);
-//				});
-
   			}.defer;
 
 		}, '/onPlayLevel');
 		//------------------------------------------------------
 
-		window = Window("",Rect(0, 0, Window.screenBounds.width, Window.screenBounds.height/2).center_(Window.availableBounds.center))
+		window = Window("",Rect(0, 0, Window.screenBounds.width, 380+60).center_(Window.availableBounds.center))
 
 			.layout_( VLayout(
 				mainView = StackLayout(
@@ -884,18 +859,38 @@
 
 
 	});
+
 	~routine = Routine{ |in|
 		inf.do{|i|
 
-			var range = 0.15;
-			var x = diameter.half + (sin( (pi/180) * angle) * diameter.half * range);
-			var y = diameter.half + (cos( (pi/180) * angle ) * diameter.half * range);
+			//var range = 0.15;
+			var x = diameter.half + (sin( (pi/180) * angle) * diameter.half * lxDepth);
+			var y = diameter.half + (cos( (pi/180) * angle ) * diameter.half * lxDepth);
+
+			var colors = [];
 
 			case
-			{ autoBtn.value == 1}{
-					angle = angle + 0.4;
+			{ lxAuto == true}{
+					angle = angle + (lxSpeed * 4.0);
 					point.set(x,y);
 			};
+
+			3.do({|i|
+				colors = colors.add(calculateColorForPoint.(
+					pointDelta.x + i,
+					pointDelta.y + i,
+					1.0
+				));
+			});
+
+			arduino!?{
+				r = 255;
+				3.do({|i|
+				arduino.dmxc_(i+1,colors[i].red*r,colors[i].green*r,colors[i].blue*r);
+				});
+			};
+
+			pointDelta.tween(point);
 
 			slider2DView.refresh();
 			fps.wait;
@@ -905,6 +900,8 @@
 	//we want the LX to run all the time...
 	~routine.play(AppClock);
 
+	point.set(radius,radius);
+
 	bgMusicStart.();
 
 	listenGroup = Group.new;
@@ -913,7 +910,7 @@
 
 	//------------------------------------------------------
 	initGUI.();
-	autoBtn.valueAction  = 1;
+	//autoBtn.valueAction  = 1;
 	//arduino!?{3.do({|i|arduino.dmxc_(i+1,255, 81, 97)});"hi".postln;}.defer(2);
 
 )
