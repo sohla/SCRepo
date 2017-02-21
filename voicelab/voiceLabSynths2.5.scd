@@ -112,7 +112,7 @@
 	}).send(s);
 
 	SynthDef(\listenToMic, {
-		var p = SoundIn.ar(1);
+		var p = SoundIn.ar(1) * 4;
 	    var imp = Impulse.kr(10);
 	    var delimp = Delay1.kr(imp);
 		 SendReply.kr(imp, '/onListenLevel', [1,Amplitude.kr(p), K2A.ar(Peak.ar(p, delimp).lag(0, 1))]);

@@ -377,7 +377,7 @@
 	 bgFile = SoundFile.openRead(p);
 	 bgRoutine = Routine { arg inval;
 	 	loop {
-	 		e = bgFile.cue((out:0,group:backgroundGroup,amp:0.02),playNow:true,closeWhenDone:true);
+	 		e = bgFile.cue((out:0,group:backgroundGroup,amp:0.1),playNow:true,closeWhenDone:true);
 	 		f = bgFile.cue((out:2,group:backgroundGroup,amp:0.4),playNow:true,closeWhenDone:true);
 	 		bgFile.duration.wait;
 	 	}
