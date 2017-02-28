@@ -17,7 +17,7 @@ var levelsArray = [];
 
 var isEditing = false;
 
-var ip = "10.1.1.3";
+var ip = "10.1.1.2";
 var netAddr;
 
 var version = 0;
@@ -74,7 +74,8 @@ var startConnection,stopConnection;
 
 //------------------------------------------------------
 
-speakerList = [ [60, "R"], [0, "C"], [120, "Rs"],[-60, "L"],[-120, "Ls"],[-180, "Ll"]];
+//speakerList = [ [60, "R"], [0, "C"], [120, "Rs"],[-60, "L"],[-120, "Ls"],[-180, "Ll"]];
+speakerList = [ [-60, "L"],[0, "C"],[60, "R"],[120, "Rs"],[-180, "Cs"],[-120, "Ls"]];
 
 //------------------------------------------------------
 
@@ -114,6 +115,9 @@ speakerView = {
 	widthSlider = Slider()
 				.maxHeight_(30)
 				.orientation_(\horizontal)
+				.mouseDownAction_({|v,inx,iny| isEditing = true;})
+				.mouseUpAction_({|v,inx,iny| isEditing = false;})
+
 				.action_({|v|
 					//widthSpec.map(v.value).postln;
 					widthBus.set(widthSpec.map(v.value));
