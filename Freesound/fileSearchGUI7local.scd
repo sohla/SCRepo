@@ -450,6 +450,9 @@ addResult =({|i,sndResult,count|
 		searchViews[i].layout.index = stackIndexes.find([\playIdx]);
 	};
 
+	//SoundFile.use(sndResult, { |f| f.inspect });
+
+
 	var makeEntry = {
 		var view = View()
 			//.background_(Color.hsv((0.165*i),1.0,1.0).vary(0.4,0.4,0.9,0.4))
@@ -457,19 +460,27 @@ addResult =({|i,sndResult,count|
 				 Button()
 				.states_([[
 				count +"\t" + sndResult.basename.splitext[0],
-				//+ sndResult.splitext[0] + "\nDur:" + sndResult.duration,//•name
 					Color.white,
 					Color.green(0.7,0.2)
 					//Color.hsv((0.165*i),1.0,1.0).vary(0.4,0.4,0.9,0.4)
 				]])
 				.action_(buttonAction)
 				.minHeight_(80)
-				//.maxWidth_(100)
-				// ,
-				
-				// WebView().url_(sndResult.images.dict["waveform_l"])
-				// .maxWidth_(360)
-				// .enabled_(false)
+				.font_(Font(size:25))
+				.onResize_({|btn|
+					SoundFile.use(sndResult, { |f| 
+							var dur = f.duration.round;
+							var space = "          ";
+							dur.postln;
+							btn.states_([[ 
+								count + space + "📢" + sndResult.basename.splitext[0] + space + 
+								"⏳" + (dur/60).floor ++ ":" ++ (dur%60) ,
+								Color.white,
+								Color.green(0.7,0.2)
+							]]);
+
+						})
+				})
 	        )
 	    );
 		view.layout.margins = [0,0,0,0];
@@ -477,6 +488,7 @@ addResult =({|i,sndResult,count|
 	};
 
 	searchViews[i].children(View)[3].children(ScrollView)[0].canvas.layout.add( makeEntry.() );
+
 
 	//searchViews[i].children(ScrollView)[0].canvas.layout.add( makeEntry.() );
 	//sndResult.images.dict["waveform_l"].postln;
@@ -524,8 +536,4 @@ CmdPeriod.doOnce({window.close});
 
 
 )
-
-
-
-
 
