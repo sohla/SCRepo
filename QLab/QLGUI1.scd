@@ -117,7 +117,6 @@ speakerView = {
 				.orientation_(\horizontal)
 				.mouseDownAction_({|v,inx,iny| isEditing = true;})
 				.mouseUpAction_({|v,inx,iny| isEditing = false;})
-
 				.action_({|v|
 					//widthSpec.map(v.value).postln;
 					widthBus.set(widthSpec.map(v.value));

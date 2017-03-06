@@ -4,7 +4,7 @@
 			// wind chords
 	var trig, p, n, exc, x, base, range;
 		//root = rrand(3,6);
-		root = 86;
+		root = 14;
 		scale = #[0,19,11];
 		n = 5;
 		exc = BrownNoise.ar([0.007,0.007]) * max(0, LFNoise1.kr(exprand(0.125,0.5), 1.25, -0.25));
