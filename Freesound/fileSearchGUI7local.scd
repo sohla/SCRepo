@@ -457,30 +457,44 @@ addResult =({|i,sndResult,count|
 		var view = View()
 			//.background_(Color.hsv((0.165*i),1.0,1.0).vary(0.4,0.4,0.9,0.4))
 			.layout_( HLayout(
-				 Button()
-				.states_([[
-				count +"\t" + sndResult.basename.splitext[0],
-					Color.white,
-					Color.green(0.7,0.2)
-					//Color.hsv((0.165*i),1.0,1.0).vary(0.4,0.4,0.9,0.4)
-				]])
-				.action_(buttonAction)
-				.minHeight_(80)
-				.font_(Font(size:25))
-				.onResize_({|btn|
-					SoundFile.use(sndResult, { |f| 
+				StaticText()
+					.background_(Color.grey(0.1,0.1))
+
+					.string_(" " +count + "\t🔊" + sndResult.basename.splitext[0])
+					.align_(\left)
+					.font_(Font(size:24)),
+
+				StaticText()
+					.background_(Color.grey(0.1,0.1))
+					.string_(count)
+					.align_(\center)
+					.font_(Font(size:24))
+					.maxWidth_(160)
+					.onResize_({|btn|
+						SoundFile.use(sndResult, { |f| 
 							var dur = f.duration.round;
-							var space = "          ";
+							var space = "\t\t";
 							dur.postln;
-							btn.states_([[ 
-								count + space + "📢" + sndResult.basename.splitext[0] + space + 
-								"⏳" + (dur/60).floor ++ ":" ++ (dur%60) ,
+							btn.string_( 
+								"🕓" + (dur/60).floor ++ ":" ++ (dur%60) ,
 								Color.white,
 								Color.green(0.7,0.2)
-							]]);
+							);
 
 						})
 				})
+,
+
+				 Button()
+				.states_([[
+					"📢",
+					Color.white,
+					Color.green(0.7,0.2)
+				]])
+				.action_(buttonAction)
+				.minHeight_(80)
+				.maxWidth_(80)
+				.font_(Font(size:24))
 	        )
 	    );
 		view.layout.margins = [0,0,0,0];
