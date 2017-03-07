@@ -73,11 +73,11 @@ fastSearch = {|dir, fileTypes, searchString, itrFunc, completeFunc|
 	// itr each word in search string
 	searchString.split($ ).do({|ss|
 			cs = cs ++ (" -iname \"*%*\" -%").format(ss,"a");//(o)R/(a)ND
+	
 	});
 
 	cs = cs.copyFromStart(cs.size-3)++ " \\) -a \\(";
 
-	//cs.postln;
 
 	// add each of the extensions in the find
 	fileTypes.split($|).do({|type|type.postln;
@@ -86,6 +86,7 @@ fastSearch = {|dir, fileTypes, searchString, itrFunc, completeFunc|
 	// remove last -o and complete the command string
 	cs = cs.copyFromStart(cs.size-3)++ " \\)";
 	// send it off and get results, fast
+	cs.postln;
 	data = cs.unixCmdGetStdOutLines;
 	data.do({|o,i|itrFunc.(o,i)});
 	completeFunc.(data.size);
@@ -210,8 +211,15 @@ playView =({|i,sndResult|
 	//• if it's freesound, need to download, process mp3->local
 	//• local->buffer...let's go!
 
-	buffer = Buffer.read(s, sndResult,action:onBufferRead);
 
+	sndResult.basename.splitext[1].toLower.postln;
+
+	if(sndResult.basename.splitext[1].toLower == "mp3",{
+		buffer = MP3.readToBuffer(s, sndResult,action:onBufferRead);
+	},{
+		buffer = Buffer.read(s, sndResult,action:onBufferRead);
+
+	});
 
 	// //• freesound load sound into mp3 buffer
 	// sndResult.retrievePreview(dir.asAbsolutePath,{|a|
@@ -273,67 +281,6 @@ playView =({|i,sndResult|
 	).enabled_(false)
 	.background_(Color.rand(0.1,0.9))
 	.maxHeight_(200)
-
-
-
-
-	// view = View().layout_(
-	// GridLayout.rows(
-	// 		[
-	// 			Button()
-	// 				.states_([["cancel"]])
-	// 				.maxWidth_(50)
-	// 				.action_({|b|cancelButtonAction.(b)}),
-
-	// 			StaticText()//• name vs basename
-	// 				.string_(sndResult.name.splitext[0])
-	// 				.align_(\center)
-	// 				.font_(Font(size:24))
-	// 		],[
-	// 			[sfv = SoundFileView()
-	// 				.maxHeight_(120)
-	// 				.gridOn_(false)
-	// 				.backColor_(Color.grey)
-	// 				.rmsColor_(Color.blue.alpha_(0.4))
-	// 				.peakColor_(Color.blue.alpha_(0.3))
-	// 				//.selectionColor_(0, Color.black.alpha_(0.2))
-
-	// 				,columns:2]
-
-
-	// 	],[
-	// 			[Button()
-	// 				.minHeight_(40)
-	// 				.states_([
-	// 					["Play"],
-	// 					["Stop",Color.black,Color.green.alpha_(0.3)]])
-	// 				.action_({|b|buttonAction.(b)})
-
-	// 			,columns:2]
-
-	// 	],
-	// 		// [
-	// 		//
-	// 		// 	CheckBox().string_("auto-fade"),
-	// 		// 	CheckBox().string_("loop")
-	// 		//
-	// 		//
-	// 		// ],
-	// 		[
-	// 			StaticText().string_("volume").maxWidth_(100),
-	// 			sliderView = Slider()
-	// 				.orientation_(\horizontal)
-	// 				.maxHeight_(40)
-	// 				.value_(0.5)
-	// 				.action_({|a|sliderAction.(a)});
-
-	// 	]
-	// )
-	// ).enabled_(false);
-
-
-
-
 });
 
 
@@ -356,7 +303,7 @@ queryView =({|i|
 		searchViews[i].layout.index = stackIndexes.find([\resultsIdx]);
 		fastSearch.(
 			dirPath,
-			"wav|wave|aif|aiff",
+			"wav|wave|aif|aiff|mp3",
 			a.string,// using '.' will give every file
 			{|a,count|
 		
@@ -450,17 +397,14 @@ addResult =({|i,sndResult,count|
 		searchViews[i].layout.index = stackIndexes.find([\playIdx]);
 	};
 
-	//SoundFile.use(sndResult, { |f| f.inspect });
-
 
 	var makeEntry = {
 		var view = View()
-			//.background_(Color.hsv((0.165*i),1.0,1.0).vary(0.4,0.4,0.9,0.4))
 			.layout_( HLayout(
 				StaticText()
 					.background_(Color.grey(0.1,0.1))
 
-					.string_(" " +count + "\t🔊" + sndResult.basename.splitext[0])
+					.string_(" " + (count+1) + "\t🔊" + sndResult.basename.splitext[0])
 					.align_(\left)
 					.font_(Font(size:24)),
 
@@ -468,13 +412,11 @@ addResult =({|i,sndResult,count|
 					.background_(Color.grey(0.1,0.1))
 					.string_(count)
 					.align_(\center)
-					.font_(Font(size:24))
+					.font_(Font(size:16))
 					.maxWidth_(160)
 					.onResize_({|btn|
 						SoundFile.use(sndResult, { |f| 
 							var dur = f.duration.round;
-							var space = "\t\t";
-							dur.postln;
 							btn.string_( 
 								"🕓" + (dur/60).floor ++ ":" ++ (dur%60) ,
 								Color.white,
@@ -503,9 +445,6 @@ addResult =({|i,sndResult,count|
 
 	searchViews[i].children(View)[3].children(ScrollView)[0].canvas.layout.add( makeEntry.() );
 
-
-	//searchViews[i].children(ScrollView)[0].canvas.layout.add( makeEntry.() );
-	//sndResult.images.dict["waveform_l"].postln;
 });
 
 //------------------------------------------------------
