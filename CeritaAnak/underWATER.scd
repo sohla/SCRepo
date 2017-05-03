@@ -5,8 +5,8 @@
 			// wind chords
 	var trig, p, n, exc, x, base, range;
 		//root = rrand(3,6);
-		root = 52;
-		scale = #[0,7,9,14,16];
+		root = 38;
+		scale = #[0,12,17];
 		n = 5;
 		exc = BrownNoise.ar([0.007,0.007]) * max(0, LFNoise1.kr(exprand(0.125,0.5), 1.25, -0.25));
 		s = (Klank.ar(`[Array.fill(n, {(scale.choose  + root).midicps}),nil,Array.fill(n, {rrand(0.1,2.0)})], exc) * 0.2).softclip;

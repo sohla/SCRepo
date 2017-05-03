@@ -3,6 +3,10 @@
 n = s.nextNodeID;
 s.sendMsg("/s_new", "default", n, 0, 0, "freq", 200);
 
+
+NetAddr.localAddr;
+
+
 o = OSCFunc({ arg msg, time, addr, recvPort;
 
 	//[msg, time, addr, recvPort].postln;
@@ -12,9 +16,10 @@ o = OSCFunc({ arg msg, time, addr, recvPort;
 	// s.sendMsg("/n_set", n, "freq", 100 + (80 * msg[3].asFloat) );
 	// s.sendMsg("/n_set", n, "amp", 0.1 +  (msg[2].asFloat + 1pi) / 2pi );
 
-}, '/gyro');
+}, '/gyrosc/gyro');
 
 )
+
 o.free;
 s.sendMsg("/n_free", n);
 
