@@ -15,7 +15,7 @@ SynthDef(\warp, {arg buffer = 0, envbuf = -1, ws = 0.5, pch = 1.0;
 	var pos;
 	var mx=0,my=0;
 	var sp,verb;
-	var splayCount = 10;
+	var splayCount = 1;
 
 	mx = LFSaw.kr( (1.0/(20.0)) * MouseX.kr(-1.01, 1.0) ,1,0.5,0.5);
 
@@ -25,8 +25,8 @@ SynthDef(\warp, {arg buffer = 0, envbuf = -1, ws = 0.5, pch = 1.0;
 		{ |i| Warp1.ar(1, buffer, mx, pch,my, envbuf, 8, 0.1, 2)  },
 		1,
 		1,
-		splayCount.rand.linlin(0,splayCount,-1.0,1.0),
-	) * 0.7 ;
+		 MouseX.kr(-1.0, 1.0),//splayCount.rand.linlin(0,splayCount,-1.0,1.0),
+	) * 0.2 ;
 
 
 	//sp = LPF.ar(sp,MouseY.kr(15000,150,1.0));
