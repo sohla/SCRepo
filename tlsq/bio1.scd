@@ -12,34 +12,34 @@ o.sampleRate
 s.quit
 s.boot
 )
-//
-// (
-// SynthDef("tlsq1",{ |out=0, inputBus = 1, gain = 1, time = 0.5, fb = 0.95|
-//
-// 	var input, fBLoopIn, fBLoopOut, processing, filter;
-//
-// 	input = AudioIn.ar(inputBus);
-//
-// 	filter = HPF.ar(input,90.0);
-//
-// 	fBLoopIn =LocalIn.ar(1);
-//
-//
-// 	processing = filter +LeakDC.ar((DelayC.ar(fBLoopIn,3.5, time,fb)));
-//
-// 	fBLoopOut=LocalOut.ar(processing);
-// 	Out.ar([0,1], processing)
-//
-//
-//
-// }).send(s);
-// )
+
+(
+SynthDef("tlsq1",{ |out=0, inputBus = 1, gain = 1, time = 0.5, fb = 0.95|
+
+	var input, fBLoopIn, fBLoopOut, processing, filter;
+
+	input = AudioIn.ar(inputBus) * gain;
+
+	filter = HPF.ar(input,90.0);
+
+	fBLoopIn =LocalIn.ar(1);
+
+
+	processing = filter +LeakDC.ar((DelayC.ar(fBLoopIn,3.5, time,fb)));
+
+	fBLoopOut=LocalOut.ar(processing);
+	Out.ar([0,1], processing)
+
+
+
+}).send(s);
+)
 
 (
 var window,playerView;
 var playerButtons = [];
 var synths = [0,0,0,0,0];
-var midiFunc, resetFunc;
+var midiFunc, resetFunc, reset;
 
 //------------------------------------------------------
 // newSearchView
@@ -48,18 +48,28 @@ playerView =({|index,name|
 
 	var onButtonAction = {|a|
 		var time;
+		var zoeAmp = 1;
 		time = [0.25,0.5,1.0,2.0,4.0].choose;
 
-		("new synth ["++index++"] for "++name).postln;
 
 		a.states = [[time.asStringPrec(2),Color.white,Color.blue.vary(3,0.3,0.8)]];
 
 		if(synths[index] != 0,{
+			("free synth ["++synths[index].nodeID++"]").postln;
 			synths[index].free;
 			synths[index] = 0;
 		},{});
 
-		synths[index] = Synth(\tlsq1,[\inputBus,index,\gain,1,\time,time,\fb,0.9]);
+
+		if( (name == "Biddy"),{
+			zoeAmp = 1.0;
+
+			});
+		synths[index] = Synth(\tlsq1,[\inputBus,index,\gain,zoeAmp,\time,time,\fb,0.9]);
+		("new synth ["++synths[index].nodeID++"] for "++name).postln;
+
+		s.queryAllNodes;
+
 	};
 
 
@@ -91,7 +101,7 @@ MIDIIn.connectAll;
 
 
 
-window = Window("",Rect(0,0,Window.screenBounds.width, Window.screenBounds.height/1)
+window = Window("",Rect(0,0,Window.screenBounds.width, Window.screenBounds.height/3)
 	.center_(Window.availableBounds.center))
 	.front;
 
@@ -102,30 +112,52 @@ window.layout = HLayout(
 	playerView.(4,"Zoë")
 
 );
+
+reset = {
+	
+	playerButtons.do({|button,index|
+		button.states = [["Off",Color.white,Color.black]];
+	});
+		
+	synths.do({|synth,index|
+		if(synth != 0,{
+			("free synth ["++synth.nodeID++"]"++index).postln;
+			synth.free;
+			synths[index] = 0;
+		},{});
+	});
+
+	s.queryAllNodes;
+
+};
+
 midiFunc = MIDIFunc.noteOn({arg ...args;
 	var index = 4.rand;
 	{playerButtons[index].valueAction = 1;}.defer;
 },67);
 
-resetFunc = MIDIFunc.noteOn({arg ...args;
 
-	{
-		playerButtons.do({|button,index|
-			button.states = [["Off",Color.white,Color.black]];
-			if(synths[index] != 0,{
-				synths[index].free;
-				synths[index] = 0;
-			},{});
-
-		});
-	}.defer;
-},69);
+resetFunc = MIDIFunc.noteOff({arg ...args;
+	{reset.()}.defer;	
+},70);
 
 window.view.keyDownAction_({|view,char,mod,unicode,keycode|
 
 	if( (keycode >= 18) && (keycode <= 21),{
 		playerButtons[keycode-18].valueAction = 1;
 	});
+
+	// r - reset
+	if ( (keycode == 15),{
+		reset.();
+	});
+
+	// q - random all 4
+	if ( (keycode == 12),{
+		var index = 4.rand;
+		{playerButtons[index].valueAction = 1;}.defer;
+	});
+
 });
 
 window.onClose = ({
@@ -143,3 +175,4 @@ CmdPeriod.doOnce({window.close});
 
 
 )
+

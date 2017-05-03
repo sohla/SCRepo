@@ -198,7 +198,7 @@ levelsView = {
 	slidersArray.do({|o,i|
 		o.action_({|sl|
 			valuesArray[i].value = sl.value.asStringPrec(2);
-			":".postln;
+			//":".postln;
 		});
 	});
 
