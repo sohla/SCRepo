@@ -25,7 +25,6 @@ rrate = OSCFunc({ arg msg, time, addr, recvPort;
 
 alt = OSCFunc({ arg msg, time, addr, recvPort;
 	altValue = (msg[1].asFloat);
-	
 }, '/gyrosc/alt');
 
     u = Canvas3D(w, Rect(0, 0, width, height))
