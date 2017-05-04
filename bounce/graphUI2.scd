@@ -38,6 +38,8 @@ window.layout.add(
 	.clearOnRefresh_(true)
 
 );
+
+
 window.layout.add(
 	sliderView = Slider()
 		.maxWidth_(40.0)
@@ -69,6 +71,7 @@ routine = Routine { arg inval;
 		data = Array.fill(data.size, { |i| 0.5 - (((i+idx/data.size * 2pi * freq).sin * 0.5) * amp)});
 
 		0.01.yield;
+
 idx = idx + 1;
 	}
 };
@@ -86,4 +89,9 @@ CmdPeriod.doOnce({window.close});
 
 
 )
+
+
+
+
+
 
