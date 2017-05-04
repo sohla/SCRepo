@@ -7,8 +7,7 @@
 	window = Window("plotter demo", Rect(0, 0, width, height), false)
         .front;
 
-	plotter = Plotter("plot", parent: window)
-		.value_({[0, 1, 2, 3, 4].scramble * 100}.dup(3));
+	plotter = Plotter("plot", parent: window);
 
 	routine = Routine {|inval|
 		loop {
