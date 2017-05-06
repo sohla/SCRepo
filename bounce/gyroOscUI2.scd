@@ -11,11 +11,17 @@
 	var plotter1, plotter2, plotter3;
 	var plotter4,plotter5,plotter6;
 	var pitchStore = Array.new(dataSize);
+	var dataPath = "~/Develop/SuperCollider/Projects/SCRepo/bounce/data/";
 
 QtGUI.palette = QPalette.dark; 
 
 w = Window("gyro osc tester", Rect(0, height, width, height), false)
         .front;
+
+DataCollector.makeBackupFolder();
+DataCollector.folder = PathName.new(dataPath).fullPath;
+
+
 
 
 vv = UserView(w,Rect(0,0,width,height));
@@ -35,34 +41,12 @@ GUI.skin.plot.background = Color.black;
 
 labelView = UserView(w,Rect(500,0,100,height/2)).background_(Color.black);
 labelView.layout = VLayout(
-
-	Button()
-		.states_([["🔵 PITCH",Color.green(0.9)]])
-		.maxWidth_(80)
-		.action_({
-			plotter4.value = dc.getLast(dataSize).asArray.collect({|a,i| a[\data][0]}).addAll([-pi,pi]);
-      		plotter4.setProperties(\plotColor, Color.green).refresh;
-
-		}),
-	Button()
-		.states_([["🔵 ROLL",Color.green(0.9)]])
-		.maxWidth_(80)
-		.action_({
-			plotter5.value = dc.getLast(dataSize).asArray.collect({|a,i| a[\data][1]}).addAll([-pi,pi]);
-    		plotter5.setProperties(\plotColor, Color.red).refresh;
-
-		}),
-	Button()
-		.states_([["🔵 YAW",Color.green(0.9)]])
-		.maxWidth_(80)
-		.action_({
-			plotter6.value = dc.getLast(dataSize).asArray.collect({|a,i| a[\data][2]}).addAll([-pi,pi]);
-    		plotter6.setProperties(\plotColor, Color.blue).refresh;
-
-		}),
+	StaticText().stringColor_(Color.red).string_("Pitch"),
+	StaticText().stringColor_(Color.green).string_("Roll"),
+	StaticText().stringColor_(Color.blue).string_("Yaw")
 );
 
-controlView = UserView(w,Rect(1000,0,width/4,height/2)).background_(Color.black);
+controlView = UserView(w,Rect(1000,0,width/4,height/2)).background_(Color.grey);
 controlView.layout = VLayout(
 	Button()
 		.states_([["🔴 ALL",Color.green(0.9)]])
@@ -71,8 +55,32 @@ controlView.layout = VLayout(
 			plotter4.value = dc.getLast(dataSize).asArray.collect({|a,i| a[\data][0]}).addAll([-pi,pi]);
 			plotter5.value = dc.getLast(dataSize).asArray.collect({|a,i| a[\data][1]}).addAll([-pi,pi]);
 			plotter6.value = dc.getLast(dataSize).asArray.collect({|a,i| a[\data][2]}).addAll([-pi,pi]);
-      		plotter4.setProperties(\plotColor, Color.green).refresh;
-    		plotter5.setProperties(\plotColor, Color.red).refresh;
+      		plotter4.setProperties(\plotColor, Color.red).refresh;
+    		plotter5.setProperties(\plotColor, Color.green).refresh;
+    		plotter6.setProperties(\plotColor, Color.blue).refresh;
+
+		}),
+	Button()
+		.states_([["🔵 PITCH",Color.green(0.9)]])
+		.maxWidth_(80)
+		.action_({
+			plotter4.value = dc.getLast(dataSize).asArray.collect({|a,i| a[\data][0]}).addAll([-pi,pi]);
+      		plotter4.setProperties(\plotColor, Color.red).refresh;
+
+		}),
+	Button()
+		.states_([["🔵 ROLL",Color.green(0.9)]])
+		.maxWidth_(80)
+		.action_({
+			plotter5.value = dc.getLast(dataSize).asArray.collect({|a,i| a[\data][1]}).addAll([-pi,pi]);
+    		plotter5.setProperties(\plotColor, Color.green).refresh;
+
+		}),
+	Button()
+		.states_([["🔵 YAW",Color.green(0.9)]])
+		.maxWidth_(80)
+		.action_({
+			plotter6.value = dc.getLast(dataSize).asArray.collect({|a,i| a[\data][2]}).addAll([-pi,pi]);
     		plotter6.setProperties(\plotColor, Color.blue).refresh;
 
 		}),
@@ -129,10 +137,10 @@ alt = OSCFunc({ |msg, time, addr, recvPort|
     	dc.addData([gyroPitch,gyroRoll,gyroYaw],t);
 
 		plotter1.value = (dc.getLast(dataSize).asArray.collect({|a,i| a[\data][0]})).addAll([-pi,pi]);
-      	plotter1.setProperties(\plotColor, Color.green).refresh;
+      	plotter1.setProperties(\plotColor, Color.red).refresh;
 
 		plotter2.value = (dc.getLast(dataSize).asArray.collect({|a,i| a[\data][1]})).addAll([-pi,pi]);
-    	plotter2.setProperties(\plotColor, Color.red).refresh;
+    	plotter2.setProperties(\plotColor, Color.green).refresh;
 
 		plotter3.value = (dc.getLast(dataSize).asArray.collect({|a,i| a[\data][2]})).addAll([-pi,pi]);
     	plotter3.setProperties(\plotColor, Color.blue).refresh;
@@ -181,11 +189,11 @@ broadcastRoutine = Routine {|i|
 
 		i=i+0.01;
 
-		p = (i.mod(pi).twice) - pi;
+		//p = (i.mod(pi).twice) - pi;
 		r = (i.mod(pi).twice) - pi;
-		y = (i.mod(pi).twice) - pi;
-		//r = (i*10).sin * 0.8;
-		//y = (i*40).cos * 0.8;
+		//y = (i.mod(pi).twice) - pi;
+		//r = (i*30).sin * 0.5;
+		y = (i*40).cos * 0.3;
 
 		oscBroadcaster.sendMsg("/gyrosc/gyro",p,r,y);
 		0.03.yield;
@@ -194,6 +202,7 @@ broadcastRoutine = Routine {|i|
 
 
 w.onClose = {
+	dc.saveTo(PathName.new(dataPath).fullPath+/+Date.getDate.asSortableString);
 	broadcastRoutine.stop;
 	player.stop;
 	gryo.free;
