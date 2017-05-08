@@ -13,9 +13,14 @@
 	var plotter4,plotter5,plotter6;
 	var pitchStore = Array.new(dataSize);
 	var dataPath = "~/Develop/SuperCollider/Projects/SCRepo/bounce/data/";
-	var friction = 0.05;
+	var friction = 0.2;
+	var tween;
+
+	var createGUI;
 
 QtGUI.palette = QPalette.dark; 
+
+
 
 w = Window("gyro osc tester", Rect(0, height, width, height), false)
         .front;
@@ -121,29 +126,34 @@ controlView.layout = VLayout(
 
 		}),
 );
+tween = {|input,history,friction = 0.5|
+	(friction * input + ((1 - friction) * history))
+};
 
 gryo = OSCFunc({ |msg, time, addr, recvPort|
 	gyroPitch = (msg[1].asFloat + pi.half);
 	gyroRoll = (msg[2].asFloat + pi.half);
 	gyroYaw = (msg[3].asFloat + pi.half);
+	[addr].postln;
 }, '/gyrosc/gyro');
 
 rrate = OSCFunc({ |msg, time, addr, recvPort|
-	rrateX = (msg[1].asFloat);
-	rrateY = (msg[2].asFloat);
-	rrateZ = (msg[3].asFloat);
+	rrateX = tween.(msg[1].asFloat,rrateX,0.005);
+	rrateY = tween.(msg[2].asFloat,rrateY,0.005);
+	rrateZ = tween.(msg[3].asFloat,rrateZ,0.005);
 }, '/gyrosc/rrate');
 
+
+
 accel = OSCFunc({ |msg, time, addr, recvPort|
-	aaccelX = (friction * (msg[1].asFloat) + ((1 - friction) * aaccelX));
-	aaccelY = (friction * (msg[2].asFloat) + ((1 - friction) * aaccelX));
-	aaccelZ = (friction * (msg[3].asFloat) + ((1 - friction) * aaccelX));
+	aaccelX = tween.(msg[1].asFloat,aaccelX,0.2);
+	aaccelY = tween.(msg[2].asFloat,aaccelY,0.2);
+	aaccelZ = tween.(msg[3].asFloat,aaccelZ,0.2);
 }, '/gyrosc/accel');
 
 alt = OSCFunc({ |msg, time, addr, recvPort|
 	altValue = (msg[1].asFloat);
 }, '/gyrosc/alt');
-
 	
 
 u = Canvas3D(w, Rect(0, 0, 500, height/2))
@@ -169,15 +179,15 @@ u.add(rate = Canvas3DItem.grid(2)
     .width_(1)
 );
 
-u.add(accelX = Canvas3DItem.cube(2)
+u.add(accelX = Canvas3DItem.regPrism()
 	.color_(Color.red(0.9))
     .width_(1)
 );
-u.add(accelY = Canvas3DItem.cube(2)
+u.add(accelY = Canvas3DItem.regPrism()
 	.color_(Color.green(0.9))
     .width_(1)
 );
-u.add(accelZ = Canvas3DItem.cube(2)
+u.add(accelZ = Canvas3DItem.regPrism()
 	.color_(Color.blue(0.9))
     .width_(1)
 );
@@ -222,7 +232,7 @@ u.animate(60) {|t|
     ];
 
 	rate.transforms = [ 
-		Canvas3D.mScale(0.01,(rrateX+rrateY+rrateZ) / 20,1.0),
+		Canvas3D.mScale(0.01,(rrateX+rrateY+rrateZ) ,1.0),
 		Canvas3D.mTranslate(-2.2,0,0)
 
     ];
