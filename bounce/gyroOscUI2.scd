@@ -134,7 +134,6 @@ gryo = OSCFunc({ |msg, time, addr, recvPort|
 	gyroPitch = (msg[1].asFloat + pi.half);
 	gyroRoll = (msg[2].asFloat + pi.half);
 	gyroYaw = (msg[3].asFloat + pi.half);
-	[addr].postln;
 }, '/gyrosc/gyro');
 
 rrate = OSCFunc({ |msg, time, addr, recvPort|
