@@ -1,12 +1,14 @@
 (
     var width = Window.screenBounds.width, height = Window.screenBounds.height ;
-    var w, u, v, cube, top, rate, spiral, gryo, alt;
+    var window, graph1, cube, top, rate, spiral, gryo, alt;
+    var graph2, spot;
+
 	var gyroPitch = 0, gyroRoll = 0, gyroYaw = 0, altValue = 0;
 	var rrate, rrateX = 0, rrateY = 0, rrateZ = 0;
 	var accel,accelX, accelY, accelZ, aaccelX = 0, aaccelY = 0, aaccelZ = 0;
-	var oscBroadcaster, broadcastRoutine;
+	var broadcastRoutine;
 	var pattern, player;
-	var vv, labelView, controlView;
+	var plotterView, labelView, controlView;
 	var dataSize = 100;
 	var dc = DataCollector.new("test");
 	var plotter1, plotter2, plotter3;
@@ -22,7 +24,7 @@ QtGUI.palette = QPalette.dark;
 
 
 
-w = Window("gyro osc tester", Rect(0, height, width, height), false)
+window = Window("gyro osc tester", Rect(0, height, width, height), false)
         .front;
 
 DataCollector.makeBackupFolder();
@@ -31,29 +33,29 @@ DataCollector.folder = PathName.new(dataPath).fullPath;
 
 
 
-vv = UserView(w,Rect(0,0,width,height));
+plotterView = UserView(window,Rect(0,0,width,height));
 
-plotter1 = Plotter("plot1", Rect(600,(height/6) * 0,200,height/6),vv);
-plotter2 = Plotter("plot2", Rect(600,(height/6) * 1,200,height/6),vv);
-plotter3 = Plotter("plot3", Rect(600,(height/6) * 2,200,height/6),vv);
+plotter1 = Plotter("plot1", Rect(600,(height/6) * 0,200,height/6),plotterView);
+plotter2 = Plotter("plot2", Rect(600,(height/6) * 1,200,height/6),plotterView);
+plotter3 = Plotter("plot3", Rect(600,(height/6) * 2,200,height/6),plotterView);
 
-plotter4 = Plotter("plot4", Rect(800,(height/6) * 0,200,height/6),vv).value_((0..dataSize));
-plotter5 = Plotter("plot5", Rect(800,(height/6) * 1,200,height/6),vv).value_((0..dataSize));
-plotter6 = Plotter("plot6", Rect(800,(height/6) * 2,200,height/6),vv).value_((0..dataSize));
+plotter4 = Plotter("plot4", Rect(800,(height/6) * 0,200,height/6),plotterView).value_((0..dataSize));
+plotter5 = Plotter("plot5", Rect(800,(height/6) * 1,200,height/6),plotterView).value_((0..dataSize));
+plotter6 = Plotter("plot6", Rect(800,(height/6) * 2,200,height/6),plotterView).value_((0..dataSize));
 
 GUI.skin.plot.gridLinePattern = FloatArray[1, 0];
 GUI.skin.plot.gridColorX = Color.yellow(0.5);
 GUI.skin.plot.gridColorY = Color.yellow(0.5);
 GUI.skin.plot.background = Color.black;
 
-labelView = UserView(w,Rect(500,0,100,height/2)).background_(Color.black);
+labelView = UserView(window,Rect(500,0,100,height/2)).background_(Color.black);
 labelView.layout = VLayout(
 	StaticText().stringColor_(Color.red).string_("Pitch"),
 	StaticText().stringColor_(Color.green).string_("Roll"),
 	StaticText().stringColor_(Color.blue).string_("Yaw")
 );
 
-controlView = UserView(w,Rect(1000,0,width/4,height/2)).background_(Color.grey);
+controlView = UserView(window,Rect(1000,0,width/4,height/2)).background_(Color.grey);
 controlView.layout = VLayout(
 
 	Button()
@@ -72,7 +74,7 @@ controlView.layout = VLayout(
 			};
 		}),	
 	Button()
-		.states_([["🔴 REC",Color.red(0.9)]])
+		.states_([["🔴 SNAP",Color.red(0.9)]])
 		.maxWidth_(80)
 		.action_({
 			dc.backup();
@@ -101,30 +103,30 @@ controlView.layout = VLayout(
     		plotter6.setProperties(\plotColor, Color.blue).refresh;
 
 		}),
-	Button()
-		.states_([["🔵 PITCH",Color.green(0.9)]])
-		.maxWidth_(80)
-		.action_({
-			plotter4.value = dc.getLast(dataSize).asArray.collect({|a,i| a[\data][0]}).addAll([-pi,pi]);
-      		plotter4.setProperties(\plotColor, Color.red).refresh;
+	// Button()
+	// 	.states_([["🔵 PITCH",Color.green(0.9)]])
+	// 	.maxWidth_(80)
+	// 	.action_({
+	// 		plotter4.value = dc.getLast(dataSize).asArray.collect({|a,i| a[\data][0]}).addAll([-pi,pi]);
+ //      		plotter4.setProperties(\plotColor, Color.red).refresh;
 
-		}),
-	Button()
-		.states_([["🔵 ROLL",Color.green(0.9)]])
-		.maxWidth_(80)
-		.action_({
-			plotter5.value = dc.getLast(dataSize).asArray.collect({|a,i| a[\data][1]}).addAll([-pi,pi]);
-    		plotter5.setProperties(\plotColor, Color.green).refresh;
+	// 	}),
+	// Button()
+	// 	.states_([["🔵 ROLL",Color.green(0.9)]])
+	// 	.maxWidth_(80)
+	// 	.action_({
+	// 		plotter5.value = dc.getLast(dataSize).asArray.collect({|a,i| a[\data][1]}).addAll([-pi,pi]);
+ //    		plotter5.setProperties(\plotColor, Color.green).refresh;
 
-		}),
-	Button()
-		.states_([["🔵 YAW",Color.green(0.9)]])
-		.maxWidth_(80)
-		.action_({
-			plotter6.value = dc.getLast(dataSize).asArray.collect({|a,i| a[\data][2]}).addAll([-pi,pi]);
-    		plotter6.setProperties(\plotColor, Color.blue).refresh;
+	// 	}),
+	// Button()
+	// 	.states_([["🔵 YAW",Color.green(0.9)]])
+	// 	.maxWidth_(80)
+	// 	.action_({
+	// 		plotter6.value = dc.getLast(dataSize).asArray.collect({|a,i| a[\data][2]}).addAll([-pi,pi]);
+ //    		plotter6.setProperties(\plotColor, Color.blue).refresh;
 
-		}),
+	// 	}),
 );
 tween = {|input,history,friction = 0.5|
 	(friction * input + ((1 - friction) * history))
@@ -137,9 +139,9 @@ gryo = OSCFunc({ |msg, time, addr, recvPort|
 }, '/gyrosc/gyro');
 
 rrate = OSCFunc({ |msg, time, addr, recvPort|
-	rrateX = tween.(msg[1].asFloat,rrateX,0.005);
-	rrateY = tween.(msg[2].asFloat,rrateY,0.005);
-	rrateZ = tween.(msg[3].asFloat,rrateZ,0.005);
+	rrateX = tween.(msg[1].asFloat,rrateX,0.03);
+	rrateY = tween.(msg[2].asFloat,rrateY,0.03);
+	rrateZ = tween.(msg[3].asFloat,rrateZ,0.03);
 }, '/gyrosc/rrate');
 
 
@@ -155,11 +157,22 @@ alt = OSCFunc({ |msg, time, addr, recvPort|
 }, '/gyrosc/alt');
 	
 
-u = Canvas3D(w, Rect(0, 0, 500, height/2))
+graph1 = Canvas3D(window, Rect(0, 0, 500, height/2))
     .scale_(200)
 	.background_(Color.gray)
     .perspective_(0.5)
     .distance_(2);
+
+graph2 = Canvas3D(window, Rect(0, height/2, 500, height/2))
+    .scale_(200)
+	.background_(Color.gray)
+    .perspective_(0.5)
+    .distance_(2);
+
+graph2.add(spot = Canvas3DItem.cube
+    .color_(Color.red(0.8))
+    .width_(1)
+);
 
 // u.view.clearOnRefresh= false;
 //     u.view.drawFunc= {
@@ -167,38 +180,50 @@ u = Canvas3D(w, Rect(0, 0, 500, height/2))
 //         Pen.fillRect(Rect(0, 0, width, height));
 //     }<>u.view.drawFunc;
 
-u.add(cube = Canvas3DItem.cube
+graph1.add(cube = Canvas3DItem.cube
     .color_(Color.red(0.8))
     .width_(1)
 );
 
-u.add(top = Canvas3DItem.grid(4)
+graph1.add(top = Canvas3DItem.grid(4)
 	.color_(Color.green(0.9))
     .width_(1)
 );
 
 
-u.add(rate = Canvas3DItem.grid(2)
+graph1.add(rate = Canvas3DItem.grid(2)
 	.color_(Color.yellow(0.9))
     .width_(1)
 );
 
-u.add(accelX = Canvas3DItem.regPrism()
+graph1.add(accelX = Canvas3DItem.regPrism()
 	.color_(Color.red(0.9))
     .width_(1)
 );
-u.add(accelY = Canvas3DItem.regPrism()
+graph1.add(accelY = Canvas3DItem.regPrism()
 	.color_(Color.green(0.9))
     .width_(1)
 );
-u.add(accelZ = Canvas3DItem.regPrism()
+graph1.add(accelZ = Canvas3DItem.regPrism()
 	.color_(Color.blue(0.9))
     .width_(1)
 );
 
+graph2.animate(60) {|t|
+	spot.transforms = [ 
+
+		Canvas3D.mScale(1.0,0.5,0.05),
+	    Canvas3D.mRotateX(gyroRoll),
+        Canvas3D.mRotateY(gyroYaw.neg + pi.half),
+        Canvas3D.mRotateZ(gyroPitch.neg + pi.half),
+		 Canvas3D.mTranslate(aaccelY.neg,aaccelZ,aaccelX)
+
+    ];
+
+};
 
 // animate
-u.animate(60) {|t|
+graph1.animate(60) {|t|
 	
 	dc.addData([gyroPitch,gyroRoll,gyroYaw],t);
 
@@ -219,8 +244,7 @@ u.animate(60) {|t|
         Canvas3D.mRotateX(gyroRoll),
         Canvas3D.mRotateY(gyroYaw.neg + pi.half),
         Canvas3D.mRotateZ(gyroPitch.neg + pi.half),
-		Canvas3D.mTranslate(0,altValue.neg * 1  ,0)
-
+		//Canvas3D.mTranslate(rrateX,rrateY,rrateZ)
     ];
 
 
@@ -237,7 +261,7 @@ u.animate(60) {|t|
     ];
 
 	rate.transforms = [ 
-		Canvas3D.mScale(0.01,(rrateX+rrateY+rrateZ) ,1.0),
+		Canvas3D.mScale(0.01,(rrateX.abs+rrateY.abs+rrateZ.abs) ,1.0),
 		Canvas3D.mTranslate(-2.2,0,0)
 
     ];
@@ -263,7 +287,7 @@ u.animate(60) {|t|
 };
 
 
-oscBroadcaster = NetAddr("127.0.0.1", NetAddr.langPort); // loopback
+//oscBroadcaster = NetAddr("127.0.0.1", NetAddr.langPort); // loopback
 
 broadcastRoutine = Routine {
 	var i=0;
@@ -281,7 +305,7 @@ broadcastRoutine = Routine {
 	}
 };
 
-w.onClose = {
+window.onClose = {
 	//dc.saveTo(PathName.new(dataPath).fullPath+/+Date.getDate.asSortableString);
 	broadcastRoutine.stop;
 	player.stop;
