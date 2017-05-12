@@ -77,30 +77,27 @@ Ppatlace([Pseries(0, 1, 8), Pseries(2, 1, 7)],inf).asStream.nextN(8)
 
 (\freq:520,\pan:-0.8).play
 
+Pwhite(0.2, 0.8).asStream.nextN(50).plot
 
 
+Pxrand((0..8),inf).asStream.nextN(8)
+
+
+PdegreeToKey(Pxrand((0..6),inf),[0,2,4,5,7,9,11],0).asStream.nextN(20)
+
+Pseries(4, Pwhite(-2, 2, inf).reject({ |x| x == 0 }), inf).asStream.nextN(10)
+
+Pseries(4, Pwhite(-2, 2, inf).reject({ |x| x == 0 }), inf).fold(-7, 11).asStream.nextN(10)
+
+Prorate(1, 1).asStream.nextN(10) 
 
 (
-Pdef(\pat1).set(\octave,4);
-Pdef(\pat1).set(\dur,0.25);
-Pdef(\pat1,
-	Pbind(
-        \degree, Pseq([0, 7, 4, 3, 9, 5, 1, 4], inf),
-		\gtranspose, Pstutter(8,Pseq([0,3,8,-2],inf),inf),
-		\amp, Pexprand(0.1,0.4,inf),
-		\pan, 0
-));
-
-~spec = ControlSpec(0,3,step:1);
-~window = Window.new("mixers", Rect(10, 100, 320, 60));
-~window.view.decorator = FlowLayout(~window.view.bounds, 2@2);
-EZSlider(~window, 310@20, "low part", \amp, { |ez| 
-	Pdef(\pat1).set(\dur,Array.geom(4, 1, 2).at(~spec.map(ez.value)).reciprocal); 
-}, 0.5);
-~window.front.onClose_({ Pdef(\pat1).stop });
-
-Pdef(\pat1).play;
+	a = #[0,1,2,4,7,10];
+Pbind(
+	\note,PdegreeToKey(Pwhite(0,a.size,inf),a,7).trace,
+	\dur, 0.125 
+).play
 )
 
+Pstutter(1,Pseq((0..8))).asStream.nextN(8)
 
-Array.geom(6, 1, 2).at(0);
