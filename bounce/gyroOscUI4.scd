@@ -1,3 +1,4 @@
+
 (
     var width = Window.screenBounds.width, height = Window.screenBounds.height ;
     var window, graph1, cube, top, rate, spiral, gryo, alt;
@@ -20,6 +21,23 @@
 
 	var createPlotterGroup;
 
+SynthDef(\xylo, { |out=0, freq=440, gate=1, amp=0.3, sustain=0.2, pan=0|
+	var sig = StkBandedWG.ar(freq, instr:1, mul:3);
+	var env = EnvGen.kr(Env.adsr(0.0001, sustain, sustain, 1.3), gate, doneAction:2);
+	Out.ar(out, Pan2.ar(sig, pan, env * amp));
+}).add;
+
+
+Pdef(\pat1).set(\octave,4);
+Pdef(\pat1).set(\dur,0.25);
+Pdef(\pat1,
+	Pbind(
+		\instrument, \xylo,
+        \degree, Pseq([0, 7, 4, 3, 9, 5, 1, 4], inf),
+		\gtranspose, Pstutter(8,Pseq([0,3,8,-2],inf),inf),
+		\amp, Pexprand(0.1,0.4,inf),
+		\pan, 0
+));
 
 QtGUI.palette = QPalette.dark; 
 
@@ -322,12 +340,12 @@ graph2.add(accelZ = Canvas3DItem.regPrism()
 	.color_(Color.blue(0.9))
     .width_(1)
 );
-
-
 graph2.animate(60) {|t|
 	
 	accelRateSum = tween.((aaccelY.abs+aaccelZ.abs+aaccelX.abs).half,accelRateSum,0.08);
 	
+	Pdef(\pat1).set(\dur,Array.geom(8, 3, 2).at(accelRateSum.floor).reciprocal);
+
 	spot.transforms = [ 
 
 		Canvas3D.mScale(1.0,0.5,0.05),
@@ -387,6 +405,7 @@ broadcastRoutine = Routine {
 
 window.onClose = {
 	//dc.saveTo(PathName.new(dataPath).fullPath+/+Date.getDate.asSortableString);
+	Pdef(\pat1).stop;
 	broadcastRoutine.stop;
 	player.stop;
 	gryo.free;
@@ -395,6 +414,8 @@ window.onClose = {
 };
 CmdPeriod.doOnce({window.close});
 
+
+Pdef(\pat1).play;
 
 )
 
