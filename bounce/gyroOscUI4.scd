@@ -61,7 +61,7 @@ createPlotterGroup = {|bounds, plotters|
 
 	plotters.do{ |specs,i|
 		var max = 0;
-		var p = Plotter(specs[0], Rect(pw*0.3,ph*i,pw*0.7,ph),plotterView).value_((0..dataSize));
+		var plotter = Plotter(specs[0], Rect(pw*0.3,ph*i,pw*0.7,ph),plotterView).value_((0..dataSize));
 
 		var st = StaticText(plotterView,Rect(pw*0.15,ph*i,pw*0.15,ph/2))
 			.string_(specs[0])
@@ -86,17 +86,19 @@ createPlotterGroup = {|bounds, plotters|
 		plotterView.drawFunc = plotterView.drawFunc <> {
 
 			//•• bug : plotter may not be around
-			var val = specs[2].(p).value[0].round(1e-4);
+			var val = specs[2].(plotter).value[0].round(1e-4);
 
 			st.string_(val);
 
 			if(val > max, {max = val});
 
 			su.string_("max :"+max);
-			p.minval_(-pi);
-			p.maxval_(pi);
-			p.setProperties(\plotColor, specs[1]).refresh;
+			plotter.minval_(-pi);
+			plotter.maxval_(pi);
+			plotter.setProperties(\plotColor, specs[1]).refresh;
 
+
+			//plotterView.animate_(false);
 		}
 	};
 
@@ -259,7 +261,7 @@ graph1.add(top = Canvas3DItem.grid(4)
 
 
 graph1.add(rate = Canvas3DItem.grid(2)
-	.color_(Color.yellow(0.9))
+	.color_(Color.black(0.9))
     .width_(1)
 );
 
@@ -268,7 +270,7 @@ graph1.add(rate = Canvas3DItem.grid(2)
 graph1.animate(60) {|t|
 
 
-
+	graph1.background_(Color.hsv((gyroYaw + pi)/pi.twice,0.4,0.9,1));
 
 	Pdef(\pat1).set(\patch,((gyroYaw + pi).div(pi.twice/4.0)).floor);
 	Pdef(\pat1).set(\gtranspose,12 + [0,7,12,24].at(((gyroRoll + pi).div(pi.twice/4.0)).floor));
@@ -323,7 +325,7 @@ graph2.add(spot = Canvas3DItem.cube
 );
 
 graph2.add(accelRate = Canvas3DItem.grid(2)
-	.color_(Color.yellow(0.9))
+	.color_(Color.black(0.9))
     .width_(1)
 );
 
