@@ -180,3 +180,97 @@ t = Task {
 
 //stop clusters
 t.stop;
+
+
+(
+SynthDef(\help_dwgplucked, { |out=0, freq=440, amp=0.5, gate=1, c3=20, pan=0, attack = 0.001|
+    var env = Env.new([0,1, 1, 0],[attack,0.006, 0.005],[5,-5, -8]);
+    var inp = amp * LFClipNoise.ar(2000) * EnvGen.ar(env,gate);
+    var son = DWGPlucked.ar(freq, amp, gate,MouseX.kr(),1,c3,inp);
+    DetectSilence.ar(son, 0.001, doneAction:2);
+    Out.ar(out, Pan2.ar(son * 0.1, pan));
+}).add;
+)
+
+(
+	Pbind(
+		\instrument,\help_dwgplucked,
+		\gtranspose, [-12,0,12],
+        \degree, Pseq([0, 7, 4, 3, 9, 5, 1, 4], inf),
+		\dur, 0.125,
+		\legato, Pwhite(0.1,10,inf),
+		 \c3 , Pseq(Pseries(10,40,20).asArray,inf).trace,
+		\attack, 1,
+		\pan,Pwhite(-1,1)
+).play;
+	)
+
+
+
+
+(1..10)
+
+
+(
+z = { exprand(100.0, 5000.0) } ! 20;
+Ndef(\x, {
+	var in = Decay.ar(Dust.ar(MouseX.kr(0.0001, 0.1, 1) * z, 10), 0.3) * PinkNoise.ar(0.4 ! (z.size div: 3), 1);
+	z = z * LFNoise1.ar(0.2 ! z.size).range(1, 2) * LFNoise0.ar(20 ! z.size).exprange(1, 1.8);
+	Splay.ar(ComplexRes.ar(in, z, 10 / z)) * 2
+}).play
+)
+
+
+// this started out as a comparison between BPF and ComplexRes
+
+
+(
+z = [253.12, 2881.123, 2883.4, 1002.2, 882.01];
+Ndef(\x, {
+	var in = Decay.ar(Dust.ar(5, 100), 0.3) * PinkNoise.ar(0.4, 1);
+	ComplexRes.ar(in, z, 10 / z).sum
+}).play
+)
+
+
+(
+z = [253.12, 2881.123, 2883.4, 1002.2, 882.01];
+Ndef(\x, {
+	var in = Decay.ar(Dust.ar(5, 100), 0.3) * PinkNoise.ar(0.4, 1);
+	BPF.ar(in, z, (10 / z) * 2).sum
+}).play
+)
+
+(
+z = [253.12, 2881.123, 2883.4, 1002.2, 882.01];
+Ndef(\x, {
+	var in = Decay.ar(Dust.ar(5, 100), 0.3) * PinkNoise.ar(0.4, 1);
+	z = z * LFNoise0.ar(13).range(1, 2);
+	ComplexRes.ar(in, z, 10 / z).sum
+}).play
+)
+
+
+(
+z = [253.12, 2881.123, 2883.4, 1002.2, 882.01];
+Ndef(\x, {
+	var in = Decay.ar(Dust.ar(5, 100), 0.3) * PinkNoise.ar(0.4, 1);
+	z = z * LFNoise0.ar(13).range(1, 2);
+	BPF.ar(in, z, (10 / z) * 2).sum
+}).play
+)
+
+
+(
+SynthDef(\Synth3,
+	{arg ress = 0;
+		var klank, env;
+		klank = Klank.ar(`[{Rand(70,21000)}!7, {Rand(0.128,0.700)}!7],BrownNoise.ar(0.7));
+		klank = klank;
+		env = EnvGen.kr(Env.perc(0.07, ress), doneAction:2);
+		Out.ar(0, klank*env.dup*0.0128);
+}).add;
+)
+
+
+{inf.do{x = rrand(0.01,0.7); Synth(\Synth3, [\ress, x+(7*x)]); x.wait;}}.fork

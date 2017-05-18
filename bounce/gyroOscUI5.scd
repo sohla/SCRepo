@@ -39,15 +39,28 @@ SynthDef(\xylo, { |out=0, freq=440, gate=1, amp=0.3, sustain=0.2, pan=0, patch=1
 	Out.ar(out, Pan2.ar(sig, pan, env * amp));
 }).add;
 
-Pdef(\pat1).set(\octave,4);
-Pdef(\pat1).set(\dur,0.25);
-Pdef(\pat1).set(\gtranspose,0);
+SynthDef(\help_dwgplucked, { |out=0, freq=440, amp=0.5, gate=1, c3=20, pan=0, position = 0.5 attack = 0.001|
+    var env = Env.new([0,1, 1, 0],[attack,0.006, 0.005],[5,-5, -8]);
+    var inp = amp * LFClipNoise.ar(2000) * EnvGen.ar(env,gate);
+    var son = DWGPlucked.ar(freq, amp, gate,position,1,c3,inp);
+    DetectSilence.ar(son, 0.001, doneAction:2);
+    Out.ar(out, Pan2.ar(son * 0.1, pan));
+}).add;
+
+Pdef(\pat1).set(\octave,3);
+Pdef(\pat1).set(\dur,0.5);
+//Pdef(\pat1).set(\gtranspose,0);
 Pdef(\pat1).set(\patch,0);
-Pdef(\pat1).set(\attack,0.8);
+//Pdef(\pat1).set(\attack,0.8);
+Pdef(\pat1).set(\c3,50);
+Pdef(\pat1).set(\legato,10);
+//Pdef(\pat1).set(\position,0.5);
+
+Pdef(\pat1).set(\attack,0.001);
 
 Pdef(\pat1,
 	Pbind(
-		\instrument, \xylo,
+		\instrument, \help_dwgplucked,
         \degree, Pseq([0, 7, 4, 5, 2], inf),
 		\amp, Pexprand(0.1,0.4,inf),
 		\pan, 0
@@ -223,9 +236,23 @@ createGyroCanvas = {
 
 		graph1.background_(Color.hsv((gyroEvent.yaw + pi)/pi.twice,0.4,0.9,1));
 
-		Pdef(\pat1).set(\patch,((gyroEvent.yaw + pi).div(pi.twice/4.0)).floor);
-		Pdef(\pat1).set(\gtranspose,12 + [0,7,12,24].at(((gyroEvent.roll + pi).div(pi.twice/4.0)).floor));
-		Pdef(\pat1).set(\dur,Array.geom(8, 1, 2).at((rrateEvent.sumabs.sqrt).floor).reciprocal);
+		Pdef(\pat1).set(\patch,((gyroEvent.pitch + pi).div(pi.twice/4.0)).floor);
+		Pdef(\pat1).set(\gtranspose,12 + [0,12,24].at(((gyroEvent.roll + pi).div(pi.twice/3.0)).floor));
+
+		Pdef(\pat1).set(\c3,(10 + ((gyroEvent.roll + pi)/(pi.twice) * 500)));
+		
+		Pdef(\pat1).set(\legato,(0.1 + ((gyroEvent.yaw + pi)/(pi.twice) * 10)));
+		
+		Pdef(\pat1).set(\position,(0.0 + ((gyroEvent.yaw + pi)/(pi.twice) * 1.0)));
+
+
+//		Pdef(\pat1).set(\dur,Array.geom(8, 1, 2).at((rrateEvent.sumabs.sqrt).floor).reciprocal);
+
+		Pdef(\pat1).set(\attack,(gyroEvent.yaw + pi).pow(2)*(pi.twice.reciprocal).pow(2));
+
+
+
+
 
 		dc.addData([gyroEvent.pitch,gyroEvent.roll,gyroEvent.yaw,accelEvent.y.neg,accelEvent.z,accelEvent.x],t);
 
@@ -300,8 +327,11 @@ createAccelCanvas = {
 	graph2.animate(60) {|t|
 		
 		accelRateSum = tween.(accelEvent.sumabs.half,accelRateSum,0.08);
-		Pdef(\pat1).set(\attack,(1.0 + accelEvent.sumabs).pow(4).reciprocal);
 		
+		//Pdef(\pat1).set(\attack,(1.0 + accelEvent.sumabs).pow(4).reciprocal);
+		Pdef(\pat1).set(\dur,Array.geom(8, 1, 2).at((rrateEvent.sumabs.sqrt).floor).half.reciprocal);
+		
+
 		spot.transforms = [ 
 			Canvas3D.mScale(1.0,0.5,0.05),
 		    Canvas3D.mRotateX(gyroEvent.roll + pi.half),
@@ -408,9 +438,9 @@ broadcastRoutine = Routine {
 		// gyroRoll = (i*12).sin * 0.8 + (i*21).sin * 0.4;
 		//gyroYaw = (i*5).cos * 2.0;
 
-		gyroEvent.yaw = (i.mod(pi).twice) - pi;
-		gyroEvent.pitch = (i*10).sin + (i*11).cos;
-		gyroEvent.roll = (i*12).sin * 0.8 + (i*21).sin * 0.4;
+		gyroEvent.yaw = (i.twice.mod(pi).twice) - pi;
+		gyroEvent.pitch = ((i*10).sin + (i*11).cos) * 2.0;
+		gyroEvent.roll = (i.mod(pi).twice) - pi;
 
 		accelEvent.y = (i*60).sin + (i*51).cos * 0.09;
 		accelEvent.x = (i*30).cos + (i*81).sin * 0.06;
@@ -428,28 +458,8 @@ startup.();
 buildUI.();
 Pdef(\pat1).play;
 
-//startOSCListening.();
-broadcastRoutine.reset().play(AppClock);
+startOSCListening.();
+//broadcastRoutine.reset().play(AppClock);
 
 )
 
-
-a = (\x:4,\y:-5,\z:99.9)
-a = ()
-a.x= 1
-a.asPairs
-
-// a.sum
-// a.mean
-// a.product
-// a.sumabs
-
-
-// [1,2,3].sum
-// [1,2,4].mean
-// [1,2,5].product
-// [1.2,2.3,-4.4].sumabs
-
-// [1,2,3].normalize(0,10)
-
-// [1,2,3].normalizeSum
