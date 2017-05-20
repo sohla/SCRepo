@@ -30,6 +30,14 @@
 
 	var tween;
 
+	var isSimulating = {|yes,no|
+
+		if(false,{
+			yes.();
+		},{
+			no.();
+		});
+	};
 
 
 //------------------------------------------------------------	
@@ -48,6 +56,7 @@ SynthDef(\help_dwgplucked, { |out=0, freq=440, amp=0.5, gate=1, c3=20, pan=0, po
     var son = DWGPlucked.ar(freq, amp, gate,position,1,c3,inp);
     DetectSilence.ar(son, 0.001, doneAction:2);
     Out.ar(out, Pan2.ar(son * 0.1, pan));
+	//Out.ar(out,GVerb.ar(Pan2.ar(son * 0.1, pan),40,14.85,0.41,0.19,-3,-15,-17,mul:0.1));
 }).add;
 
 Pdef(\pat1).set(\octave,3);
@@ -66,7 +75,7 @@ Pdef(\pat1,
 		\instrument, \help_dwgplucked,
         \degree, Pseq([0, 7, 4, 5, 2], inf),
 		\amp, Pexprand(0.1,0.4,inf),
-		\pan, 0
+		\pan, Pwhite(-0.8,0.8,inf)
 ));
 
 
@@ -179,15 +188,12 @@ createTransportView = { |bounds|
 							lc = DataCollector.fromFile(path);
 							lc.collection.reverse.postln;
 
-							//broadcastRoutine.stop;
-							disableOSCListening.();
+							isSimulating.({broadcastRoutine.stop},{disableOSCListening.()});
 							replayRoutine.reset().play(AppClock);
 
 
 						},{
-							
-							//broadcastRoutine.reset().play(AppClock);
-							enableOSCListening.();
+							isSimulating.({broadcastRoutine.reset().play(AppClock)},{enableOSCListening.()});
 							replayRoutine.stop;
 
 						});
@@ -291,8 +297,8 @@ createGyroCanvas = {
 
 	// animate
 	graph1.animate(60) {|t|
-
-		graph1.background_(Color.hsv((gyroEvent.yaw + pi)/pi.twice,0.4,0.9,1));
+rotateRateSum.sqrt.half.lag.postln;
+		graph1.background_(Color.hsv(rotateRateSum.sqrt.half,0.4,0.9,1));
 
 		Pdef(\pat1).set(\patch,((gyroEvent.pitch + pi).div(pi.twice/4.0)).floor);
 		
@@ -324,10 +330,10 @@ createGyroCanvas = {
 
 
 
-		rotateRateSum = tween.(rrateEvent.sumabs.half / 3.0,rotateRateSum,0.08);
+		rotateRateSum = tween.(rrateEvent.sumabs.half / 3.0,rotateRateSum,0.02);
 
 		rate.transforms = [ 
-			Canvas3D.mScale(0.01,rotateRateSum ,1.0),
+			Canvas3D.mScale(0.01,rotateRateSum.half ,1.0),
 			Canvas3D.mTranslate(-2.2,0,0)
 
 	    ];
@@ -545,7 +551,6 @@ replayRoutine = Routine {
 		rrateEvent.y = data[7];
 		rrateEvent.z = data[8];
 
-
 		(1.0/60.0).yield;
 	}
 };
@@ -558,10 +563,9 @@ startup.();
 buildUI.();
 Pdef(\pat1).play;
 
-
 startOSCListening.();
-// disableOSCListening.();
-// broadcastRoutine.reset().play(AppClock);
+
+isSimulating.({broadcastRoutine.reset().play(AppClock);disableOSCListening.();},{});
 
 )
 
