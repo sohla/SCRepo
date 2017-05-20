@@ -4,8 +4,8 @@
     var width = Window.screenBounds.width, height = Window.screenBounds.height ;
 	var startup, shutdown, buildUI;
 
-	var createPlotterGroup, createGyroCanvas, createAccelCanvas;
-	var startOSCListening, stopOSCListening;
+	var createPlotterGroup, createGyroCanvas, createAccelCanvas, createTransportView;
+	var startOSCListening, stopOSCListening, enableOSCListening, disableOSCListening;
 
     var gryoListner, rrateListener, accelListener, altListener;
 
@@ -19,10 +19,13 @@
 	var accelRateSum = 0;
 	
 	var broadcastRoutine;
+	var replayRoutine;
+
 	var pattern, player;
 
 	var dataSize = 100;
 	var dc = DataCollector.new("test");
+	var lc = nil;
 	var dataPath = "~/Develop/SuperCollider/Projects/SCRepo/bounce/data/";
 
 	var tween;
@@ -82,11 +85,11 @@ startup = {
 //------------------------------------------------------------	
 shutdown = {
 
-	//dc.saveTo(PathName.new(dataPath).fullPath+/+Date.getDate.asSortableString);
 	
 	Pdef(\pat1).stop;
 	
 	broadcastRoutine.stop;
+	replayRoutine.stop;
 	player.stop;
 
 	stopOSCListening.();
@@ -113,7 +116,7 @@ buildUI = {
 	};
 	CmdPeriod.doOnce({window.close});
 
-	createPlotterGroup.(Rect(500,0,600,height-50),[
+	createPlotterGroup.(Rect(500,50,400,height-100),[
 		["pitch",Color.red,{|p|
 			p.value = (dc.getLast(dataSize).asArray.collect({|a,i| a[\data][0]}));
 		}],
@@ -137,8 +140,63 @@ buildUI = {
 	createGyroCanvas.();
 	createAccelCanvas.();
 
+	createTransportView.(Rect(0,0,width,50));
+
 };
 
+//------------------------------------------------------------	
+// Transport View
+//------------------------------------------------------------	
+createTransportView = { |bounds|
+
+
+
+
+	var view = UserView(window,bounds)
+		.background_(Color.gray)
+		.layout_(
+			HLayout(
+				// Button()
+				// 	.states_([
+				// 		["• record",Color.black],
+				// 		["• recording",Color.red(0.6)]
+				// 	])
+				// 	.action_({|b|
+				// 		b.value.postln;
+				// 	}),
+				Button()
+					.maxWidth_(50)
+					.states_([
+						["replay",Color.black],
+						["replay",Color.green]
+					])
+					.action_({|b|
+
+						if(b.value == 1,{
+
+							var path = PathName.new(dataPath).fullPath+/+Date.getDate.asSortableString++".txt"; 
+							dc.saveTo(path);
+							lc = DataCollector.fromFile(path);
+							lc.collection.reverse.postln;
+
+							//broadcastRoutine.stop;
+							disableOSCListening.();
+							replayRoutine.reset().play(AppClock);
+
+
+						},{
+							
+							//broadcastRoutine.reset().play(AppClock);
+							enableOSCListening.();
+							replayRoutine.stop;
+
+						});
+
+					})
+
+			)
+		);
+};
 
 
 //------------------------------------------------------------	
@@ -210,7 +268,7 @@ createGyroCanvas = {
 	var graph1;
 	var cube, top, rate;
 	
-	graph1 = Canvas3D(window, Rect(0, 0, 500, height/2))
+	graph1 = Canvas3D(window, Rect(0, 50, 500, height-50/2))
 	    .scale_(200)
 		.background_(Color.gray)
 	    .perspective_(0.5)
@@ -237,6 +295,7 @@ createGyroCanvas = {
 		graph1.background_(Color.hsv((gyroEvent.yaw + pi)/pi.twice,0.4,0.9,1));
 
 		Pdef(\pat1).set(\patch,((gyroEvent.pitch + pi).div(pi.twice/4.0)).floor);
+		
 		Pdef(\pat1).set(\gtranspose,12 + [0,12,24].at(((gyroEvent.roll + pi).div(pi.twice/3.0)).floor));
 
 		Pdef(\pat1).set(\c3,(10 + ((gyroEvent.roll + pi)/(pi.twice) * 500)));
@@ -248,16 +307,22 @@ createGyroCanvas = {
 
 //		Pdef(\pat1).set(\dur,Array.geom(8, 1, 2).at((rrateEvent.sumabs.sqrt).floor).reciprocal);
 
-		Pdef(\pat1).set(\attack,(gyroEvent.yaw + pi).pow(2)*(pi.twice.reciprocal).pow(2));
+//		Pdef(\pat1).set(\attack,(gyroEvent.yaw + pi).pow(2)*(pi.twice.reciprocal).pow(2));
 
 
 
 
 
-		dc.addData([gyroEvent.pitch,gyroEvent.roll,gyroEvent.yaw,accelEvent.y.neg,accelEvent.z,accelEvent.x],t);
+		dc.addData([
+			gyroEvent.pitch,gyroEvent.roll,gyroEvent.yaw,
+			accelEvent.y.neg,accelEvent.z,accelEvent.x,
+			rrateEvent.x,rrateEvent.y,rrateEvent.z
+			],t);
 
 
 	 	dc.collection = dc.getLast(dataSize); // limit size of collected samples
+
+
 
 		rotateRateSum = tween.(rrateEvent.sumabs.half / 3.0,rotateRateSum,0.08);
 
@@ -296,7 +361,7 @@ createAccelCanvas = {
 	
     var graph2, spot, accelRate, accelX, accelY, accelZ;
 
-	graph2 = Canvas3D(window, Rect(0, height/2, 500, height/2))
+	graph2 = Canvas3D(window, Rect(0, height/2 + 50, 500, height-50/2))
 	    .scale_(200)
 		.background_(Color.gray)
 	    .perspective_(0.5)
@@ -328,7 +393,7 @@ createAccelCanvas = {
 		
 		accelRateSum = tween.(accelEvent.sumabs.half,accelRateSum,0.08);
 		
-		//Pdef(\pat1).set(\attack,(1.0 + accelEvent.sumabs).pow(4).reciprocal);
+		Pdef(\pat1).set(\attack,(1.0 + rrateEvent.sumabs).pow(4).reciprocal);
 		Pdef(\pat1).set(\dur,Array.geom(8, 1, 2).at((rrateEvent.sumabs.sqrt).floor).half.reciprocal);
 		
 
@@ -419,9 +484,19 @@ stopOSCListening = {
 
 };
 
+enableOSCListening = {
+	gryoListner.enable;
+	altListener.enable;
+	rrateListener.enable;
+	accelListener.enable;
+};
 
-
-
+disableOSCListening = {
+	gryoListner.disable;
+	altListener.disable;
+	rrateListener.disable;
+	accelListener.disable;
+};
 
 //------------------------------------------------------------	
 // 
@@ -446,7 +521,32 @@ broadcastRoutine = Routine {
 		accelEvent.x = (i*30).cos + (i*81).sin * 0.06;
 		accelEvent.z = (i*130).cos + (i*181).sin * 0.07;
 
-		0.03.yield;
+		(1.0/60.0).yield;
+	}
+};
+
+replayRoutine = Routine {
+	var i=0;
+	loop {
+
+		var data = [];
+
+		i = (i+1).mod(lc.collection.size);
+
+		data = lc.collection.reverse[i][\data];
+
+		gyroEvent.pitch = data[0];
+		gyroEvent.roll = data[1];
+		gyroEvent.yaw = data[2];
+		accelEvent.y = data[3];
+		accelEvent.z = data[4];
+		accelEvent.x = data[5];
+		rrateEvent.x = data[6];
+		rrateEvent.y = data[7];
+		rrateEvent.z = data[8];
+
+
+		(1.0/60.0).yield;
 	}
 };
 
@@ -458,8 +558,12 @@ startup.();
 buildUI.();
 Pdef(\pat1).play;
 
+
 startOSCListening.();
-//broadcastRoutine.reset().play(AppClock);
+// disableOSCListening.();
+// broadcastRoutine.reset().play(AppClock);
 
 )
+
+
 
