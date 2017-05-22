@@ -274,3 +274,32 @@ SynthDef(\Synth3,
 
 
 {inf.do{x = rrand(0.01,0.7); Synth(\Synth3, [\ress, x+(7*x)]); x.wait;}}.fork
+
+
+
+
+
+
+
+
+(
+SynthDef(\help_pindex, { | out, amp=0.1, freq=440, gate=1 |
+    var son = Saw.ar(freq * [0.99, 1, 1.01]).mean;
+    son = son * EnvGen.ar(Env.adsr, gate: gate, doneAction:2);
+    Out.ar(out, son.dup * amp);
+}).add;
+)
+
+(
+var data = Scale.major;
+var indices = [5, 5, 2, 5, 4, 6, 7];
+Pbind(
+    \instrument, \help_pindex,
+    \choice, Pseq(indices, inf),
+    \degree, Pindex(data, Pkey(\choice), inf),
+    \dur, 0.1
+).play
+)
+
+
+Scale.directory
