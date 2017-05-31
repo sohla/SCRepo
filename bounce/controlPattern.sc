@@ -290,14 +290,14 @@ SynthDef(\help_pindex, { | out, amp=0.1, freq=440, gate=1 |
 }).add;
 )
 
-(
+(		
 var data = Scale.major;
-var indices = [5, 5, 2, 5, 4, 6, 7];
+var indices = [5, 5, 2, 5, 4, 6, 0];
 Pbind(
     \instrument, \help_pindex,
     \choice, Pseq(indices, inf),
     \degree, Pindex(data, Pkey(\choice), inf),
-    \dur, 0.1
+    \dur, 0.5
 ).play
 )
 
