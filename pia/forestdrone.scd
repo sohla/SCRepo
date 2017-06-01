@@ -13,7 +13,7 @@ var exciter, spec,scale,root,out;
 			`[
 				Array.fill(p, { arg i; (scale.choose  + root.choose).midicps } ),
 				nil,
-				Array.fill(p, { 0.2 + 0.1.linrand } )
+				Array.fill(p, { 0.8 + 0.1.linrand } )
 			]
 	});
 		out = Klank.ar(spec, exciter);

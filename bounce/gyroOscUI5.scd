@@ -7,7 +7,7 @@
 		var createPlotterGroup, createGyroCanvas, createAccelCanvas, createTransportView;
 		var startOSCListening, stopOSCListening, enableOSCListening, disableOSCListening;
 
-	    var gryoListner, rrateListener, accelListener, altListener;
+	    var gryoListner, rrateListener, accelListener, altListener, ampListener;
 
 	    // data
 		var gyroEvent = (\pitch:0,\roll:0,\yaw:0); 
@@ -17,6 +17,7 @@
 		var altValue = 0;
 		var rotateRateSum = 0;
 		var accelRateSum = 0;
+		var ampValue = 0;
 		
 		var broadcastRoutine;
 		var replayRoutine;
@@ -32,6 +33,9 @@
 
 		var oldRollStep = 0,oldPitchStep = 0;
 
+
+		var pos3D = [0,0,0];
+
 		var isSimulating = {|yes,no|
 
 			if(false,{
@@ -40,6 +44,9 @@
 				no.();
 			});
 		};
+	// MIDIClient.init;
+	// MIDIClient.destinations;
+	// m = MIDIOut(0);
 
 
 	//------------------------------------------------------------	
@@ -274,8 +281,10 @@
 
 	createGyroCanvas = {
 		var graph1;
-		var cube, top, rate;
-		
+		var cube, top, rate, loc, ico;
+		var p1,p2,p3;
+	var t = (1.0 + (5.0).sqrt) / 2.0;
+
 		graph1 = Canvas3D(window, Rect(0, 50, 500, height-50/2))
 		    .scale_(200)
 			.background_(Color.gray)
@@ -297,8 +306,68 @@
 		    .width_(1)
 		);
 
+		graph1.add(loc = Canvas3DItem.cube
+			.color_(Color.blue(0.9))
+		    .width_(1)
+		    //
+		);
+     graph1.add(p1 = Canvas3DItem.grid(2)
+        .color_(Color.grey)
+        .width_(1)
+		.transform(Canvas3D.mScale(1,t,1))
+		//.transform(Canvas3D.mRotateY(pi/2))
+    );
+    graph1.add(p2 = Canvas3DItem.grid(2)
+        .color_(Color.grey)
+        .width_(1)
+		.transform(Canvas3D.mScale(t,1,1))
+		.transform(Canvas3D.mRotateY(pi/2))
+    );
+    graph1.add(p3 = Canvas3DItem.grid(2)
+        .color_(Color.grey)
+        .width_(1)
+		.transform(Canvas3D.mScale(t,1,t))
+		.transform(Canvas3D.mRotateX(pi/2))
+    );
+
+
+		 graph1.add(ico = Canvas3DItem()
+	        .color_(Color.blue.alpha_(0.2))
+    	    .width_(2)
+			.fill_(true)
+			.paths_([
+				[p1.paths[0][0],p1.paths[0][1],p2.paths[0][1]],
+	 			[p2.paths[0][1],p3.paths[0][0],p1.paths[0][0]],
+			    [p1.paths[0][1],p3.paths[0][1],p2.paths[0][1]],
+			   	[p1.paths[0][0],p2.paths[0][0],p1.paths[0][1]],
+		    	[p1.paths[0][1],p3.paths[1][1],p2.paths[0][0]],
+	    		[p1.paths[0][0],p3.paths[1][0],p2.paths[0][0]],
+
+			   	[p1.paths[1][0],p2.paths[1][0],p1.paths[1][1]],
+	    		[p1.paths[1][1],p3.paths[1][1],p2.paths[1][0]],
+			    [p1.paths[1][0],p3.paths[1][0],p2.paths[1][0]],
+			    [p1.paths[1][0],p2.paths[1][1],p1.paths[1][1]],
+		    	[p1.paths[1][1],p3.paths[0][1],p2.paths[1][1]],
+		    	[p1.paths[1][0],p3.paths[0][0],p2.paths[1][1]],
+
+			    [p2.paths[0][1],p3.paths[0][0],p2.paths[1][1]],
+			    [p2.paths[0][1],p3.paths[0][1],p2.paths[1][1]],
+
+			    [p2.paths[0][0],p3.paths[1][1],p2.paths[1][0]],
+			    [p2.paths[0][0],p3.paths[1][0],p2.paths[1][0]],
+
+			    [p3.paths[0][0],p1.paths[1][0],p3.paths[1][0]],
+			    [p3.paths[0][0],p1.paths[0][0],p3.paths[1][0]],
+
+			    [p3.paths[0][1],p1.paths[1][1],p3.paths[1][1]],
+			    [p3.paths[0][1],p1.paths[0][1],p3.paths[1][1]],
+			])
+	    );
+
+		loc.transform(Canvas3D.mScale(0.02,0.02,0.02));
+
 		// animate
-		graph1.animate(60) {|t|
+		graph1.animate(4) {|t|
 			
 
 			var stepRoll = ((gyroEvent.roll + pi)/(pi.twice/4)).floor;
@@ -309,16 +378,25 @@
 
 			// if(oldRollStep != stepRoll,{
 			// 	Synth(\help_dwgplucked,[\freq, ((0,4..80)[stepRoll]+28).midicps,\c3,800]);
+			// });
+
+			// if(oldPitchStep != stepPitch,{
+			// 	Synth(\help_dwgplucked,[\freq, ((0,4..80)[stepPitch]+40).midicps,\c3,800]);
 
 			// });
 
-			if(oldPitchStep != stepPitch,{
-				Synth(\help_dwgplucked,[\freq, ((0,4..80)[stepPitch]+28).midicps,\c3,800]);
-
-			});
-
 			oldRollStep = stepRoll;
 			oldPitchStep = stepPitch;
+
+
+
+			//ampValue.postln;
+			if(ampValue > 0.01,{
+				//Synth(\help_dwgplucked,[\freq, ([0,2,4,5,7,9,11].choose+52).midicps,\c3,800*(gyroEvent.yaw + pi)/(pi.twice),\amp,ampValue * 10]);
+				//m.noteOn(0, [0,5,7,11].choose+64, 120);
+			});
+
+			//m.control(0,1,(gyroEvent.yaw + pi)/(pi.twice)*127);
 
 			//rotateRateSum.sqrt.half.lag.postln;
 			graph1.background_(Color.hsv(rotateRateSum.sqrt.half,0.4,0.9,1));
@@ -367,8 +445,24 @@
 		        Canvas3D.mRotateX(gyroEvent.roll + pi.half),
 		        Canvas3D.mRotateY(gyroEvent.yaw.neg),
 		        Canvas3D.mRotateZ(gyroEvent.pitch.neg),
-				//Canvas3D.mTranslate(rrateX,rrateY,rrateZ)
+
 		    ];
+		    	pos3D = [0,0,0];
+		        pos3D = Canvas3D.vectorMatrixMul(pos3D, Canvas3D.mScale(1,0.5,0.05));
+		        pos3D = Canvas3D.vectorMatrixMul(pos3D, Canvas3D.mTranslate(0,0,1.5));
+		        pos3D = Canvas3D.vectorMatrixMul(pos3D, Canvas3D.mRotateX(gyroEvent.roll + pi.half));
+		        pos3D = Canvas3D.vectorMatrixMul(pos3D, Canvas3D.mRotateY(gyroEvent.yaw.neg));
+		       	pos3D = Canvas3D.vectorMatrixMul(pos3D, Canvas3D.mRotateZ(gyroEvent.pitch.neg));
+
+		        //pos3D[0],gyroEvent.pitch+pi].postln;
+
+		        loc.transforms = [
+		        	Canvas3D.mTranslate(pos3D[0],pos3D[1],pos3D[2])
+		        ];
+                // z = v[2]*graph1.perspective+graph1.distance;
+                // x = graph1.scale*(v[0]/z)+(graph1.bounds.width/2);
+                // y = graph1.scale*(v[1]/z)+(graph1.bounds.height/2);
+                // p = Point(x, y);
 
 			top.transforms = [ 
 				Canvas3D.mScale(1,1,0.05),
@@ -379,6 +473,20 @@
 		        Canvas3D.mRotateZ(gyroEvent.pitch.neg),
 				Canvas3D.mTranslate(0,altValue.neg * 1  ,0)
 		    ];
+		    ico.transforms = [ 
+				// Canvas3D.mScale(1,1,0.05),
+				// Canvas3D.mScale(1,0.5,0.05),
+				//Canvas3D.mTranslate(0,0,1.5),
+		        Canvas3D.mRotateX(gyroEvent.roll + pi.half),
+		        Canvas3D.mRotateY(gyroEvent.yaw.neg),
+		        Canvas3D.mRotateZ(gyroEvent.pitch.neg),
+				Canvas3D.mTranslate(0,altValue.neg * 1  ,0)
+		    ];
+		    		p1.transforms=ico.transforms;
+		p2.transforms=ico.transforms;
+		p3.transforms=ico.transforms;
+
+
 		};
 
 	};
@@ -460,6 +568,7 @@
 		        Canvas3D.mRotateZ(gyroEvent.pitch.neg),
 		    ];
 
+
 		};
 
 	};
@@ -503,10 +612,14 @@
 			altValue = (msg[1].asFloat);
 		}, '/gyrosc/alt');
 			
+		ampListener = OSCFunc({ |msg, time, addr, recvPort|
+			ampValue = (msg[1].asFloat);
+		}, '/gyrosc/amp');
 
 	};
 
 	stopOSCListening = {
+		ampListener.free;
 		gryoListner.free;
 		altListener.free;
 		rrateListener.free;
@@ -515,6 +628,7 @@
 	};
 
 	enableOSCListening = {
+		ampListener.enable;
 		gryoListner.enable;
 		altListener.enable;
 		rrateListener.enable;
@@ -522,6 +636,7 @@
 	};
 
 	disableOSCListening = {
+		ampListener.disable;
 		gryoListner.disable;
 		altListener.disable;
 		rrateListener.disable;
@@ -545,7 +660,7 @@
 			// gyroRoll = (i*12).sin * 0.8 + (i*21).sin * 0.4;
 			//gyroYaw = (i*5).cos * 2.0;
 
-			gyroEvent.yaw = pi/4;//(i.mod(pi).twice) - pi;
+			//gyroEvent.yaw = (i.mod(pi).twice) - pi;
 			gyroEvent.pitch = (k.mod(pi).twice) - pi;//((i*10).sin + (i*11).cos) * 2.0;
 			gyroEvent.roll =  (j.mod(pi).twice) - pi;
 
@@ -554,6 +669,8 @@
 			accelEvent.z = (i*130).cos + (i*181).sin * 0.07;
 
 			(1.0/60.0).yield;
+
+
 		}
 	};
 
