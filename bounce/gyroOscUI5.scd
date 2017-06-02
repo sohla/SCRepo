@@ -63,9 +63,13 @@
 	    var env = Env.new([0,1, 1, 0],[attack,0.006, 0.005],[5,-5, -8]);
 	    var inp = amp * LFClipNoise.ar(2000) * EnvGen.ar(env,gate);
 	    var son = DWGPlucked.ar(freq, amp, gate,position,1,c3,inp);
-	    DetectSilence.ar(son, 0.001, doneAction:2);
-	    Out.ar(out, Pan2.ar(son * 0.1, pan));
-		//Out.ar(out,GVerb.ar(Pan2.ar(son * 0.1, pan),40,14.85,0.41,0.19,-3,-15,-17,mul:0.1));
+		var sig = 0, verb = 0;
+	    //Out.ar(out, Pan2.ar(son * 0.1, pan));
+		sig = Pan2.ar(son * 0.1, pan);
+		//verb = FreeVerb2.ar(sig[0],sig[1],0.3,200);
+	    DetectSilence.ar(sig, 0.001, doneAction:2);
+
+		Out.ar(out,sig);
 	}).add;
 
 	Pdef(\pat1).set(\octave,3);
@@ -145,13 +149,13 @@
 				p.value = (dc.getLast(dataSize).asArray.collect({|a,i| a[\data][2]}));
 			}],
 			["aaccelX",Color.cyan,{|p|
-				p.value = (dc.getLast(dataSize).asArray.collect({|a,i| a[\data][3]}));
+				p.value = (dc.getLast(dataSize).asArray.collect({|a,i| a[\data][6]}));
 			}],
 			["accelY",Color.magenta,{|p|
-				p.value = (dc.getLast(dataSize).asArray.collect({|a,i| a[\data][4]}));
+				p.value = (dc.getLast(dataSize).asArray.collect({|a,i| a[\data][7]}));
 			}],
 			["accelZ",Color.yellow,{|p|
-				p.value = (dc.getLast(dataSize).asArray.collect({|a,i| a[\data][5]}));
+				p.value = (dc.getLast(dataSize).asArray.collect({|a,i| a[\data][8]}));
 			}],
 		]);
 
@@ -367,7 +371,7 @@
 		loc.transform(Canvas3D.mScale(0.02,0.02,0.02));
 
 		// animate
-		graph1.animate(4) {|t|
+		graph1.animate(30) {|t|
 			
 
 			var stepRoll = ((gyroEvent.roll + pi)/(pi.twice/4)).floor;
@@ -389,11 +393,14 @@
 			oldPitchStep = stepPitch;
 
 
-
 			//ampValue.postln;
-			if(ampValue > 0.01,{
-				//Synth(\help_dwgplucked,[\freq, ([0,2,4,5,7,9,11].choose+52).midicps,\c3,800*(gyroEvent.yaw + pi)/(pi.twice),\amp,ampValue * 10]);
+			if(rotateRateSum < 0.07,{
+				Pdef(\pat1).stop;
+
+				//Synth(\help_dwgplucked,[\freq, ([0,2,4,5,7,9,11].choose+40).midicps,\c3,800*(gyroEvent.yaw + pi)/(pi.twice),1]);
 				//m.noteOn(0, [0,5,7,11].choose+64, 120);
+			},{
+				if(Pdef(\pat1).isPlaying.not,{Pdef(\pat1).play});
 			});
 
 			//m.control(0,1,(gyroEvent.yaw + pi)/(pi.twice)*127);
@@ -403,7 +410,7 @@
 
 			Pdef(\pat1).set(\patch,((gyroEvent.pitch + pi).div(pi.twice/4.0)).floor);
 			
-			Pdef(\pat1).set(\gtranspose,12 + [0,12,24].at(((gyroEvent.roll + pi).div(pi.twice/3.0)).floor));
+			Pdef(\pat1).set(\gtranspose,9 + [0,12,24].at(((gyroEvent.roll + pi).div(pi.twice/3.0)).floor));
 
 			Pdef(\pat1).set(\c3,(10 + ((gyroEvent.roll + pi)/(pi.twice) * 500)));
 			
@@ -431,7 +438,7 @@
 
 
 
-			rotateRateSum = tween.(rrateEvent.sumabs.half / 3.0,rotateRateSum,0.02);
+			rotateRateSum = tween.(rrateEvent.sumabs.half / 3.0,rotateRateSum,0.9);
 
 			rate.transforms = [ 
 				Canvas3D.mScale(0.01,rotateRateSum.half ,1.0),
@@ -532,7 +539,7 @@
 			accelRateSum = tween.(accelEvent.sumabs.half,accelRateSum,0.08);
 			
 			Pdef(\pat1).set(\attack,(1.0 + rrateEvent.sumabs).pow(4).reciprocal);
-			Pdef(\pat1).set(\dur,Array.geom(8, 1, 2).at((rrateEvent.sumabs.sqrt).floor).half.reciprocal);
+			Pdef(\pat1).set(\dur,Array.geom(8, 1, 2).at((rrateEvent.sumabs.sqrt).floor).twice.reciprocal);
 			
 
 			spot.transforms = [ 
@@ -668,6 +675,10 @@
 			accelEvent.x = (i*30).cos + (i*81).sin * 0.06;
 			accelEvent.z = (i*130).cos + (i*181).sin * 0.07;
 
+			rrateEvent.x =  (i.mod(pi).twice) - pi;
+			rrateEvent.y =  (j.mod(pi).twice) - pi;
+			rrateEvent.z =  (i.mod(pi).twice) - pi;
+
 			(1.0/60.0).yield;
 
 
@@ -704,7 +715,7 @@
 
 	startup.();
 	buildUI.();
-	//Pdef(\pat1).play;
+	Pdef(\pat1).play;
 
 	startOSCListening.();
 

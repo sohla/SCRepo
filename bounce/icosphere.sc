@@ -2,7 +2,7 @@
     var width = 500, height = 400, rate = 0.005;
     var w, u;
 	var t = (1.0 + (5.0).sqrt) / 2.0;
-	var p1,p2,p3,ico,sel;
+	var p1,p2,p3,ico,sel,norm;
 
 	var subtract3V = {|a,b|
 		var out = [0,0,0];
@@ -102,16 +102,22 @@
 
 	n = cross3V.(
 		subtract3V.(ico.paths[t][1],ico.paths[t][0]),
-		subtract3V.(ico.paths[t][2],ico.paths[t][0])
+		subtract3V.(ico.paths[t][2],ico.paths[t][0]),
+		subtract3V.(ico.paths[t][1],ico.paths[t][0]),
 		
 	);
-    
-	u.add(Canvas3DItem()
+
+
+
+	u.add(norm =Canvas3DItem()
         .color_(Color.yellow)
         .width_(2)
-		.paths_([
-				[[0,0,0],(n)]
-			])
+		.paths_([[[
+				(ico.paths[t][0][0]+ico.paths[t][1][0]+ico.paths[t][2][0])/3,
+				(ico.paths[t][0][1]+ico.paths[t][1][1]+ico.paths[t][2][1])/3,
+				(ico.paths[t][0][2]+ico.paths[t][1][2]+ico.paths[t][2][2])/3
+				],normalize3V.(n)]
+		])
 	);
 
 	u.add(sel=Canvas3DItem()
@@ -135,8 +141,22 @@
 		p2.transforms=ico.transforms;
 		p3.transforms=ico.transforms;
 		sel.transforms=ico.transforms;
+		norm.transforms=ico.transforms;
+
         u.refresh;
     };
 
     u.mouseMoveAction.value(nil, 50, 50); // initial rotation
 )
+
+
+
+
+
+
+
+MIDIClient.init;
+MIDIClient.destinations;
+m = MIDIOut(0);
+m.noteOn(1, 8
+

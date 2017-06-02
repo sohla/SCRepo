@@ -11,7 +11,7 @@ var exciter, spec,scale,root,out;
 		exciter = Decay.ar(PinkNoise.ar(0.0001), 9.1);
 		spec = Array.fill(2, {
 			`[
-				Array.fill(p, { arg i; (scale.choose  + root.choose).midicps } ),
+				Array.fill(p, { arg i; (scale.choose  + root.choose ).midicps } ),
 				nil,
 				Array.fill(p, { 0.8 + 0.1.linrand } )
 			]

@@ -22,7 +22,6 @@ EZSlider(~window, 310@20, "low part", \amp, { |ez|
 Pdef(\pat1).play;
 )
 
-
 (
 
 ~spec = ControlSpec(-1,1,step:0.01);
