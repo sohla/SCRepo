@@ -68,7 +68,7 @@
 	    //Out.ar(out, Pan2.ar(son * 0.1, pan));
 		sig = Pan2.ar(son * 0.1, pan);
 		//verb = FreeVerb2.ar(sig[0],sig[1],0.3,200);
-	    DetectSilence.ar(sig, 0.001, doneAction:2);
+	    //DetectSilence.ar(sig, 0.001, doneAction:2);
 
 		Out.ar(out,sig);
 	}).add;
@@ -289,13 +289,13 @@
 		var graph1;
 		var cube, top, rate, loc, ico;
 		var p1,p2,p3;
-	var t = (1.0 + (5.0).sqrt) / 2.0;
+		var t = (1.0 + (5.0).sqrt) / 2.0;
 
 		graph1 = Canvas3D(window, Rect(0, 50, 500, height-50/2))
 		    .scale_(200)
 			.background_(Color.gray)
 		    .perspective_(0.5)
-		    .distance_(2);
+		    .distance_(2.5);
 
 		graph1.add(cube = Canvas3DItem.cube
 		    .color_(Color.red(0.8))
@@ -312,38 +312,40 @@
 		    .width_(1)
 		);
 
-		graph1.add(loc = Canvas3DItem.cube
+		graph1.add(loc = Canvas3DItem.regPrism(3)
 			.color_(Color.blue(0.9))
-		    .width_(3)
+		    .width_(1)
 		    //
 		);
+
+
      graph1.add(p1 = Canvas3DItem.grid(2)
-        .color_(Color.grey)
-		.fill_(true)
+        .color_(Color.black)
+		.fill_(false)
         .width_(1)
 		.transform(Canvas3D.mScale(1,t,1))
 		//.transform(Canvas3D.mRotateY(pi/2))
     );
     graph1.add(p2 = Canvas3DItem.grid(2)
-        .color_(Color.grey)
+        .color_(Color.black)
         .width_(1)
-		.fill_(true)
+		.fill_(false)
 		.transform(Canvas3D.mScale(t,1,1))
 		.transform(Canvas3D.mRotateY(pi/2))
     );
     graph1.add(p3 = Canvas3DItem.grid(2)
-        .color_(Color.grey)
+        .color_(Color.black)
         .width_(1)
-		.fill_(true)
+		.fill_(false)
 		.transform(Canvas3D.mScale(t,1,t))
 		.transform(Canvas3D.mRotateX(pi/2))
     );
 
 
 		 graph1.add(ico = Canvas3DItem()
-	        .color_(Color.blue.alpha_(0.2))
+	        .color_(Color.blue.alpha_(0.1))
     	    .width_(2)
-			.fill_(false)
+			.fill_(true)
 			.paths_([
 				[p1.paths[0][0],p1.paths[0][1],p2.paths[0][1]],
 	 			[p2.paths[0][1],p3.paths[0][0],p1.paths[0][0]],
@@ -373,74 +375,15 @@
 			])
 	    );
 
-		loc.transform(Canvas3D.mScale(0.02,0.02,0.02));
+		loc.transform(Canvas3D.mScale(0.02,0.02,0.2));
 
 		// animate
 		graph1.animate(30) {|t|
 			
 
-			var stepRoll = ((gyroEvent.roll + pi)/(pi.twice/2)).floor;
-			var stepPitch = ((gyroEvent.pitch + pi)/(pi.twice/2)).floor;
-			var sumStep = stepRoll+stepPitch;
-			var radius, xyAngle, zAngle;
-
 			var sx,sy,sz;
 
-			//[stepRoll,stepPitch,stepRoll+stepPitch].postln;
-				
-			//stepRoll.postln;
-
-			// if(oldRollStep != stepRoll,{
-			// 	// Synth(\help_dwgplucked,[\freq, ((0,4..80)[stepRoll]+28).midicps,\c3,800]);
-			// });
-
-			// if(oldPitchStep != stepPitch,{
-			// 	Synth(\help_dwgplucked,[\freq, ((0,4..80)[stepPitch]+40).midicps,\c3,800]);
-
-			// });
-
-			oldRollStep = stepRoll;
-			oldPitchStep = stepPitch;
-
-
-			//ampValue.postln;
-			// if(ampValue > 0.02, {
-			// 	Synth(\help_dwgplucked,[\freq, ([0,2,4,5,7,9,11].choose+40).midicps,\c3,800*(gyroEvent.yaw + pi)/(pi.twice),1]);
-			// 	});
-
-			if(rotateRateSum < 0.07,{
-				Pdef(\pat1).stop;
-
-				//Synth(\help_dwgplucked,[\freq, ([0,2,4,5,7,9,11].choose+40).midicps,\c3,800*(gyroEvent.yaw + pi)/(pi.twice),1]);
-				//m.noteOn(0, [0,5,7,11].choose+64, 120);
-			},{
-				if(Pdef(\pat1).isPlaying.not,{Pdef(\pat1).play});
-			});
-
-			//m.control(0,1,(gyroEvent.yaw + pi)/(pi.twice)*127);
-
-			//rotateRateSum.sqrt.half.lag.postln;
-			//graph1.background_(Color.hsv(rotateRateSum.sqrt.half,0.4,0.9,1));
-
-			Pdef(\pat1).set(\patch,((gyroEvent.pitch + pi).div(pi.twice/4.0)).floor);
-			
-			Pdef(\pat1).set(\gtranspose,9 + [0,12,24].at(((gyroEvent.roll + pi).div(pi.twice/3.0)).floor));
-
-			Pdef(\pat1).set(\c3,(10 + ((gyroEvent.roll + pi)/(pi.twice) * 500)));
-			
-			Pdef(\pat1).set(\legato,(0.1 + ((gyroEvent.yaw + pi)/(pi.twice) * 10)));
-			
-			Pdef(\pat1).set(\position,(0.0 + ((gyroEvent.yaw + pi)/(pi.twice) * 1.0)));
-
-
-	//		Pdef(\pat1).set(\dur,Array.geom(8, 1, 2).at((rrateEvent.sumabs.sqrt).floor).reciprocal);
-
-	//		Pdef(\pat1).set(\attack,(gyroEvent.yaw + pi).pow(2)*(pi.twice.reciprocal).pow(2));
-
-
-
-
-
+			// store data
 			dc.addData([
 				gyroEvent.pitch,gyroEvent.roll,gyroEvent.yaw,
 				accelEvent.y.neg,accelEvent.z,accelEvent.x,
@@ -452,6 +395,25 @@
 
 
 
+		 	// set pattern
+		 	if(Pdef(\pat1).isPlaying, {
+
+				Pdef(\pat1).set(\patch,((gyroEvent.pitch + pi).div(pi.twice/4.0)).floor);
+				
+				Pdef(\pat1).set(\gtranspose,9 + [0,12,24].at(((gyroEvent.roll + pi).div(pi.twice/3.0)).floor));
+
+				Pdef(\pat1).set(\c3,(10 + ((gyroEvent.roll + pi)/(pi.twice) * 500)));
+				
+				Pdef(\pat1).set(\legato,(0.1 + ((gyroEvent.yaw + pi)/(pi.twice) * 10)));
+				
+				Pdef(\pat1).set(\position,(0.0 + ((gyroEvent.yaw + pi)/(pi.twice) * 1.0)));
+
+			});
+
+
+
+
+
 			rotateRateSum = tween.(rrateEvent.sumabs.half / 3.0,rotateRateSum,0.9);
 
 			rate.transforms = [ 
@@ -459,6 +421,38 @@
 				Canvas3D.mTranslate(-2.2,0,0)
 
 		    ];
+			if(rotateRateSum < 0.07,{
+				Pdef(\pat1).pause;
+			},{
+				if(Pdef(\pat1).isPlaying.not,{Pdef(\pat1).resume});
+			});
+
+
+
+	    	pos3D = [0,0,0];
+	        pos3D = Canvas3D.vectorMatrixMul(pos3D, Canvas3D.mScale(1,0.5,0.05));
+	        pos3D = Canvas3D.vectorMatrixMul(pos3D, Canvas3D.mTranslate(0,0,1.5));
+	        pos3D = Canvas3D.vectorMatrixMul(pos3D, Canvas3D.mRotateX(gyroEvent.roll + pi.half));
+	        pos3D = Canvas3D.vectorMatrixMul(pos3D, Canvas3D.mRotateY(gyroEvent.yaw.neg));
+	       	pos3D = Canvas3D.vectorMatrixMul(pos3D, Canvas3D.mRotateZ(gyroEvent.pitch.neg));
+
+
+	        loc.transforms = [
+		        Canvas3D.mRotateX(gyroEvent.roll + pi.half),
+		        Canvas3D.mRotateY(gyroEvent.yaw.neg),
+		        Canvas3D.mRotateZ(gyroEvent.pitch.neg),
+	        	Canvas3D.mTranslate(pos3D[0],pos3D[1],pos3D[2]),
+	        ];
+
+
+			sx = ((pos3D[0] + 1.5) * ( 2.0 / 3.0)).floor;
+			sy = ((pos3D[1] + 1.5) * ( 2.0 / 3.0)).floor;
+			sz = ((pos3D[2] + 1.5) * ( 2.0 / 3.0)).floor;
+
+			//( (sz*4) + (sy*2) + sx).postln;
+			graph1.background_(Color.hsv(( ( (sz*4) + (sy*2) + sx) / 8.0 ),0.8,0.8,1));
+
+
 
 			cube.transforms = [ 
 
@@ -469,26 +463,6 @@
 		        Canvas3D.mRotateZ(gyroEvent.pitch.neg),
 
 		    ];
-		    	pos3D = [0,0,0];
-		        pos3D = Canvas3D.vectorMatrixMul(pos3D, Canvas3D.mScale(1,0.5,0.05));
-		        pos3D = Canvas3D.vectorMatrixMul(pos3D, Canvas3D.mTranslate(0,0,1.5));
-		        pos3D = Canvas3D.vectorMatrixMul(pos3D, Canvas3D.mRotateX(gyroEvent.roll + pi.half));
-		        pos3D = Canvas3D.vectorMatrixMul(pos3D, Canvas3D.mRotateY(gyroEvent.yaw.neg));
-		       	pos3D = Canvas3D.vectorMatrixMul(pos3D, Canvas3D.mRotateZ(gyroEvent.pitch.neg));
-
-
-		        loc.transforms = [
-		        Canvas3D.mTranslate(pos3D[0],pos3D[1],pos3D[2]),
-		        ];
-
-
-	sx = ((pos3D[0] + 1.5) * ( 2.0 / 3.0)).floor;
-	sy = ((pos3D[1] + 1.5) * ( 2.0 / 3.0)).floor;
-	sz = ((pos3D[2] + 1.5) * ( 2.0 / 3.0)).floor;
-
-	( (sz*4) + (sy*2) + sx).postln;
-	graph1.background_(Color.hsv(( ( (sz*4) + (sy*2) + sx) / 8.0 ),0.8,0.8,1));
-
 
 			top.transforms = [ 
 				Canvas3D.mScale(1,1,0.05),
@@ -497,20 +471,20 @@
 		        Canvas3D.mRotateX(gyroEvent.roll + pi.half),
 		        Canvas3D.mRotateY(gyroEvent.yaw.neg),
 		        Canvas3D.mRotateZ(gyroEvent.pitch.neg),
-				Canvas3D.mTranslate(0,altValue.neg * 1  ,0)
+				//Canvas3D.mTranslate(0,altValue.neg * 1  ,0)
 		    ];
+
 		    ico.transforms = [ 
-				// Canvas3D.mScale(1,1,0.05),
-				// Canvas3D.mScale(1,0.5,0.05),
-				//Canvas3D.mTranslate(0,0,1.5),
+				//Canvas3D.mScale(0.6,0.6,0.6),
 		        Canvas3D.mRotateX(gyroEvent.roll + pi.half),
 		        Canvas3D.mRotateY(gyroEvent.yaw.neg),
 		        Canvas3D.mRotateZ(gyroEvent.pitch.neg),
-				Canvas3D.mTranslate(0,altValue.neg * 1  ,0)
+				//Canvas3D.mTranslate(0,altValue.neg * 1  ,0)
 		    ];
-		    		p1.transforms=ico.transforms;
-		p2.transforms=ico.transforms;
-		p3.transforms=ico.transforms;
+		    
+		    p1.transforms=ico.transforms;
+			p2.transforms=ico.transforms;
+			p3.transforms=ico.transforms;
 
 
 		};
@@ -557,9 +531,12 @@
 			
 			accelRateSum = tween.(accelEvent.sumabs.half,accelRateSum,0.08);
 			
-			Pdef(\pat1).set(\attack,(1.0 + rrateEvent.sumabs).pow(4).reciprocal);
-			Pdef(\pat1).set(\dur,Array.geom(8, 1, 2).at((rrateEvent.sumabs.sqrt).floor).twice.reciprocal);
+			if(Pdef(\pat1).isPlaying, {
+
+				Pdef(\pat1).set(\attack,(1.0 + rrateEvent.sumabs).pow(4).reciprocal);
+				Pdef(\pat1).set(\dur,Array.geom(8, 1, 2).at((rrateEvent.sumabs.sqrt).floor).twice.reciprocal);
 			
+			});
 
 			spot.transforms = [ 
 				Canvas3D.mScale(1.0,0.5,0.05),
@@ -753,6 +730,5 @@
 	isSimulating.({broadcastRoutine.reset().play(AppClock);disableOSCListening.();},{});
 
 	)
-
 
 
