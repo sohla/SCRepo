@@ -3,6 +3,8 @@
 		var window;
 	    var width = Window.screenBounds.width, height = Window.screenBounds.height ;
 		var startup, shutdown, buildUI;
+		var stackView;
+		var playRoutine;
 
 		var createPlotterGroup, createGyroCanvas, createAccelCanvas, createTransportView;
 		var startOSCListening, stopOSCListening, enableOSCListening, disableOSCListening;
@@ -123,7 +125,8 @@
 	// 
 	//------------------------------------------------------------	
 	buildUI = {
-
+		
+		var va,vb;
 
 		QtGUI.palette = QPalette.dark; 
 
@@ -133,14 +136,21 @@
 		GUI.skin.plot.background = Color.black;
 		GUI.skin.plot.plotColor = Color.white;
 
-		window = Window("gyro osc tester", Rect(0, height, width, height), false).front;
+		window = Window("gyro osc tester", Rect(0, height, width, height/2), false).front;
 
 		window.onClose = {
 			shutdown.();
 		};
 		CmdPeriod.doOnce({window.close});
+			UserView(window).bounds_(Rect(0,0,width,height/2)).background_(Color.cyan).layout_(
+			stackView = StackLayout(
+				va = View().background_(Color.red(0.2)),
+				vb = View().background_(Color.blue(0.2))
+			).mode_(\stackAll);
+		);
+		
 
-		createPlotterGroup.(Rect(500,50,400,height-100),[
+		createPlotterGroup.(va, Rect(500,50,400,height/2-50), [
 			["pitch",Color.red,{|p|
 				p.value = (dc.getLast(dataSize).asArray.collect({|a,i| a[\data][0]}));
 			}],
@@ -150,6 +160,9 @@
 			["yaw",Color.blue,{|p|
 				p.value = (dc.getLast(dataSize).asArray.collect({|a,i| a[\data][2]}));
 			}],
+		]);
+
+		createPlotterGroup.(vb, Rect(500,50,400,height/2-50), [
 			["aaccelX",Color.cyan,{|p|
 				p.value = (dc.getLast(dataSize).asArray.collect({|a,i| a[\data][6]}));
 			}],
@@ -161,8 +174,9 @@
 			}],
 		]);
 
-		createGyroCanvas.();
-		createAccelCanvas.();
+
+		createGyroCanvas.(va);
+		createAccelCanvas.(vb);
 
 		createTransportView.(Rect(0,0,width,50));
 
@@ -174,20 +188,22 @@
 	createTransportView = { |bounds|
 
 
-
-
 		var view = UserView(window,bounds)
 			.background_(Color.gray)
 			.layout_(
 				HLayout(
-					// Button()
-					// 	.states_([
-					// 		["• record",Color.black],
-					// 		["• recording",Color.red(0.6)]
-					// 	])
-					// 	.action_({|b|
-					// 		b.value.postln;
-					// 	}),
+					Button()
+					.maxWidth_(100)
+						.states_([
+							["Attitude"],
+							["Accelerometer"]
+						])
+						.action_({|b|
+							stackView.index = b.value;
+						}),
+					PopUpMenu()
+						.maxWidth_(250)
+						.items_([NetAddr.localAddr.ip,"b"]),	
 					Button()
 						.maxWidth_(50)
 						.states_([
@@ -224,9 +240,9 @@
 	// Plotters
 	//------------------------------------------------------------	
 
-	createPlotterGroup = {|bounds, plotters|
+	createPlotterGroup = {|view, bounds, plotters|
 
-		var plotterView = UserView(window,bounds).background_(Color.black).animate_(true);
+		var plotterView = UserView(view,bounds).background_(Color.black).animate_(true);
 		var size = plotters.size;
 		var pw = bounds.width;
 		var ph = bounds.height / size;
@@ -285,13 +301,13 @@
 	// Gyro Canvas
 	//------------------------------------------------------------	
 
-	createGyroCanvas = {
+	createGyroCanvas = { |view|
 		var graph1;
 		var cube, top, rate, loc, ico;
 		var p1,p2,p3;
 		var t = (1.0 + (5.0).sqrt) / 2.0;
 
-		graph1 = Canvas3D(window, Rect(0, 50, 500, height-50/2))
+		graph1 = Canvas3D(view, Rect(0, 50, 500, height-50/2))
 		    .scale_(200)
 			.background_(Color.gray)
 		    .perspective_(0.5)
@@ -393,42 +409,6 @@
 
 		 	dc.collection = dc.getLast(dataSize); // limit size of collected samples
 
-
-
-		 	// set pattern
-		 	if(Pdef(\pat1).isPlaying, {
-
-				Pdef(\pat1).set(\patch,((gyroEvent.pitch + pi).div(pi.twice/4.0)).floor);
-				
-				Pdef(\pat1).set(\gtranspose,9 + [0,12,24].at(((gyroEvent.roll + pi).div(pi.twice/3.0)).floor));
-
-				Pdef(\pat1).set(\c3,(10 + ((gyroEvent.roll + pi)/(pi.twice) * 500)));
-				
-				Pdef(\pat1).set(\legato,(0.1 + ((gyroEvent.yaw + pi)/(pi.twice) * 10)));
-				
-				Pdef(\pat1).set(\position,(0.0 + ((gyroEvent.yaw + pi)/(pi.twice) * 1.0)));
-
-			});
-
-
-
-
-
-			rotateRateSum = tween.(rrateEvent.sumabs.half / 3.0,rotateRateSum,0.9);
-
-			rate.transforms = [ 
-				Canvas3D.mScale(0.01,rotateRateSum.half ,1.0),
-				Canvas3D.mTranslate(-2.2,0,0)
-
-		    ];
-			if(rotateRateSum < 0.07,{
-				Pdef(\pat1).pause;
-			},{
-				if(Pdef(\pat1).isPlaying.not,{Pdef(\pat1).resume});
-			});
-
-
-
 	    	pos3D = [0,0,0];
 	        pos3D = Canvas3D.vectorMatrixMul(pos3D, Canvas3D.mScale(1,0.5,0.05));
 	        pos3D = Canvas3D.vectorMatrixMul(pos3D, Canvas3D.mTranslate(0,0,1.5));
@@ -452,16 +432,12 @@
 			//( (sz*4) + (sy*2) + sx).postln;
 			graph1.background_(Color.hsv(( ( (sz*4) + (sy*2) + sx) / 8.0 ),0.8,0.8,1));
 
-
-
 			cube.transforms = [ 
-
 				Canvas3D.mScale(1,0.5,0.05),
 				Canvas3D.mTranslate(0,0,1.5),
 		        Canvas3D.mRotateX(gyroEvent.roll + pi.half),
 		        Canvas3D.mRotateY(gyroEvent.yaw.neg),
 		        Canvas3D.mRotateZ(gyroEvent.pitch.neg),
-
 		    ];
 
 			top.transforms = [ 
@@ -486,6 +462,12 @@
 			p2.transforms=ico.transforms;
 			p3.transforms=ico.transforms;
 
+			rate.transforms = [ 
+				Canvas3D.mScale(0.01,rotateRateSum.half ,1.0),
+				Canvas3D.mTranslate(-2.2,0,0)
+
+		    ];
+
 
 		};
 
@@ -495,13 +477,13 @@
 	//------------------------------------------------------------	
 	// Accel Canvas
 	//------------------------------------------------------------	
-	createAccelCanvas = {
+	createAccelCanvas = { |view|
 		
 	    var graph2, spot, accelRate, accelX, accelY, accelZ;
 
-		graph2 = Canvas3D(window, Rect(0, height/2 + 50, 500, height-50/2))
+		graph2 = Canvas3D(view, Rect(0, 50, 500, height-50/2))
 		    .scale_(200)
-			.background_(Color.gray)
+			.background_(Color.black)
 		    .perspective_(0.5)
 		    .distance_(2);
 
@@ -529,14 +511,6 @@
 		);
 		graph2.animate(60) {|t|
 			
-			accelRateSum = tween.(accelEvent.sumabs.half,accelRateSum,0.08);
-			
-			if(Pdef(\pat1).isPlaying, {
-
-				Pdef(\pat1).set(\attack,(1.0 + rrateEvent.sumabs).pow(4).reciprocal);
-				Pdef(\pat1).set(\dur,Array.geom(8, 1, 2).at((rrateEvent.sumabs.sqrt).floor).twice.reciprocal);
-			
-			});
 
 			spot.transforms = [ 
 				Canvas3D.mScale(1.0,0.5,0.05),
@@ -721,14 +695,58 @@
 	// 
 	//------------------------------------------------------------	
 
+	playRoutine = Routine {
+		var i=0;
+		loop {
+
+			accelRateSum = tween.(accelEvent.sumabs.half,accelRateSum,0.08);
+			rotateRateSum = tween.(rrateEvent.sumabs.half / 3.0,rotateRateSum,0.9);
+
+
+			if(rotateRateSum < 0.07,{
+				Pdef(\pat1).pause;
+			},{
+				if(Pdef(\pat1).isPlaying.not,{Pdef(\pat1).resume});
+			});
+
+		 	// set pattern
+		 	if(Pdef(\pat1).isPlaying, {
+
+				Pdef(\pat1).set(\patch,((gyroEvent.pitch + pi).div(pi.twice/4.0)).floor);
+				
+				Pdef(\pat1).set(\gtranspose,9 + [0,12,24].at(((gyroEvent.roll + pi).div(pi.twice/3.0)).floor));
+
+				Pdef(\pat1).set(\c3,(10 + ((gyroEvent.roll + pi)/(pi.twice) * 500)));
+				
+				Pdef(\pat1).set(\legato,(0.1 + ((gyroEvent.yaw + pi)/(pi.twice) * 10)));
+				
+				Pdef(\pat1).set(\position,(0.0 + ((gyroEvent.yaw + pi)/(pi.twice) * 1.0)));
+
+			});
+			
+			if(Pdef(\pat1).isPlaying, {
+
+				Pdef(\pat1).set(\attack,(1.0 + rrateEvent.sumabs).pow(4).reciprocal);
+				Pdef(\pat1).set(\dur,Array.geom(8, 1, 2).at((rrateEvent.sumabs.sqrt).floor).twice.reciprocal);
+			
+			});
+
+
+			(1.0/60.0).yield;
+		}
+	}.play(AppClock);
+
+	//------------------------------------------------------------	
+	// 
+	//------------------------------------------------------------	
+
 	startup.();
 	buildUI.();
 	Pdef(\pat1).play;
-
 	startOSCListening.();
-
 	isSimulating.({broadcastRoutine.reset().play(AppClock);disableOSCListening.();},{});
 
 	)
 
 
+()
