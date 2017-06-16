@@ -3,23 +3,35 @@
 		var window;
 	    var width = Window.screenBounds.width, height = Window.screenBounds.height ;
 		var startup, shutdown, buildUI;
-		var stackView;
+
 		var playRoutine;
 
 		var createPlotterGroup, createGyroCanvas, createAccelCanvas, createTransportView;
+		var createWindowView, addDeviceView;
 		var startOSCListening, stopOSCListening, enableOSCListening, disableOSCListening;
 
 	    var gryoListner, rotMatListner, rrateListener, accelListener, altListener, ampListener;
+	    var buttonListener;
 
 	    // data
+		// var device = (
+		// 	\name:  "harold",
+		// 	\ip: "127.0.0.1",
+		// 	\port: "111111"
+		// 	\gyroEvent: (
+		// 		\pitch: 0,
+		// 		\roll: 0,
+		// 		\yaw: 0,
+		// 		\mass: 0)
+		// 	);
+
+
 		var gyroEvent = (\pitch:0,\roll:0,\yaw:0); 
-		var rrateEvent = (\x:0,\y:0,\z:0);
-		var accelEvent = (\x:0,\y:0,\z:0);
+		var rrateEvent = (\x:0,\y:0,\z:0,\mass:0);
+		var accelEvent = (\x:0,\y:0,\z:0,\mass:0);
 		var rotMatEvent = [];
 
-		var altValue = 0;
-		var rotateRateSum = 0;
-		var accelRateSum = 0;
+		//var altValue = 0;
 		var ampValue = 0;
 		
 		var broadcastRoutine;
@@ -126,7 +138,6 @@
 	//------------------------------------------------------------	
 	buildUI = {
 		
-		var va,vb;
 
 		QtGUI.palette = QPalette.dark; 
 
@@ -136,21 +147,83 @@
 		GUI.skin.plot.background = Color.black;
 		GUI.skin.plot.plotColor = Color.white;
 
-		window = Window("gyro osc tester", Rect(0, height, width, height/2), false).front;
+		window = Window("gyro osc tester", Rect(0, height, width, height/2 + 70), false).front;
 
 		window.onClose = {
 			shutdown.();
 		};
 		CmdPeriod.doOnce({window.close});
-			UserView(window).bounds_(Rect(0,0,width,height/2)).background_(Color.cyan).layout_(
-			stackView = StackLayout(
-				va = View().background_(Color.red(0.2)),
-				vb = View().background_(Color.blue(0.2))
-			).mode_(\stackAll);
-		);
 		
+		createWindowView.();
+		//createTransportView.(Rect(0,0,width,50));
 
-		createPlotterGroup.(va, Rect(500,50,400,height/2-50), [
+	};
+
+	createWindowView = {
+
+		var scroll = ScrollView(window,Rect(0,0,width,height/2 + 70)).background_(Color.yellow);
+
+		var view = View().background_(Color.cyan);
+		view.layout_(VLayout());
+
+
+		view.layout.add(nil);
+
+		scroll.canvas = view;
+
+		addDeviceView.(view).postln;
+		addDeviceView.(view);
+
+
+	};
+
+	addDeviceView = { |view|
+
+		var dv;
+		var va,vb;
+		var stackView;
+
+
+		dv = View(view).layout_( HLayout(
+			StaticText(view)
+				.stringColor_(Color.black)
+				.font_(Font(size:24))
+				.minWidth_(500)
+				.string_("📡 127.0.0.1 : 57210"),
+
+			Button(view)
+				.maxWidth_(100)
+					.states_([
+						["Attitude"],	
+						["Accelerometer"]
+					])
+					.action_({|b|
+						stackView.index = b.value;
+					}),
+	Button(view)
+				.maxWidth_(100)
+					.states_([
+						["Disconect",Color.red(0.5)],	
+
+					])
+					.action_({|b|
+					})
+
+		).setAlignment(0,\left).setAlignment(1,\left));
+
+
+
+
+		view.layout.add(View().background_(Color.yellow).minHeight_(height/2).layout_( stackView = StackLayout(
+				va = View().background_(Color.cyan(0.2)),
+				vb = View().background_(Color.blue(0.2))
+				)
+			);
+		);	
+
+
+
+		createPlotterGroup.(va, Rect(500,0,400,height/2), [
 			["pitch",Color.red,{|p|
 				p.value = (dc.getLast(dataSize).asArray.collect({|a,i| a[\data][0]}));
 			}],
@@ -162,7 +235,7 @@
 			}],
 		]);
 
-		createPlotterGroup.(vb, Rect(500,50,400,height/2-50), [
+		createPlotterGroup.(vb, Rect(500,0,400,height/2), [
 			["aaccelX",Color.cyan,{|p|
 				p.value = (dc.getLast(dataSize).asArray.collect({|a,i| a[\data][6]}));
 			}],
@@ -178,10 +251,9 @@
 		createGyroCanvas.(va);
 		createAccelCanvas.(vb);
 
-		createTransportView.(Rect(0,0,width,50));
+		dv
 
 	};
-
 	//------------------------------------------------------------	
 	// Transport View
 	//------------------------------------------------------------	
@@ -192,18 +264,6 @@
 			.background_(Color.gray)
 			.layout_(
 				HLayout(
-					Button()
-					.maxWidth_(100)
-						.states_([
-							["Attitude"],
-							["Accelerometer"]
-						])
-						.action_({|b|
-							stackView.index = b.value;
-						}),
-					PopUpMenu()
-						.maxWidth_(250)
-						.items_([NetAddr.localAddr.ip,"b"]),	
 					Button()
 						.maxWidth_(50)
 						.states_([
@@ -307,12 +367,16 @@
 		var p1,p2,p3;
 		var t = (1.0 + (5.0).sqrt) / 2.0;
 
-		graph1 = Canvas3D(view, Rect(0, 50, 500, height-50/2))
+		graph1 = Canvas3D(view, Rect(0, 0, 500, height/2))
 		    .scale_(200)
 			.background_(Color.gray)
 		    .perspective_(0.5)
 		    .distance_(2.5);
 
+
+		// graph1.view.drawFunc= graph1.view.drawFunc<>{
+		// 	("[data"+"}-->".scramble).draw
+		// };
 		graph1.add(cube = Canvas3DItem.cube
 		    .color_(Color.red(0.8))
 		    .width_(1)
@@ -463,7 +527,7 @@
 			p3.transforms=ico.transforms;
 
 			rate.transforms = [ 
-				Canvas3D.mScale(0.01,rotateRateSum.half ,1.0),
+				Canvas3D.mScale(0.01,rrateEvent.mass.half ,1.0),
 				Canvas3D.mTranslate(-2.2,0,0)
 
 		    ];
@@ -481,7 +545,7 @@
 		
 	    var graph2, spot, accelRate, accelX, accelY, accelZ;
 
-		graph2 = Canvas3D(view, Rect(0, 50, 500, height-50/2))
+		graph2 = Canvas3D(view, Rect(0, 0, 500, height/2))
 		    .scale_(200)
 			.background_(Color.black)
 		    .perspective_(0.5)
@@ -521,7 +585,7 @@
 		    ];
 
 			accelRate.transforms = [ 
-				Canvas3D.mScale(0.01,accelRateSum ,1.0),
+				Canvas3D.mScale(0.01,accelEvent.mass ,1.0),
 				Canvas3D.mTranslate(-2.2,0,0)
 		    ];
 
@@ -564,6 +628,15 @@
 
 	startOSCListening = {
 
+
+		buttonListener = OSCFunc({ |msg, time, addr, recvPort|
+			[msg, time, addr, recvPort].postln;
+
+			//• are we already listening to this device
+			//• if not, start listening
+
+		}, '/gyrosc/button');
+
 		gryoListner = OSCFunc({ |msg, time, addr, recvPort|
 			gyroEvent.pitch = msg[1].asFloat;
 			gyroEvent.roll = msg[2].asFloat;
@@ -595,9 +668,9 @@
 			accelEvent.z = msg[3].asFloat;
 		}, '/gyrosc/accel');
 
-		altListener = OSCFunc({ |msg, time, addr, recvPort|
-			altValue = (msg[1].asFloat);
-		}, '/gyrosc/alt');
+		// altListener = OSCFunc({ |msg, time, addr, recvPort|
+		// 	altValue = (msg[1].asFloat);
+		// }, '/gyrosc/alt');
 			
 		ampListener = OSCFunc({ |msg, time, addr, recvPort|
 			ampValue = (msg[1].asFloat);
@@ -606,24 +679,27 @@
 	};
 
 	stopOSCListening = {
+		buttonListener.free;
 		ampListener.free;
 		gryoListner.free;
-		altListener.free;
+		// altListener.free;
 		rrateListener.free;
 		rotMatListner.free;
 		accelListener.free;
 	};
 
 	enableOSCListening = {
+		buttonListener.enable;
 		ampListener.enable;
 		gryoListner.enable;
-		altListener.enable;
+		// altListener.enable;
 		rrateListener.enable;
 		rotMatListner.enable;
 		accelListener.enable;
 	};
 
 	disableOSCListening = {
+		buttonListener.disable;
 		ampListener.disable;
 		gryoListner.disable;
 		altListener.disable;
@@ -699,11 +775,11 @@
 		var i=0;
 		loop {
 
-			accelRateSum = tween.(accelEvent.sumabs.half,accelRateSum,0.08);
-			rotateRateSum = tween.(rrateEvent.sumabs.half / 3.0,rotateRateSum,0.9);
+			accelEvent.mass = tween.(accelEvent.sumabs.half,accelEvent.mass,0.08);
 
+			rrateEvent.mass = tween.(rrateEvent.sumabs.half / 3.0,rrateEvent.mass,0.9);
 
-			if(rotateRateSum < 0.07,{
+			if(rrateEvent.mass < 0.07,{
 				Pdef(\pat1).pause;
 			},{
 				if(Pdef(\pat1).isPlaying.not,{Pdef(\pat1).resume});
