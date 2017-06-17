@@ -3,33 +3,37 @@
 		var window;
 	    var width = Window.screenBounds.width, height = Window.screenBounds.height ;
 		var startup, shutdown, buildUI;
-
 		var playRoutine;
+
+		var contentView = View().background_(Color.cyan);
 
 		var createPlotterGroup, createGyroCanvas, createAccelCanvas, createTransportView;
 		var createWindowView, addDeviceView;
 		var startOSCListening, stopOSCListening, enableOSCListening, disableOSCListening;
 
+		var addDevice, removeDevice;
+
 	    var gryoListner, rotMatListner, rrateListener, accelListener, altListener, ampListener;
 	    var buttonListener;
 
+		var names = ['Adkins','Barry','Conway','Decker'];
+		var devicesData = Dictionary();
+
 	    // data
-		// var device = (
-		// 	\name:  "harold",
-		// 	\ip: "127.0.0.1",
-		// 	\port: "111111"
-		// 	\gyroEvent: (
-		// 		\pitch: 0,
-		// 		\roll: 0,
-		// 		\yaw: 0,
-		// 		\mass: 0)
-		// 	);
+		var deviceProto = (
+			\ip: "127.0.0.1",
+			\port: "111111",
+			\gyroEvent: (\pitch:0,\roll:0,\yaw:0),
+			\rrateEvent: (\x:0,\y:0,\z:0,\mass:0),
+			\accelEvent: (\x:0,\y:0,\z:0,\mass:0),
+			\ampValue: 0,
+			);
 
 
 		var gyroEvent = (\pitch:0,\roll:0,\yaw:0); 
 		var rrateEvent = (\x:0,\y:0,\z:0,\mass:0);
 		var accelEvent = (\x:0,\y:0,\z:0,\mass:0);
-		var rotMatEvent = [];
+		//var rotMatEvent = [];
 
 		//var altValue = 0;
 		var ampValue = 0;
@@ -91,16 +95,19 @@
 	Pdef(\pat1).set(\dur,0.5);
 	//Pdef(\pat1).set(\gtranspose,0);
 	Pdef(\pat1).set(\patch,0);
-	//Pdef(\pat1).set(\attack,0.8);
+	Pdef(\pat1).set(\attack,0.8);
 	Pdef(\pat1).set(\c3,50);
 	Pdef(\pat1).set(\legato,10);
 	//Pdef(\pat1).set(\position,0.5);
 
-	Pdef(\pat1).set(\attack,0.001);
+	Pdef(\pat1).set(\legato,10);
+	
+
+	Pdef(\pat1).set(\instrument,\default);
 
 	Pdef(\pat1,
 		Pbind(
-			\instrument, \help_dwgplucked,
+			// \instrument, \help_dwgplucked,
 //	        \degree, Pseq([7,8,2,4,3,1,2,2], inf),
 	        \degree, Pseq([1,2,4,6,8,7,4,5,2,6,5,6,2], inf),
 			\amp, Pexprand(0.1,0.4,inf),
@@ -132,7 +139,18 @@
 
 		stopOSCListening.();
 	};
+	//------------------------------------------------------------	
+	// 
+	//------------------------------------------------------------	
 
+	addDevice = { |ip|
+
+		var d = Event.new(proto:deviceProto);
+		d.ip = ip;
+		d.gyroEvent.pitch = 0.0;
+		devicesData.put(ip,d);
+		d
+	};
 	//------------------------------------------------------------	
 	// 
 	//------------------------------------------------------------	
@@ -163,33 +181,32 @@
 
 		var scroll = ScrollView(window,Rect(0,0,width,height/2 + 70)).background_(Color.yellow);
 
-		var view = View().background_(Color.cyan);
-		view.layout_(VLayout());
+		contentView.layout_(VLayout());
 
 
-		view.layout.add(nil);
+		contentView.layout.add(nil);
 
-		scroll.canvas = view;
+		scroll.canvas = contentView;
 
-		addDeviceView.(view).postln;
-		addDeviceView.(view);
+		// addDeviceView.(view);
+		//addDeviceView.(view);
 
 
 	};
 
-	addDeviceView = { |view|
+	addDeviceView = { |view, data|
 
-		var dv;
+		var header;
 		var va,vb;
-		var stackView;
+		var stackView, stackLayout;
 
 
-		dv = View(view).layout_( HLayout(
+		header = View(view).layout_( HLayout(
 			StaticText(view)
 				.stringColor_(Color.black)
 				.font_(Font(size:24))
 				.minWidth_(500)
-				.string_("📡 127.0.0.1 : 57210"),
+				.string_("📡"+data.ip+":"+data.port),
 
 			Button(view)
 				.maxWidth_(100)
@@ -198,15 +215,19 @@
 						["Accelerometer"]
 					])
 					.action_({|b|
-						stackView.index = b.value;
+						stackLayout.index = b.value;
 					}),
-	Button(view)
+			Button(view)
 				.maxWidth_(100)
 					.states_([
 						["Disconect",Color.red(0.5)],	
 
 					])
 					.action_({|b|
+						header.remove();
+						stackView.remove();
+						devicesData.removeAt(data.ip);
+
 					})
 
 		).setAlignment(0,\left).setAlignment(1,\left));
@@ -214,7 +235,7 @@
 
 
 
-		view.layout.add(View().background_(Color.yellow).minHeight_(height/2).layout_( stackView = StackLayout(
+		view.layout.add(stackView = View().background_(Color.yellow).minHeight_(height/2).layout_( stackLayout = StackLayout(
 				va = View().background_(Color.cyan(0.2)),
 				vb = View().background_(Color.blue(0.2))
 				)
@@ -223,35 +244,35 @@
 
 
 
-		createPlotterGroup.(va, Rect(500,0,400,height/2), [
-			["pitch",Color.red,{|p|
-				p.value = (dc.getLast(dataSize).asArray.collect({|a,i| a[\data][0]}));
-			}],
-			["roll",Color.green,{|p|
-				p.value = (dc.getLast(dataSize).asArray.collect({|a,i| a[\data][1]}));
-			}],
-			["yaw",Color.blue,{|p|
-				p.value = (dc.getLast(dataSize).asArray.collect({|a,i| a[\data][2]}));
-			}],
-		]);
+		// createPlotterGroup.(va, Rect(500,0,400,height/2), [
+		// 	["pitch",Color.red,{|p|
+		// 		p.value = (dc.getLast(dataSize).asArray.collect({|a,i| a[\data][0]}));
+		// 	}],
+		// 	["roll",Color.green,{|p|
+		// 		p.value = (dc.getLast(dataSize).asArray.collect({|a,i| a[\data][1]}));
+		// 	}],
+		// 	["yaw",Color.blue,{|p|
+		// 		p.value = (dc.getLast(dataSize).asArray.collect({|a,i| a[\data][2]}));
+		// 	}],
+		// ]);
 
-		createPlotterGroup.(vb, Rect(500,0,400,height/2), [
-			["aaccelX",Color.cyan,{|p|
-				p.value = (dc.getLast(dataSize).asArray.collect({|a,i| a[\data][6]}));
-			}],
-			["accelY",Color.magenta,{|p|
-				p.value = (dc.getLast(dataSize).asArray.collect({|a,i| a[\data][7]}));
-			}],
-			["accelZ",Color.yellow,{|p|
-				p.value = (dc.getLast(dataSize).asArray.collect({|a,i| a[\data][8]}));
-			}],
-		]);
+		// createPlotterGroup.(vb, Rect(500,0,400,height/2), [
+		// 	["aaccelX",Color.cyan,{|p|
+		// 		p.value = (dc.getLast(dataSize).asArray.collect({|a,i| a[\data][6]}));
+		// 	}],
+		// 	["accelY",Color.magenta,{|p|
+		// 		p.value = (dc.getLast(dataSize).asArray.collect({|a,i| a[\data][7]}));
+		// 	}],
+		// 	["accelZ",Color.yellow,{|p|
+		// 		p.value = (dc.getLast(dataSize).asArray.collect({|a,i| a[\data][8]}));
+		// 	}],
+		// ]);
 
 
-		createGyroCanvas.(va);
-		createAccelCanvas.(vb);
+		createGyroCanvas.(va,data);
+		createAccelCanvas.(vb,data);
 
-		dv
+		
 
 	};
 	//------------------------------------------------------------	
@@ -361,7 +382,7 @@
 	// Gyro Canvas
 	//------------------------------------------------------------	
 
-	createGyroCanvas = { |view|
+	createGyroCanvas = { |view, data|
 		var graph1;
 		var cube, top, rate, loc, ico;
 		var p1,p2,p3;
@@ -499,9 +520,9 @@
 			cube.transforms = [ 
 				Canvas3D.mScale(1,0.5,0.05),
 				Canvas3D.mTranslate(0,0,1.5),
-		        Canvas3D.mRotateX(gyroEvent.roll + pi.half),
-		        Canvas3D.mRotateY(gyroEvent.yaw.neg),
-		        Canvas3D.mRotateZ(gyroEvent.pitch.neg),
+		        Canvas3D.mRotateX(data.gyroEvent.roll + pi.half),
+		        Canvas3D.mRotateY(data.gyroEvent.yaw.neg),
+		        Canvas3D.mRotateZ(data.gyroEvent.pitch.neg),
 		    ];
 
 			top.transforms = [ 
@@ -630,28 +651,45 @@
 
 
 		buttonListener = OSCFunc({ |msg, time, addr, recvPort|
-			[msg, time, addr, recvPort].postln;
 
-			//• are we already listening to this device
-			//• if not, start listening
+			if(msg[1].asFloat == 1.0, {
+				if(devicesData.at(addr.ip) == nil,{
+					{
+						var d = addDevice.(addr.ip);
+						addDeviceView.(contentView, d)
+					}.defer;
+				},{
+					devicesData.removeAt(addr.ip);
+				});
+				 //devicesData.postln;
+			});
 
 		}, '/gyrosc/button');
 
 		gryoListner = OSCFunc({ |msg, time, addr, recvPort|
-			gyroEvent.pitch = msg[1].asFloat;
-			gyroEvent.roll = msg[2].asFloat;
-			gyroEvent.yaw = msg[3].asFloat;
-
-		}, '/gyrosc/gyro');
-
-
-		rotMatListner = OSCFunc({ |msg, time, addr, recvPort|
 			// gyroEvent.pitch = msg[1].asFloat;
 			// gyroEvent.roll = msg[2].asFloat;
 			// gyroEvent.yaw = msg[3].asFloat;
-			rotMatEvent = msg[1..].clumps([4]);
-			//rotMatEvent.postln;
-		}, '/gyrosc/rotmat');
+
+			if(devicesData.at(addr.ip) != nil,{
+
+				devicesData.at(addr.ip).gyroEvent = (
+					\pitch:msg[1].asFloat,
+					\roll:msg[2].asFloat,
+					\yaw:msg[3].asFloat);
+					// devicesData.at(addr.ip).postln;	//•••••
+			});
+		
+		}, '/gyrosc/gyro');
+
+
+		// rotMatListner = OSCFunc({ |msg, time, addr, recvPort|
+		// 	// gyroEvent.pitch = msg[1].asFloat;
+		// 	// gyroEvent.roll = msg[2].asFloat;
+		// 	// gyroEvent.yaw = msg[3].asFloat;
+		// 	//rotMatEvent = msg[1..].clumps([4]);
+		// 	//rotMatEvent.postln;
+		// }, '/gyrosc/rotmat');
 
 
 		rrateListener = OSCFunc({ |msg, time, addr, recvPort|
@@ -684,7 +722,7 @@
 		gryoListner.free;
 		// altListener.free;
 		rrateListener.free;
-		rotMatListner.free;
+		//rotMatListner.free;
 		accelListener.free;
 	};
 
@@ -694,7 +732,7 @@
 		gryoListner.enable;
 		// altListener.enable;
 		rrateListener.enable;
-		rotMatListner.enable;
+		//rotMatListner.enable;
 		accelListener.enable;
 	};
 
@@ -704,7 +742,7 @@
 		gryoListner.disable;
 		altListener.disable;
 		rrateListener.disable;
-		rotMatListner.disable;
+		//rotMatListner.disable;
 		accelListener.disable;
 	};
 

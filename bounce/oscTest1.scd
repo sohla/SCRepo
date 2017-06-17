@@ -48,3 +48,41 @@ o.disable;
 o.watchStatus = false;
 
 NetAddr.langPort;
+n = NetAddr("127.0.0.1",5403)
+n.ip.class
+n.port
+
+a = (\e:"hello", \destroy:234)
+a.class
+a[\destroy].(2)
+a.destroy(2)
+
+b = Event.new(proto:a)
+b.class
+b.e = "world"
+
+a.e
+b.e
+
+a[\e] = "world"
+
+b = (\a:a)
+
+
+x = true
+x.not
+
+
+
+b[\a][\e]
+
+b[\a][\e] = "hello world"
+
+c = (\pnt: (\x:0,\y:1,\z:2))
+
+c[\pnt][\y]
+
+c.pnt.y
+
+d= Dictionary.newFrom(["1":4])
+d.trueAt("1") == 4
