@@ -52,12 +52,23 @@ n = NetAddr("127.0.0.1",5403)
 n.ip.class
 n.port
 
-a = (\e:"hello", \destroy:234)
+a = (\e:"hello", \f:(\a:1,\b:2))
 a.class
-a[\destroy].(2)
-a.destroy(2)
+
+a.f
+
+a
+
 
 b = Event.new(proto:a)
+
+b.f.a = 2
+b.e = 99
+b.f = 
+
+
+a
+b
 b.class
 b.e = "world"
 
@@ -86,3 +97,7 @@ c.pnt.y
 
 d= Dictionary.newFrom(["1":4])
 d.trueAt("1") == 4
+
+
+
+(1..3)

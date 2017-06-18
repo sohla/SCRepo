@@ -7,6 +7,7 @@
 
 		var contentView = View().background_(Color.cyan);
 
+		var synthList = [\xylo,\help_dwgplucked];
 		var createPlotterGroup, createGyroCanvas, createAccelCanvas, createTransportView;
 		var createWindowView, addDeviceView;
 		var startOSCListening, stopOSCListening, enableOSCListening, disableOSCListening;
@@ -27,10 +28,11 @@
 			\rrateEvent: (\x:0,\y:0,\z:0,\mass:0),
 			\accelEvent: (\x:0,\y:0,\z:0,\mass:0),
 			\ampValue: 0,
+			\synthName: \help_dwgplucked
 			);
 
 
-		var gyroEvent = (\pitch:0,\roll:0,\yaw:0); 
+		//var gyroEvent = (\pitch:0,\roll:0,\yaw:0); 
 		var rrateEvent = (\x:0,\y:0,\z:0,\mass:0);
 		var accelEvent = (\x:0,\y:0,\z:0,\mass:0);
 		//var rotMatEvent = [];
@@ -210,25 +212,37 @@
 
 			Button(view)
 				.maxWidth_(100)
-					.states_([
-						["Attitude"],	
-						["Accelerometer"]
-					])
-					.action_({|b|
-						stackLayout.index = b.value;
-					}),
+				.states_([
+					["Attitude"],	
+					["Accelerometer"]
+				])
+				.action_({|b|
+					stackLayout.index = b.value;
+				}),
+			PopUpMenu(view)
+				.maxWidth_(200)
+				.items_(synthList)
+				.valueAction_(synthList.find([data.synthName]))
+				.action_({|b|
+					[b.value, b.item].postln;
+					data.synthName = synthList.at(b.value);
+					data.postln;
+						Pdef(\pat1).set(\instrument,data.synthName);
+
+				}),
+
 			Button(view)
 				.maxWidth_(100)
-					.states_([
-						["Disconect",Color.red(0.5)],	
+				.states_([
+					["Disconect",Color.red(0.5)],	
 
-					])
-					.action_({|b|
-						header.remove();
-						stackView.remove();
-						devicesData.removeAt(data.ip);
+				])
+				.action_({|b|
+					header.remove();
+					stackView.remove();
+					devicesData.removeAt(data.ip);
 
-					})
+				})
 
 		).setAlignment(0,\left).setAlignment(1,\left));
 
@@ -485,6 +499,7 @@
 			var sx,sy,sz;
 
 			// store data
+/*
 			dc.addData([
 				gyroEvent.pitch,gyroEvent.roll,gyroEvent.yaw,
 				accelEvent.y.neg,accelEvent.z,accelEvent.x,
@@ -493,19 +508,19 @@
 
 
 		 	dc.collection = dc.getLast(dataSize); // limit size of collected samples
-
+*/
 	    	pos3D = [0,0,0];
 	        pos3D = Canvas3D.vectorMatrixMul(pos3D, Canvas3D.mScale(1,0.5,0.05));
 	        pos3D = Canvas3D.vectorMatrixMul(pos3D, Canvas3D.mTranslate(0,0,1.5));
-	        pos3D = Canvas3D.vectorMatrixMul(pos3D, Canvas3D.mRotateX(gyroEvent.roll + pi.half));
-	        pos3D = Canvas3D.vectorMatrixMul(pos3D, Canvas3D.mRotateY(gyroEvent.yaw.neg));
-	       	pos3D = Canvas3D.vectorMatrixMul(pos3D, Canvas3D.mRotateZ(gyroEvent.pitch.neg));
+	        pos3D = Canvas3D.vectorMatrixMul(pos3D, Canvas3D.mRotateX(data.gyroEvent.roll + pi.half));
+	        pos3D = Canvas3D.vectorMatrixMul(pos3D, Canvas3D.mRotateY(data.gyroEvent.yaw.neg));
+	       	pos3D = Canvas3D.vectorMatrixMul(pos3D, Canvas3D.mRotateZ(data.gyroEvent.pitch.neg));
 
 
 	        loc.transforms = [
-		        Canvas3D.mRotateX(gyroEvent.roll + pi.half),
-		        Canvas3D.mRotateY(gyroEvent.yaw.neg),
-		        Canvas3D.mRotateZ(gyroEvent.pitch.neg),
+		        Canvas3D.mRotateX(data.gyroEvent.roll + pi.half),
+		        Canvas3D.mRotateY(data.gyroEvent.yaw.neg),
+		        Canvas3D.mRotateZ(data.gyroEvent.pitch.neg),
 	        	Canvas3D.mTranslate(pos3D[0],pos3D[1],pos3D[2]),
 	        ];
 
@@ -529,17 +544,17 @@
 				Canvas3D.mScale(1,1,0.05),
 				Canvas3D.mScale(1,0.5,0.05),
 				Canvas3D.mTranslate(0,0,1.5),
-		        Canvas3D.mRotateX(gyroEvent.roll + pi.half),
-		        Canvas3D.mRotateY(gyroEvent.yaw.neg),
-		        Canvas3D.mRotateZ(gyroEvent.pitch.neg),
+		        Canvas3D.mRotateX(data.gyroEvent.roll + pi.half),
+		        Canvas3D.mRotateY(data.gyroEvent.yaw.neg),
+		        Canvas3D.mRotateZ(data.gyroEvent.pitch.neg),
 				//Canvas3D.mTranslate(0,altValue.neg * 1  ,0)
 		    ];
 
 		    ico.transforms = [ 
 				//Canvas3D.mScale(0.6,0.6,0.6),
-		        Canvas3D.mRotateX(gyroEvent.roll + pi.half),
-		        Canvas3D.mRotateY(gyroEvent.yaw.neg),
-		        Canvas3D.mRotateZ(gyroEvent.pitch.neg),
+		        Canvas3D.mRotateX(data.gyroEvent.roll + pi.half),
+		        Canvas3D.mRotateY(data.gyroEvent.yaw.neg),
+		        Canvas3D.mRotateZ(data.gyroEvent.pitch.neg),
 				//Canvas3D.mTranslate(0,altValue.neg * 1  ,0)
 		    ];
 		    
@@ -562,7 +577,7 @@
 	//------------------------------------------------------------	
 	// Accel Canvas
 	//------------------------------------------------------------	
-	createAccelCanvas = { |view|
+	createAccelCanvas = { |view, data|
 		
 	    var graph2, spot, accelRate, accelX, accelY, accelZ;
 
@@ -599,9 +614,9 @@
 
 			spot.transforms = [ 
 				Canvas3D.mScale(1.0,0.5,0.05),
-			    Canvas3D.mRotateX(gyroEvent.roll + pi.half),
-		        Canvas3D.mRotateY(gyroEvent.yaw.neg),
-		        Canvas3D.mRotateZ(gyroEvent.pitch.neg),
+			    Canvas3D.mRotateX(data.gyroEvent.roll + pi.half),
+		        Canvas3D.mRotateY(data.gyroEvent.yaw.neg),
+		        Canvas3D.mRotateZ(data.gyroEvent.pitch.neg),
 				 Canvas3D.mTranslate(accelEvent.y.neg.half,accelEvent.z.half,accelEvent.x.half)
 		    ];
 
@@ -612,22 +627,22 @@
 
 			accelX.transforms = [
 				Canvas3D.mScale(0.01,(accelEvent.x),0.01),
-		        Canvas3D.mRotateX(gyroEvent.roll + pi.half),
-		        Canvas3D.mRotateY(gyroEvent.yaw.neg),
-		        Canvas3D.mRotateZ(gyroEvent.pitch.neg),
+		        Canvas3D.mRotateX(data.gyroEvent.roll + pi.half),
+		        Canvas3D.mRotateY(data.gyroEvent.yaw.neg),
+		        Canvas3D.mRotateZ(data.gyroEvent.pitch.neg),
 		    ];
 
 			accelY.transforms = [ 
 				Canvas3D.mScale((accelEvent.y),0.01,0.01),
-		        Canvas3D.mRotateX(gyroEvent.roll + pi.half),
-		        Canvas3D.mRotateY(gyroEvent.yaw.neg),
-		        Canvas3D.mRotateZ(gyroEvent.pitch.neg),
+		        Canvas3D.mRotateX(data.gyroEvent.roll + pi.half),
+		        Canvas3D.mRotateY(data.gyroEvent.yaw.neg),
+		        Canvas3D.mRotateZ(data.gyroEvent.pitch.neg),
 		    ];
 			accelZ.transforms = [ 
 				Canvas3D.mScale(0.01,0.01,(accelEvent.z)),
-		        Canvas3D.mRotateX(gyroEvent.roll + pi.half),
-		        Canvas3D.mRotateY(gyroEvent.yaw.neg),
-		        Canvas3D.mRotateZ(gyroEvent.pitch.neg),
+		        Canvas3D.mRotateX(data.gyroEvent.roll + pi.half),
+		        Canvas3D.mRotateY(data.gyroEvent.yaw.neg),
+		        Canvas3D.mRotateZ(data.gyroEvent.pitch.neg),
 		    ];
 
 
@@ -764,8 +779,8 @@
 			//gyroYaw = (i*5).cos * 2.0;
 
 			//gyroEvent.yaw = (i.mod(pi).twice) - pi;
-			gyroEvent.pitch = (k.mod(pi).twice) - pi;//((i*10).sin + (i*11).cos) * 2.0;
-			gyroEvent.roll =  (j.mod(pi).twice) - pi;
+			// gyroEvent.pitch = (k.mod(pi).twice) - pi;//((i*10).sin + (i*11).cos) * 2.0;
+			// gyroEvent.roll =  (j.mod(pi).twice) - pi;
 
 			accelEvent.y = (i*60).sin + (i*51).cos * 0.09;
 			accelEvent.x = (i*30).cos + (i*81).sin * 0.06;
@@ -791,9 +806,9 @@
 
 			data = lc.collection.reverse[i][\data];
 
-			gyroEvent.pitch = data[0];
-			gyroEvent.roll = data[1];
-			gyroEvent.yaw = data[2];
+			// gyroEvent.pitch = data[0];
+			// gyroEvent.roll = data[1];
+			// gyroEvent.yaw = data[2];
 			accelEvent.y = data[3];
 			accelEvent.z = data[4];
 			accelEvent.x = data[5];
@@ -813,7 +828,7 @@
 		var i=0;
 		loop {
 
-			accelEvent.mass = tween.(accelEvent.sumabs.half,accelEvent.mass,0.08);
+			// accelEvent.mass = tween.(accelEvent.sumabs.half,accelEvent.mass,0.08);
 
 			rrateEvent.mass = tween.(rrateEvent.sumabs.half / 3.0,rrateEvent.mass,0.9);
 
@@ -823,22 +838,22 @@
 				if(Pdef(\pat1).isPlaying.not,{Pdef(\pat1).resume});
 			});
 
-		 	// set pattern
+		 // 	// set pattern
 		 	if(Pdef(\pat1).isPlaying, {
 
-				Pdef(\pat1).set(\patch,((gyroEvent.pitch + pi).div(pi.twice/4.0)).floor);
+			// 	Pdef(\pat1).set(\patch,((gyroEvent.pitch + pi).div(pi.twice/4.0)).floor);
 				
-				Pdef(\pat1).set(\gtranspose,9 + [0,12,24].at(((gyroEvent.roll + pi).div(pi.twice/3.0)).floor));
+			// 	Pdef(\pat1).set(\gtranspose,9 + [0,12,24].at(((gyroEvent.roll + pi).div(pi.twice/3.0)).floor));
 
-				Pdef(\pat1).set(\c3,(10 + ((gyroEvent.roll + pi)/(pi.twice) * 500)));
+			// 	Pdef(\pat1).set(\c3,(10 + ((gyroEvent.roll + pi)/(pi.twice) * 500)));
 				
-				Pdef(\pat1).set(\legato,(0.1 + ((gyroEvent.yaw + pi)/(pi.twice) * 10)));
+			// 	Pdef(\pat1).set(\legato,(0.1 + ((gyroEvent.yaw + pi)/(pi.twice) * 10)));
 				
-				Pdef(\pat1).set(\position,(0.0 + ((gyroEvent.yaw + pi)/(pi.twice) * 1.0)));
-
-			});
+			// 	Pdef(\pat1).set(\position,(0.0 + ((gyroEvent.yaw + pi)/(pi.twice) * 1.0)));
 			
-			if(Pdef(\pat1).isPlaying, {
+			 });
+			
+			 if(Pdef(\pat1).isPlaying, {
 
 				Pdef(\pat1).set(\attack,(1.0 + rrateEvent.sumabs).pow(4).reciprocal);
 				Pdef(\pat1).set(\dur,Array.geom(8, 1, 2).at((rrateEvent.sumabs.sqrt).floor).twice.reciprocal);
