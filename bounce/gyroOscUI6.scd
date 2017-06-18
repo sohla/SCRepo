@@ -115,6 +115,7 @@
 		Pdef(\pat1).stop;
 		
 		broadcastRoutine.stop;
+		playRoutine.stop;
 		replayRoutine.stop;
 		player.stop;
 

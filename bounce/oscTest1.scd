@@ -19,7 +19,7 @@ o.free;
 s.sendMsg("/n_free", n);
 
 s.queryAllNodes;
-
+{SinOsc.ar(120,0,0.1)}.play
 
 // talking to QLAb
 
@@ -100,4 +100,4 @@ d.trueAt("1") == 4
 
 
 
-(1..3)
+["a","b","c"].find(["b"])

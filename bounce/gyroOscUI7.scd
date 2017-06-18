@@ -5,7 +5,7 @@
 		var startup, shutdown, buildUI;
 		var playRoutine;
 
-		var contentView = View().background_(Color.cyan);
+		var contentView = View().background_(Color.grey(0.2));
 
 		var synthList = [\xylo,\help_dwgplucked];
 		var createPlotterGroup, createGyroCanvas, createAccelCanvas, createTransportView;
@@ -32,7 +32,7 @@
 			);
 
 
-		//var gyroEvent = (\pitch:0,\roll:0,\yaw:0); 
+		var gyroEvent = (\pitch:0,\roll:0,\yaw:0); 
 		var rrateEvent = (\x:0,\y:0,\z:0,\mass:0);
 		var accelEvent = (\x:0,\y:0,\z:0,\mass:0);
 		//var rotMatEvent = [];
@@ -96,16 +96,16 @@
 	Pdef(\pat1).set(\octave,3);
 	Pdef(\pat1).set(\dur,0.5);
 	//Pdef(\pat1).set(\gtranspose,0);
-	Pdef(\pat1).set(\patch,0);
-	Pdef(\pat1).set(\attack,0.8);
+	//Pdef(\pat1).set(\patch,0);
+	Pdef(\pat1).set(\attack,0.001);
 	Pdef(\pat1).set(\c3,50);
 	Pdef(\pat1).set(\legato,10);
 	//Pdef(\pat1).set(\position,0.5);
 
-	Pdef(\pat1).set(\legato,10);
+	//Pdef(\pat1).set(\legato,10);
 	
 
-	Pdef(\pat1).set(\instrument,\default);
+	Pdef(\pat1).set(\instrument,\help_dwgplucked);
 
 	Pdef(\pat1,
 		Pbind(
@@ -136,6 +136,7 @@
 		Pdef(\pat1).stop;
 		
 		broadcastRoutine.stop;
+		playRoutine.stop;
 		replayRoutine.stop;
 		player.stop;
 
@@ -205,10 +206,10 @@
 
 		header = View(view).layout_( HLayout(
 			StaticText(view)
-				.stringColor_(Color.black)
+				.stringColor_(Color.gray(0.8))
 				.font_(Font(size:24))
 				.minWidth_(500)
-				.string_("📡"+data.ip+":"+data.port),
+				.string_("📡  ip ["+data.ip+"] port ["+data.port+"]"),
 
 			Button(view)
 				.maxWidth_(100)
@@ -682,9 +683,9 @@
 		}, '/gyrosc/button');
 
 		gryoListner = OSCFunc({ |msg, time, addr, recvPort|
-			// gyroEvent.pitch = msg[1].asFloat;
-			// gyroEvent.roll = msg[2].asFloat;
-			// gyroEvent.yaw = msg[3].asFloat;
+			gyroEvent.pitch = msg[1].asFloat;
+			gyroEvent.roll = msg[2].asFloat;
+			gyroEvent.yaw = msg[3].asFloat;
 
 			if(devicesData.at(addr.ip) != nil,{
 
@@ -755,7 +756,7 @@
 		buttonListener.disable;
 		ampListener.disable;
 		gryoListner.disable;
-		altListener.disable;
+		//altListener.disable;
 		rrateListener.disable;
 		//rotMatListner.disable;
 		accelListener.disable;
@@ -828,7 +829,7 @@
 		var i=0;
 		loop {
 
-			// accelEvent.mass = tween.(accelEvent.sumabs.half,accelEvent.mass,0.08);
+			accelEvent.mass = tween.(accelEvent.sumabs.half,accelEvent.mass,0.08);
 
 			rrateEvent.mass = tween.(rrateEvent.sumabs.half / 3.0,rrateEvent.mass,0.9);
 
@@ -841,16 +842,16 @@
 		 // 	// set pattern
 		 	if(Pdef(\pat1).isPlaying, {
 
-			// 	Pdef(\pat1).set(\patch,((gyroEvent.pitch + pi).div(pi.twice/4.0)).floor);
+				//Pdef(\pat1).set(\patch,((gyroEvent.pitch + pi).div(pi.twice/4.0)).floor);
 				
-			// 	Pdef(\pat1).set(\gtranspose,9 + [0,12,24].at(((gyroEvent.roll + pi).div(pi.twice/3.0)).floor));
+				Pdef(\pat1).set(\gtranspose,9 + [0,12,24].at(((gyroEvent.roll + pi).div(pi.twice/3.0)).floor));
 
-			// 	Pdef(\pat1).set(\c3,(10 + ((gyroEvent.roll + pi)/(pi.twice) * 500)));
+				Pdef(\pat1).set(\c3,(10 + ((gyroEvent.roll + pi)/(pi.twice) * 500)));
 				
-			// 	Pdef(\pat1).set(\legato,(0.1 + ((gyroEvent.yaw + pi)/(pi.twice) * 10)));
+				Pdef(\pat1).set(\legato,(0.1 + ((gyroEvent.yaw + pi)/(pi.twice) * 10)));
 				
-			// 	Pdef(\pat1).set(\position,(0.0 + ((gyroEvent.yaw + pi)/(pi.twice) * 1.0)));
-			
+				Pdef(\pat1).set(\position,(0.0 + ((gyroEvent.yaw + pi)/(pi.twice) * 1.0)));
+
 			 });
 			
 			 if(Pdef(\pat1).isPlaying, {
