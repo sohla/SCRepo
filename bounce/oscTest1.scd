@@ -101,3 +101,6 @@ d.trueAt("1") == 4
 
 
 ["a","b","c"].find(["b"])
+
+~a = {"oh yes".postln}
+~a.()

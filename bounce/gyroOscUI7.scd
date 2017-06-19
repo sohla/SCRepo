@@ -1,6 +1,5 @@
 
 	(
-		var window;
 	    var width = Window.screenBounds.width, height = Window.screenBounds.height ;
 		var startup, shutdown, buildUI;
 		var playRoutine;
@@ -59,7 +58,7 @@
 
 		var isSimulating = {|yes,no|
 
-			if(false,{
+			if(true,{
 				yes.();
 			},{
 				no.();
@@ -159,6 +158,7 @@
 	//------------------------------------------------------------	
 	buildUI = {
 		
+		var window;
 
 		QtGUI.palette = QPalette.dark; 
 
@@ -175,26 +175,18 @@
 		};
 		CmdPeriod.doOnce({window.close});
 		
-		createWindowView.();
-		//createTransportView.(Rect(0,0,width,50));
+		createWindowView.(window);
 
 	};
 
-	createWindowView = {
+	createWindowView = {|view|
 
-		var scroll = ScrollView(window,Rect(0,0,width,height/2 + 70)).background_(Color.yellow);
-
+		var scroll = ScrollView(view,Rect(0,0,width,height/2 + 70)).background_(Color.yellow);
 		contentView.layout_(VLayout());
-
-
 		contentView.layout.add(nil);
-
 		scroll.canvas = contentView;
 
-		// addDeviceView.(view);
-		//addDeviceView.(view);
-
-
+		addDeviceView.(contentView, addDevice.("127.0.0.1"));
 	};
 
 	addDeviceView = { |view, data|
@@ -202,7 +194,6 @@
 		var header;
 		var va,vb;
 		var stackView, stackLayout;
-
 
 		header = View(view).layout_( HLayout(
 			StaticText(view)
@@ -290,47 +281,6 @@
 		
 
 	};
-	//------------------------------------------------------------	
-	// Transport View
-	//------------------------------------------------------------	
-	createTransportView = { |bounds|
-
-
-		var view = UserView(window,bounds)
-			.background_(Color.gray)
-			.layout_(
-				HLayout(
-					Button()
-						.maxWidth_(50)
-						.states_([
-							["replay",Color.black],
-							["replay",Color.green]
-						])
-						.action_({|b|
-
-							if(b.value == 1,{
-
-								var path = PathName.new(dataPath).fullPath+/+Date.getDate.asSortableString++".txt"; 
-								dc.saveTo(path);
-								lc = DataCollector.fromFile(path);
-								lc.collection.reverse.postln;
-
-								isSimulating.({broadcastRoutine.stop},{disableOSCListening.()});
-								replayRoutine.reset().play(AppClock);
-
-
-							},{
-								isSimulating.({broadcastRoutine.reset().play(AppClock)},{enableOSCListening.()});
-								replayRoutine.stop;
-
-							});
-
-						})
-
-				)
-			);
-	};
-
 
 	//------------------------------------------------------------	
 	// Plotters
@@ -693,7 +643,6 @@
 					\pitch:msg[1].asFloat,
 					\roll:msg[2].asFloat,
 					\yaw:msg[3].asFloat);
-					// devicesData.at(addr.ip).postln;	//•••••
 			});
 		
 		}, '/gyrosc/gyro');
