@@ -4,9 +4,6 @@ SynthDef(\xylo, { |out=0, freq=440, gate=1, amp=0.3, sustain=0.2, pan=0, patch=1
 	Out.ar(out, Pan2.ar(sig, pan, env * amp));
 }).add;
 
-
-
-
 SynthDef(\help_dwgplucked, { |out=0, freq=440, amp=0.5, gate=1, c3=20, pan=0, position = 0.5 attack = 0.001|
     var env = Env.new([0,1, 1, 0],[attack,0.006, 0.005],[5,-5, -8]);
     var inp = amp * LFClipNoise.ar(2000) * EnvGen.ar(env,gate);

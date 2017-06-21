@@ -36,6 +36,8 @@ Pdef(ptn).set(\instrument,\help_dwgplucked);
 	~fps = 0.03;
 	~init = { 
 		"init GEORGE".postln;
+
+		//• quat doesn't allow for pause
 		//Pdef(ptn).quant_([1,0]);
 		Pdef(ptn).play;
 	};
