@@ -65,10 +65,12 @@ window.layout = HLayout();
 
 on.(personalities.at("george"));
 
+Pdef(\pat1).play;
 
 
 
 window.onClose = ({
+	Pdef(\pat1).stop;
 	personalities.keysValuesDo({|k,v| off.(v) });
 	Buffer.freeAll;
 	s.freeAll;

@@ -6,7 +6,9 @@
 
 		var contentView = View().background_(Color.grey(0.2));
 
-		var synthList = [\xylo,\help_dwgplucked];
+		var names = ["george","harry"];
+
+
 		var createPlotterGroup, createGyroCanvas, createAccelCanvas, createTransportView;
 		var createWindowView, addDeviceView;
 		var startOSCListening, stopOSCListening, enableOSCListening, disableOSCListening;
@@ -16,27 +18,27 @@
 	    var gryoListner, rotMatListner, rrateListener, accelListener, altListener, ampListener;
 	    var buttonListener;
 
-		var names = ['Adkins','Barry','Conway','Decker'];
-		var devicesData = Dictionary();
+		var devices = Dictionary();
 
 	    // data
 		var deviceProto = (
 			\ip: "127.0.0.1",
-			\port: "111111",
+			\port: "57120",
 			\gyroEvent: (\pitch:0,\roll:0,\yaw:0),
-			\rrateEvent: (\x:0,\y:0,\z:0,\mass:0),
-			\accelEvent: (\x:0,\y:0,\z:0,\mass:0),
+			\rrateEvent: (\x:0,\y:0,\z:0),
+			\rrateMass: 0,
+			\accelEvent: (\x:0,\y:0,\z:0),
 			\ampValue: 0,
-			\synthName: \help_dwgplucked
+			\name: "george",
+			\env: nil,
+			\rout: nil
 			);
 
+		var loadPersonality;
+		var createRout;
 
-		var gyroEvent = (\pitch:0,\roll:0,\yaw:0); 
-		var rrateEvent = (\x:0,\y:0,\z:0,\mass:0);
-		var accelEvent = (\x:0,\y:0,\z:0,\mass:0);
-		//var rotMatEvent = [];
+		var accelEvent = (\x:0,\y:0,\z:0);
 
-		//var altValue = 0;
 		var ampValue = 0;
 		
 		var broadcastRoutine;
@@ -58,63 +60,52 @@
 
 		var isSimulating = {|yes,no|
 
-			if(true,{
+			if(false,{
 				yes.();
 			},{
 				no.();
 			});
 		};
+
+	//------------------------------------------------------------	
+	// midi
+	//------------------------------------------------------------	
+
 	// MIDIClient.init;
 	// MIDIClient.destinations;
 	// m = MIDIOut(0);
 
+	//------------------------------------------------------------	
+	// 
+	//------------------------------------------------------------	
+
+	loadPersonality = {|name|
+
+		var path = PathName.new("~/Develop/SuperCollider/Projects/SCRepo/bounce/"++name++".sc");
+		var file = File.new(path.asAbsolutePath,"r");
+		var str = file.readAllString;
+		var env = Environment.make {interpret(str)};
+
+		env
+	};
 
 	//------------------------------------------------------------	
-	// synths
+	// 
 	//------------------------------------------------------------	
+	createRout = {|d|
 
-	SynthDef(\xylo, { |out=0, freq=440, gate=1, amp=0.3, sustain=0.2, pan=0, patch=1, attack = 0.001|
-		var sig = StkBandedWG.ar(freq, instr:patch, mul:20);
-		var env = EnvGen.kr(Env.adsr(attack, sustain, sustain, 1.3), gate, doneAction:2);
-		Out.ar(out, Pan2.ar(sig, pan, env * amp));
-	}).add;
+		Routine { 
+			var i=0;
+			loop{ 
+				d.env.use{
+					~next.(i,d);
+					(~fps.()).yield;
+					i=i+1;
+				};
+			}
+		};
 
-	SynthDef(\help_dwgplucked, { |out=0, freq=440, amp=0.5, gate=1, c3=20, pan=0, position = 0.5 attack = 0.001|
-	    var env = Env.new([0,1, 1, 0],[attack,0.006, 0.005],[5,-5, -8]);
-	    var inp = amp * LFClipNoise.ar(2000) * EnvGen.ar(env,gate);
-	    var son = DWGPlucked.ar(freq, amp, gate,position,1,c3,inp);
-		var sig = 0, verb = 0;
-	    //Out.ar(out, Pan2.ar(son * 0.1, pan));
-		sig = Pan2.ar(son * 0.1, pan);
-		//verb = FreeVerb2.ar(sig[0],sig[1],0.3,200);
-	    //DetectSilence.ar(sig, 0.001, doneAction:2);
-
-		Out.ar(out,sig);
-	}).add;
-
-	Pdef(\pat1).set(\octave,3);
-	Pdef(\pat1).set(\dur,0.5);
-	//Pdef(\pat1).set(\gtranspose,0);
-	//Pdef(\pat1).set(\patch,0);
-	Pdef(\pat1).set(\attack,0.001);
-	Pdef(\pat1).set(\c3,50);
-	Pdef(\pat1).set(\legato,10);
-	//Pdef(\pat1).set(\position,0.5);
-
-	//Pdef(\pat1).set(\legato,10);
-	
-
-	Pdef(\pat1).set(\instrument,\help_dwgplucked);
-
-	Pdef(\pat1,
-		Pbind(
-			// \instrument, \help_dwgplucked,
-//	        \degree, Pseq([7,8,2,4,3,1,2,2], inf),
-	        \degree, Pseq([1,2,4,6,8,7,4,5,2,6,5,6,2], inf),
-			\amp, Pexprand(0.1,0.4,inf),
-			\pan, Pwhite(-0.8,0.8,inf)
-	));
-
+	};
 
 	//------------------------------------------------------------	
 	// 
@@ -131,9 +122,11 @@
 	//------------------------------------------------------------	
 	shutdown = {
 
-		
-		Pdef(\pat1).stop;
-		
+		devices.keysValuesDo({|k,v|
+			v.env.use{ ~deinit.() };
+			v.rout.stop();
+		});
+
 		broadcastRoutine.stop;
 		playRoutine.stop;
 		replayRoutine.stop;
@@ -148,10 +141,20 @@
 	addDevice = { |ip|
 
 		var d = Event.new(proto:deviceProto);
+		
 		d.ip = ip;
-		d.gyroEvent.pitch = 0.0;
-		devicesData.put(ip,d);
-		d
+		d.gyroEvent.pitch = 0.0;//•?
+
+		//• need to compare names with devices.name to find unused personality
+		//• currently loading default
+		d.env = loadPersonality.(d.name);
+		d.env.use{ ~init.() };
+		d.rout = createRout.(d);
+		d.rout.reset.play(AppClock);
+
+		devices.put(ip,d);
+		
+		d // return the device (data)
 	};
 	//------------------------------------------------------------	
 	// 
@@ -186,10 +189,11 @@
 		contentView.layout.add(nil);
 		scroll.canvas = contentView;
 
-		addDeviceView.(contentView, addDevice.("127.0.0.1"));
+		// set this for quick connection to device
+		//addDeviceView.(contentView, addDevice.("192.168.0.199"));
 	};
 
-	addDeviceView = { |view, data|
+	addDeviceView = { |view, d|
 
 		var header;
 		var va,vb;
@@ -200,7 +204,7 @@
 				.stringColor_(Color.gray(0.8))
 				.font_(Font(size:24))
 				.minWidth_(500)
-				.string_("📡  ip ["+data.ip+"] port ["+data.port+"]"),
+				.string_("📡  ip ["+d.ip+"] port ["+d.port+"]"),
 
 			Button(view)
 				.maxWidth_(100)
@@ -213,13 +217,21 @@
 				}),
 			PopUpMenu(view)
 				.maxWidth_(200)
-				.items_(synthList)
-				.valueAction_(synthList.find([data.synthName]))
+				.items_(names)
+				.valueAction_(names.find([d.name]))
 				.action_({|b|
-					[b.value, b.item].postln;
-					data.synthName = synthList.at(b.value);
-					data.postln;
-						Pdef(\pat1).set(\instrument,data.synthName);
+
+					d.name = names.at(b.value);
+					
+					// stop personality
+					d.rout.stop;
+					d.env.use{ ~deinit.() };
+
+					// start new personality
+					d.env = loadPersonality.(d.name);
+					d.env.use{ ~init.() };
+					d.rout = createRout.(d);
+					d.rout.reset.play(AppClock);
 
 				}),
 
@@ -232,7 +244,12 @@
 				.action_({|b|
 					header.remove();
 					stackView.remove();
-					devicesData.removeAt(data.ip);
+					
+					// stop personality
+					d.env.use{ ~deinit.() };
+					d.rout.stop;
+
+					devices.removeAt(d.ip);
 
 				})
 
@@ -275,8 +292,8 @@
 		// ]);
 
 
-		createGyroCanvas.(va,data);
-		createAccelCanvas.(vb,data);
+		createGyroCanvas.(va,d);
+		createAccelCanvas.(vb,d);
 
 		
 
@@ -514,7 +531,7 @@
 			p3.transforms=ico.transforms;
 
 			rate.transforms = [ 
-				Canvas3D.mScale(0.01,rrateEvent.mass.half ,1.0),
+				Canvas3D.mScale(0.01,data.rrateMass.half ,1.0),
 				Canvas3D.mTranslate(-2.2,0,0)
 
 		    ];
@@ -619,27 +636,27 @@
 		buttonListener = OSCFunc({ |msg, time, addr, recvPort|
 
 			if(msg[1].asFloat == 1.0, {
-				if(devicesData.at(addr.ip) == nil,{
+				if(devices.at(addr.ip) == nil,{
 					{
 						var d = addDevice.(addr.ip);
 						addDeviceView.(contentView, d)
 					}.defer;
 				},{
-					devicesData.removeAt(addr.ip);
+					devices.removeAt(addr.ip);
 				});
-				 //devicesData.postln;
+				 //devices.postln;
 			});
 
 		}, '/gyrosc/button');
 
 		gryoListner = OSCFunc({ |msg, time, addr, recvPort|
-			gyroEvent.pitch = msg[1].asFloat;
-			gyroEvent.roll = msg[2].asFloat;
-			gyroEvent.yaw = msg[3].asFloat;
+			// gyroEvent.pitch = msg[1].asFloat;
+			// gyroEvent.roll = msg[2].asFloat;
+			// gyroEvent.yaw = msg[3].asFloat;
 
-			if(devicesData.at(addr.ip) != nil,{
+			if(devices.at(addr.ip) != nil,{
 
-				devicesData.at(addr.ip).gyroEvent = (
+				devices.at(addr.ip).gyroEvent = (
 					\pitch:msg[1].asFloat,
 					\roll:msg[2].asFloat,
 					\yaw:msg[3].asFloat);
@@ -658,9 +675,18 @@
 
 
 		rrateListener = OSCFunc({ |msg, time, addr, recvPort|
-			rrateEvent.x = msg[1].asFloat;
-			rrateEvent.y = msg[2].asFloat;
-			rrateEvent.z = msg[3].asFloat;
+			// rrateEvent.x = msg[1].asFloat;
+			// rrateEvent.y = msg[2].asFloat;
+			// rrateEvent.z = msg[3].asFloat;
+
+			if(devices.at(addr.ip) != nil,{
+
+				devices.at(addr.ip).rrateEvent = (
+					\x:msg[1].asFloat,
+					\y:msg[2].asFloat,
+					\z:msg[3].asFloat);
+			});
+
 		}, '/gyrosc/rrate');
 
 
@@ -736,9 +762,9 @@
 			accelEvent.x = (i*30).cos + (i*81).sin * 0.06;
 			accelEvent.z = (i*130).cos + (i*181).sin * 0.07;
 
-			rrateEvent.x =  (i.mod(pi).twice) - pi;
-			rrateEvent.y =  (j.mod(pi).twice) - pi;
-			rrateEvent.z =  (i.mod(pi).twice) - pi;
+			// rrateEvent.x =  (i.mod(pi).twice) - pi;
+			// rrateEvent.y =  (j.mod(pi).twice) - pi;
+			// rrateEvent.z =  (i.mod(pi).twice) - pi;
 
 			(1.0/60.0).yield;
 
@@ -762,9 +788,9 @@
 			accelEvent.y = data[3];
 			accelEvent.z = data[4];
 			accelEvent.x = data[5];
-			rrateEvent.x = data[6];
-			rrateEvent.y = data[7];
-			rrateEvent.z = data[8];
+			// rrateEvent.x = data[6];
+			// rrateEvent.y = data[7];
+			// rrateEvent.z = data[8];
 
 			(1.0/60.0).yield;
 		}
@@ -774,54 +800,9 @@
 	// 
 	//------------------------------------------------------------	
 
-	playRoutine = Routine {
-		var i=0;
-		loop {
-
-			accelEvent.mass = tween.(accelEvent.sumabs.half,accelEvent.mass,0.08);
-
-			rrateEvent.mass = tween.(rrateEvent.sumabs.half / 3.0,rrateEvent.mass,0.9);
-
-			if(rrateEvent.mass < 0.07,{
-				Pdef(\pat1).pause;
-			},{
-				if(Pdef(\pat1).isPlaying.not,{Pdef(\pat1).resume});
-			});
-
-		 // 	// set pattern
-		 	if(Pdef(\pat1).isPlaying, {
-
-				//Pdef(\pat1).set(\patch,((gyroEvent.pitch + pi).div(pi.twice/4.0)).floor);
-				
-				Pdef(\pat1).set(\gtranspose,9 + [0,12,24].at(((gyroEvent.roll + pi).div(pi.twice/3.0)).floor));
-
-				Pdef(\pat1).set(\c3,(10 + ((gyroEvent.roll + pi)/(pi.twice) * 500)));
-				
-				Pdef(\pat1).set(\legato,(0.1 + ((gyroEvent.yaw + pi)/(pi.twice) * 10)));
-				
-				Pdef(\pat1).set(\position,(0.0 + ((gyroEvent.yaw + pi)/(pi.twice) * 1.0)));
-
-			 });
-			
-			 if(Pdef(\pat1).isPlaying, {
-
-				Pdef(\pat1).set(\attack,(1.0 + rrateEvent.sumabs).pow(4).reciprocal);
-				Pdef(\pat1).set(\dur,Array.geom(8, 1, 2).at((rrateEvent.sumabs.sqrt).floor).twice.reciprocal);
-			
-			});
-
-
-			(1.0/60.0).yield;
-		}
-	}.play(AppClock);
-
-	//------------------------------------------------------------	
-	// 
-	//------------------------------------------------------------	
 
 	startup.();
 	buildUI.();
-	Pdef(\pat1).play;
 	startOSCListening.();
 	isSimulating.({broadcastRoutine.reset().play(AppClock);disableOSCListening.();},{});
 
