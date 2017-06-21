@@ -146,7 +146,7 @@
 		d.gyroEvent.pitch = 0.0;//•?
 
 		//• need to compare names with devices.name to find unused personality
-		//• currently loading default
+		//• currently loading from proto
 		d.env = loadPersonality.(d.name);
 		d.env.use{ ~init.() };
 		d.rout = createRout.(d);
