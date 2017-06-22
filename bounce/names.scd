@@ -1007,8 +1007,9 @@ names.choose;
 
 
 
-(
-a = (1..5);
-a.remove(a.choose).postln;
+
+a = ["a","b","c"];
+c=a.remove(a.choose);
+c;
+
 a;
-  )

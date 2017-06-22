@@ -2,11 +2,11 @@
 	(
 	    var width = Window.screenBounds.width, height = Window.screenBounds.height ;
 		var startup, shutdown, buildUI;
-		var playRoutine;
 
 		var contentView = View().background_(Color.grey(0.2));
 
-		var names = ["george","harry"];
+		var names = ["adam","george","harry"];
+		var usedNames = names.copy;
 
 		var reloadButton;
 
@@ -18,6 +18,8 @@
 
 	    var gryoListner, rotMatListner, rrateListener, accelListener, altListener, ampListener;
 	    var buttonListener;
+
+
 
 		var devices = Dictionary();
 
@@ -39,21 +41,16 @@
 		var loadPersonality;
 		var createRout;
 
-		//var ampValue = 0;
 		
 		var broadcastRoutine;
 		var replayRoutine;
 
-		var pattern, player;
 
 		var dataSize = 100;
 		var dc = DataCollector.new("test");
 		var lc = nil;
 		var dataPath = "~/Develop/SuperCollider/Projects/SCRepo/bounce/data/";
 
-		var tween;
-
-		var oldRollStep = 0,oldPitchStep = 0;
 
 
 		var pos3D = [0,0,0];
@@ -128,9 +125,7 @@
 		});
 
 		broadcastRoutine.stop;
-		playRoutine.stop;
 		replayRoutine.stop;
-		player.stop;
 
 		stopOSCListening.();
 	};
@@ -143,12 +138,11 @@
 		var d = Event.new(proto:deviceProto);
 		
 		d.ip = ip;
-		d.gyroEvent.pitch = 0.0;//•?
+		//d.gyroEvent.pitch = 0.0;//•?
 
-		//• need to compare names with devices.name to find unused personality
-		//• currently loading from proto
 
-		
+		d.name = usedNames.remove(usedNames.choose);
+
 		d.env = loadPersonality.(d.name);
 		d.env.use{ ~init.() };
 		d.rout = createRout.(d);
@@ -176,7 +170,7 @@
 		window = Window("gyro osc tester", Rect(0, height, width, height/2), false).front;
 		window.view.keyDownAction_({|view,char,mods,uni,code,key|
 			if(uni==82,{
-				reloadButton.doAction();
+				//•NO!NO!NO!reloadButton.doAction();
 			});
 		});
 
@@ -191,14 +185,14 @@
 
 	createWindowView = {|view|
 
-		var scroll = ScrollView(view,Rect(0,0,width,height/2)).background_(Color.yellow);
+		var scroll = ScrollView(view,Rect(0,0,width,height/2 - 70)).background_(Color.yellow);
 		contentView.layout_(VLayout());
 		contentView.layout.add(nil);
 		scroll.canvas = contentView;
 
 		// set this for quick connection to device
-		addDeviceView.(contentView, addDevice.("192.168.0.100"));
-		addDeviceView.(contentView, addDevice.("192.168.0.101"));
+		//addDeviceView.(contentView, addDevice.("192.168.0.100"));
+		// addDeviceView.(contentView, addDevice.("192.168.0.101"));
 	};
 
 	addDeviceView = { |view, d|
@@ -556,10 +550,9 @@
 
 			rate.transforms = [ 
 				Canvas3D.mScale(0.01,data.rrateMass.half ,1.0),
-				Canvas3D.mTranslate(-2.2,0,0)
+				Canvas3D.mTranslate(-2.1,0,0)
 
 		    ];
-
 
 		};
 
@@ -645,9 +638,9 @@
 	// 
 	//------------------------------------------------------------	
 
-	tween = {|input,history,friction = 0.5|
-		(friction * input + ((1 - friction) * history))
-	};
+	// tween = {|input,history,friction = 0.5|
+	// 	(friction * input + ((1 - friction) * history))
+	// };
 
 
 	//------------------------------------------------------------	
@@ -656,9 +649,8 @@
 
 	startOSCListening = {
 
-
 		buttonListener = OSCFunc({ |msg, time, addr, recvPort|
-
+			//[msg, time, addr, recvPort].postln;
 			if(msg[1].asFloat == 1.0, {
 				if(devices.at(addr.ip) == nil,{
 					{
@@ -668,18 +660,13 @@
 				},{
 					devices.removeAt(addr.ip);
 				});
-				 //devices.postln;
 			});
 
 		}, '/gyrosc/button');
 
 		gryoListner = OSCFunc({ |msg, time, addr, recvPort|
-			// gyroEvent.pitch = msg[1].asFloat;
-			// gyroEvent.roll = msg[2].asFloat;
-			// gyroEvent.yaw = msg[3].asFloat;
 
 			if(devices.at(addr.ip) != nil,{
-
 				devices.at(addr.ip).gyroEvent = (
 					\pitch:msg[1].asFloat,
 					\roll:msg[2].asFloat,
@@ -699,12 +686,8 @@
 
 
 		rrateListener = OSCFunc({ |msg, time, addr, recvPort|
-			// rrateEvent.x = msg[1].asFloat;
-			// rrateEvent.y = msg[2].asFloat;
-			// rrateEvent.z = msg[3].asFloat;
 
 			if(devices.at(addr.ip) != nil,{
-
 				devices.at(addr.ip).rrateEvent = (
 					\x:msg[1].asFloat,
 					\y:msg[2].asFloat,
@@ -713,14 +696,9 @@
 
 		}, '/gyrosc/rrate');
 
-
-
 		accelListener = OSCFunc({ |msg, time, addr, recvPort|
-			// accelEvent.x = msg[1].asFloat;
-			// accelEvent.y = msg[2].asFloat;
-			// accelEvent.z = msg[3].asFloat;
-			if(devices.at(addr.ip) != nil,{
 
+			if(devices.at(addr.ip) != nil,{
 				devices.at(addr.ip).accelEvent = (
 					\x:msg[1].asFloat,
 					\y:msg[2].asFloat,
@@ -733,7 +711,6 @@
 		// }, '/gyrosc/alt');
 			
 		ampListener = OSCFunc({ |msg, time, addr, recvPort|
-			//ampValue = (msg[1].asFloat);
 				devices.at(addr.ip).ampValue = msg[1].asFloat;
 		}, '/gyrosc/amp');
 
@@ -834,7 +811,7 @@
 	startup.();
 	buildUI.();
 	startOSCListening.();
-	isSimulating.({broadcastRoutine.reset().play(AppClock);disableOSCListening.();},{});
+//	isSimulating.({broadcastRoutine.reset().play(AppClock);disableOSCListening.();},{});
 
 	)
 

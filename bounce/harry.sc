@@ -1,11 +1,23 @@
 var ptn = \someting;
 
-SynthDef(\xylo, { |out=0, freq=440, gate=1, amp=0.3, sustain=0.2, pan=0, patch=1, attack = 0.001|
+
+//------------------------------------------------------------	
+// SYNTH DEF
+//------------------------------------------------------------	
+
+(
+	SynthDef(\xylo, { |out=0, freq=240, gate=1, amp=0.3, sustain=1.0, pan=0, patch=1, attack = 0.001|
 	var sig = StkBandedWG.ar(freq, instr:patch, mul:20);
 	var env = EnvGen.kr(Env.adsr(attack, sustain, sustain, 1.3), gate, doneAction:2);
 	Out.ar(out, Pan2.ar(sig, pan, env * amp));
 }).add;
+);
 
+//x = Synth(\xylo);s.sendBundle(0.5,[\n_set,x.nodeID,\gate,0]);
+
+//------------------------------------------------------------	
+// PATTERN DEF
+//------------------------------------------------------------	
 
 Pdef(ptn,
 	Pbind(
@@ -15,23 +27,28 @@ Pdef(ptn,
 ));
 
 
-Pdef(ptn).set(\octave,2);
-Pdef(ptn).set(\dur,0.125);
-Pdef(ptn).set(\patch,0);
-Pdef(ptn).set(\attack,0.01);
-Pdef(ptn).set(\legato,1);
-
-
-Pdef(ptn).set(\instrument,\xylo);
 
 (
 
-	~fps = 0.125;
+	~fps = 0.03;
+
+	//------------------------------------------------------------	
 	~init = { 
+
 		"init HARRY".postln;
-	//Pdef(ptn).quant_([1,0]);
-	Pdef(ptn).play;
+
+		Pdef(ptn).set(\octave,2);
+		Pdef(ptn).set(\dur,0.125);
+		Pdef(ptn).set(\patch,0);
+		Pdef(ptn).set(\attack,0.01);
+		Pdef(ptn).set(\legato,1);
+		Pdef(ptn).set(\instrument,\xylo);
+
+		Pdef(ptn).play;
 	};
+
+
+	//------------------------------------------------------------	
 	~next = {|f,d| 
 		var tween = {|input,history,friction = 0.5|
 			(friction * input + ((1 - friction) * history))
@@ -72,7 +89,10 @@ Pdef(ptn).set(\instrument,\xylo);
 			 });
 
 	};
+
+	//------------------------------------------------------------	
 	~deinit = {
+
 		"deinit HARYY".postln;
 		Pdef(ptn).stop;
 	};
