@@ -29,6 +29,7 @@
 			\rrateEvent: (\x:0,\y:0,\z:0),
 			\rrateMass: 0,
 			\accelEvent: (\x:0,\y:0,\z:0),
+			\accelMass: 0,
 			\ampValue: 0,
 			\name: "george",
 			\env: nil,
@@ -38,9 +39,7 @@
 		var loadPersonality;
 		var createRout;
 
-		var accelEvent = (\x:0,\y:0,\z:0);
-
-		var ampValue = 0;
+		//var ampValue = 0;
 		
 		var broadcastRoutine;
 		var replayRoutine;
@@ -148,6 +147,8 @@
 
 		//• need to compare names with devices.name to find unused personality
 		//• currently loading from proto
+
+		
 		d.env = loadPersonality.(d.name);
 		d.env.use{ ~init.() };
 		d.rout = createRout.(d);
@@ -172,7 +173,7 @@
 		GUI.skin.plot.background = Color.black;
 		GUI.skin.plot.plotColor = Color.white;
 
-		window = Window("gyro osc tester", Rect(0, height, width, height/2 + 70), false).front;
+		window = Window("gyro osc tester", Rect(0, height, width, height/2), false).front;
 		window.view.keyDownAction_({|view,char,mods,uni,code,key|
 			if(uni==82,{
 				reloadButton.doAction();
@@ -190,13 +191,14 @@
 
 	createWindowView = {|view|
 
-		var scroll = ScrollView(view,Rect(0,0,width,height/2 + 70)).background_(Color.yellow);
+		var scroll = ScrollView(view,Rect(0,0,width,height/2)).background_(Color.yellow);
 		contentView.layout_(VLayout());
 		contentView.layout.add(nil);
 		scroll.canvas = contentView;
 
 		// set this for quick connection to device
 		addDeviceView.(contentView, addDevice.("192.168.0.100"));
+		addDeviceView.(contentView, addDevice.("192.168.0.101"));
 	};
 
 	addDeviceView = { |view, d|
@@ -280,7 +282,7 @@
 
 
 
-		view.layout.add(stackView = View().background_(Color.yellow).minHeight_(height/2).layout_( stackLayout = StackLayout(
+		view.layout.add(stackView = View().background_(Color.yellow).minHeight_(250).layout_( stackLayout = StackLayout(
 				va = View().background_(Color.cyan(0.2)),
 				vb = View().background_(Color.blue(0.2))
 				)
@@ -392,11 +394,11 @@
 		var p1,p2,p3;
 		var t = (1.0 + (5.0).sqrt) / 2.0;
 
-		graph1 = Canvas3D(view, Rect(0, 0, 500, height/2))
+		graph1 = Canvas3D(view, Rect(0, 0, 250, 250))
 		    .scale_(200)
 			.background_(Color.gray)
 		    .perspective_(0.5)
-		    .distance_(2.5);
+		    .distance_(3.5);
 
 
 		// graph1.view.drawFunc= graph1.view.drawFunc<>{
@@ -571,7 +573,7 @@
 		
 	    var graph2, spot, accelRate, accelX, accelY, accelZ;
 
-		graph2 = Canvas3D(view, Rect(0, 0, 500, height/2))
+		graph2 = Canvas3D(view, Rect(0, 0, 250, 250))
 		    .scale_(200)
 			.background_(Color.black)
 		    .perspective_(0.5)
@@ -607,29 +609,29 @@
 			    Canvas3D.mRotateX(data.gyroEvent.roll + pi.half),
 		        Canvas3D.mRotateY(data.gyroEvent.yaw.neg),
 		        Canvas3D.mRotateZ(data.gyroEvent.pitch.neg),
-				 Canvas3D.mTranslate(accelEvent.y.neg.half,accelEvent.z.half,accelEvent.x.half)
+				 Canvas3D.mTranslate(data.accelEvent.y.neg.half,data.accelEvent.z.half,data.accelEvent.x.half)
 		    ];
 
 			accelRate.transforms = [ 
-				Canvas3D.mScale(0.01,accelEvent.mass ,1.0),
+				Canvas3D.mScale(0.01,data.accelMass ,1.0),
 				Canvas3D.mTranslate(-2.2,0,0)
 		    ];
 
 			accelX.transforms = [
-				Canvas3D.mScale(0.01,(accelEvent.x),0.01),
+				Canvas3D.mScale(0.01,(data.accelEvent.x),0.01),
 		        Canvas3D.mRotateX(data.gyroEvent.roll + pi.half),
 		        Canvas3D.mRotateY(data.gyroEvent.yaw.neg),
 		        Canvas3D.mRotateZ(data.gyroEvent.pitch.neg),
 		    ];
 
 			accelY.transforms = [ 
-				Canvas3D.mScale((accelEvent.y),0.01,0.01),
+				Canvas3D.mScale((data.accelEvent.y),0.01,0.01),
 		        Canvas3D.mRotateX(data.gyroEvent.roll + pi.half),
 		        Canvas3D.mRotateY(data.gyroEvent.yaw.neg),
 		        Canvas3D.mRotateZ(data.gyroEvent.pitch.neg),
 		    ];
 			accelZ.transforms = [ 
-				Canvas3D.mScale(0.01,0.01,(accelEvent.z)),
+				Canvas3D.mScale(0.01,0.01,(data.accelEvent.z)),
 		        Canvas3D.mRotateX(data.gyroEvent.roll + pi.half),
 		        Canvas3D.mRotateY(data.gyroEvent.yaw.neg),
 		        Canvas3D.mRotateZ(data.gyroEvent.pitch.neg),
@@ -714,9 +716,16 @@
 
 
 		accelListener = OSCFunc({ |msg, time, addr, recvPort|
-			accelEvent.x = msg[1].asFloat;
-			accelEvent.y = msg[2].asFloat;
-			accelEvent.z = msg[3].asFloat;
+			// accelEvent.x = msg[1].asFloat;
+			// accelEvent.y = msg[2].asFloat;
+			// accelEvent.z = msg[3].asFloat;
+			if(devices.at(addr.ip) != nil,{
+
+				devices.at(addr.ip).accelEvent = (
+					\x:msg[1].asFloat,
+					\y:msg[2].asFloat,
+					\z:msg[3].asFloat);
+			});
 		}, '/gyrosc/accel');
 
 		// altListener = OSCFunc({ |msg, time, addr, recvPort|
@@ -724,7 +733,8 @@
 		// }, '/gyrosc/alt');
 			
 		ampListener = OSCFunc({ |msg, time, addr, recvPort|
-			ampValue = (msg[1].asFloat);
+			//ampValue = (msg[1].asFloat);
+				devices.at(addr.ip).ampValue = msg[1].asFloat;
 		}, '/gyrosc/amp');
 
 	};
@@ -780,17 +790,15 @@
 			// gyroEvent.pitch = (k.mod(pi).twice) - pi;//((i*10).sin + (i*11).cos) * 2.0;
 			// gyroEvent.roll =  (j.mod(pi).twice) - pi;
 
-			accelEvent.y = (i*60).sin + (i*51).cos * 0.09;
-			accelEvent.x = (i*30).cos + (i*81).sin * 0.06;
-			accelEvent.z = (i*130).cos + (i*181).sin * 0.07;
+			// accelEvent.y = (i*60).sin + (i*51).cos * 0.09;
+			// accelEvent.x = (i*30).cos + (i*81).sin * 0.06;
+			// accelEvent.z = (i*130).cos + (i*181).sin * 0.07;
 
 			// rrateEvent.x =  (i.mod(pi).twice) - pi;
 			// rrateEvent.y =  (j.mod(pi).twice) - pi;
 			// rrateEvent.z =  (i.mod(pi).twice) - pi;
 
 			(1.0/60.0).yield;
-
-// 
 		}
 	};
 
@@ -807,9 +815,9 @@
 			// gyroEvent.pitch = data[0];
 			// gyroEvent.roll = data[1];
 			// gyroEvent.yaw = data[2];
-			accelEvent.y = data[3];
-			accelEvent.z = data[4];
-			accelEvent.x = data[5];
+			// accelEvent.y = data[3];
+			// accelEvent.z = data[4];
+			// accelEvent.x = data[5];
 			// rrateEvent.x = data[6];
 			// rrateEvent.y = data[7];
 			// rrateEvent.z = data[8];

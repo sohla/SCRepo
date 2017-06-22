@@ -52,7 +52,7 @@ Pdef(ptn).set(\instrument,\help_dwgplucked);
 		// d.postln;
 		//Pdef(ptn).set(\octave,1 + (f%7));
 
-			//d.accelEvent.mass = tween.(d.accelEvent.sumabs.half,d.accelEvent.mass,0.08);
+			d.accelMass = tween.(d.accelEvent.sumabs.half,d.accelMass,0.08);
 
 			d.rrateMass = tween.(d.rrateEvent.sumabs.half / 3.0,d.rrateMass,0.9);
 
