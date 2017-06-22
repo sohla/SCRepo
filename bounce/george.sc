@@ -16,7 +16,8 @@ SynthDef(\help_dwgplucked, { |out=0, freq=440, amp=0.5, gate=1, c3=20, pan=0, po
 
 Pdef(ptn,
 	Pbind(
-        \degree, Pseq([7,8,2,4,3,1,2,2], inf),
+//        \degree, Pseq([7,8,2,4,3,1,2,2], inf),
+        \degree, Pseq([1,3,5,8,7], inf),
 		\amp, Pexprand(0.1,0.4,inf),
 		\pan, Pwhite(-0.8,0.8,inf)
 ));
@@ -42,6 +43,7 @@ Pdef(ptn).set(\instrument,\help_dwgplucked);
 		Pdef(ptn).play;
 	};
 	~next = {|f,d| 
+		
 		var tween = {|input,history,friction = 0.5|
 			(friction * input + ((1 - friction) * history))
 		};

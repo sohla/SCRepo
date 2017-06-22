@@ -8,6 +8,7 @@
 
 		var names = ["george","harry"];
 
+		var reloadButton;
 
 		var createPlotterGroup, createGyroCanvas, createAccelCanvas, createTransportView;
 		var createWindowView, addDeviceView;
@@ -172,6 +173,11 @@
 		GUI.skin.plot.plotColor = Color.white;
 
 		window = Window("gyro osc tester", Rect(0, height, width, height/2 + 70), false).front;
+		window.view.keyDownAction_({|view,char,mods,uni,code,key|
+			if(uni==82,{
+				reloadButton.doAction();
+			});
+		});
 
 		window.onClose = {
 			shutdown.();
@@ -190,7 +196,7 @@
 		scroll.canvas = contentView;
 
 		// set this for quick connection to device
-		//addDeviceView.(contentView, addDevice.("192.168.0.199"));
+		addDeviceView.(contentView, addDevice.("192.168.0.100"));
 	};
 
 	addDeviceView = { |view, d|
@@ -199,15 +205,23 @@
 		var va,vb;
 		var stackView, stackLayout;
 
-		header = View(view).layout_( HLayout(
-			StaticText(view)
-				.stringColor_(Color.gray(0.8))
-				.font_(Font(size:24))
-				.minWidth_(500)
-				.string_("📡  ip ["+d.ip+"] port ["+d.port+"]"),
+		var reload = {
 
-			Button(view)
-				.maxWidth_(100)
+			// stop personality
+			d.rout.stop;
+			d.env.use{ ~deinit.() };
+
+			// start new personality
+			d.env = loadPersonality.(d.name);
+			d.env.use{ ~init.() };
+			d.rout = createRout.(d);
+			d.rout.reset.play(AppClock);
+
+		};
+		header = View(view).layout_( HLayout(
+			
+					Button(view)
+				.minWidth_(120)
 				.states_([
 					["Attitude"],	
 					["Accelerometer"]
@@ -215,25 +229,33 @@
 				.action_({|b|
 					stackLayout.index = b.value;
 				}),
+
+			StaticText(view)
+				.stringColor_(Color.gray(0.8))
+				.font_(Font(size:14))
+				.minWidth_(500)
+				.string_("📡  ip ["+d.ip+"] port ["+d.port+"]"),
+
+	
+
+			reloadButton = Button(view)
+			.maxWidth_(60)
+			.states_([
+				["Reload"],	
+			])
+			.action_({|b|
+				reload.();
+			}),
+
 			PopUpMenu(view)
-				.maxWidth_(200)
-				.items_(names)
-				.valueAction_(names.find([d.name]))
-				.action_({|b|
+					.minWidth_(200)
+					.items_(names)
+					.valueAction_(names.find([d.name]))
+					.action_({|b|
 
-					d.name = names.at(b.value);
-					
-					// stop personality
-					d.rout.stop;
-					d.env.use{ ~deinit.() };
-
-					// start new personality
-					d.env = loadPersonality.(d.name);
-					d.env.use{ ~init.() };
-					d.rout = createRout.(d);
-					d.rout.reset.play(AppClock);
-
-				}),
+						d.name = names.at(b.value);
+						reload.();
+					}),
 
 			Button(view)
 				.maxWidth_(100)
@@ -253,7 +275,7 @@
 
 				})
 
-		).setAlignment(0,\left).setAlignment(1,\left));
+		).setAlignment(0,\left).setAlignment(3,\left));
 
 
 
