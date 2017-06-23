@@ -35,12 +35,14 @@
 			\env: nil,	// Environment for injected code
 			\rout: nil,	// Routine calls ~next every ~fps
 			\dc: nil, //DataCollector
-			\dcout: nil //••DataCollecto Routine re-player
+			\lc: nil, //DataCollector for playing
+			\lcout: nil //DataCollector Routine re-player
 			);
 
 		var loadPersonality;
 		var reloadDevice;
 		var createRout;
+		var createLCout;
 		
 		// var broadcastRoutine;
 //		var replayRoutine;
@@ -48,7 +50,7 @@
 		var dataSize = 100;
 		//var dc = DataCollector.new("test");
 		//var lc = nil;
-		//var dataPath = "~/Develop/SuperCollider1/Projects/SCRepo/bounce/data/";
+		var dataPath = "~/Develop/SuperCollider/Projects/SCRepo/bounce/data/";
 
 		var pos3D = [0,0,0];
 
@@ -103,10 +105,39 @@
 	//------------------------------------------------------------	
 	// 
 	//------------------------------------------------------------	
+	createLCout = {|d|
+
+		Routine { 
+			var i=0;
+			loop{ 
+					d.env.use{
+
+						var data = [];
+						i = (i+1).mod(d.lc.collection.size);
+						data = d.lc.collection.reverse[i][\data];
+
+						d.gyroEvent.pitch = data[0];
+						d.gyroEvent.roll = data[1];
+						d.gyroEvent.yaw = data[2];
+						d.accelEvent.y = data[3];
+						d.accelEvent.z = data[4];
+						d.accelEvent.x = data[5];
+						d.rrateEvent.x = data[6];
+						d.rrateEvent.y = data[7];
+						d.rrateEvent.z = data[8];
+						
+						(~secs.()).yield;
+				};
+			}
+		};
+	};
+	//------------------------------------------------------------	
+	// 
+	//------------------------------------------------------------	
 	startup = {
 
 		DataCollector.makeBackupFolder();
-		DataCollector.folder = PathName.new("~/Develop/SuperCollider/Projects/SCRepo/bounce/data/").fullPath;
+		DataCollector.folder = PathName.new(dataPath).fullPath;
 
 	};
 
@@ -116,12 +147,10 @@
 	shutdown = {
 
 		devices.keysValuesDo({|k,v|
-			v.env.use{ ~deinit.() };
 			v.rout.stop();
+			v.lcout.stop();
+			v.env.use{ ~deinit.() };
 		});
-
-		// broadcastRoutine.stop;
-//		replayRoutine.stop;
 
 		stopOSCListening.();
 	};
@@ -147,6 +176,9 @@
 		// load the data
 		reloadDevice.(d);
 
+		// data collector player created at start
+		d.lcout = createLCout.(d);
+
 		d // return the device (data)
 	};
 
@@ -156,6 +188,7 @@
 
 		d.rout.stop;
 		if(d.env != nil,{ d.env.use{ ~deinit.() }});
+
 
 		// start new personality
 		d.env = loadPersonality.(d.name);
@@ -180,7 +213,7 @@
 		GUI.skin.plot.background = Color.black;
 		GUI.skin.plot.plotColor = Color.white;
 
-		window = Window("gyro osc tester", Rect(0, height, width, height/2), false).front;
+		window = Window("gyro osc tester", Rect(0, height, width, height-250), false).front;
 		window.view.keyDownAction_({|view,char,mods,uni,code,key|
 			if(uni==82,{
 				//•NO!NO!NO!reloadButton.doAction();
@@ -203,14 +236,14 @@
 
 	createWindowView = {|view|
 
-		var scroll = ScrollView(view,Rect(0,0,width,height/2 - 70)).background_(Color.yellow);
+		var scroll = ScrollView(view,Rect(0,0,width,height - 250 )).background_(Color.yellow);
 		
 		contentView.layout_(VLayout());
 		contentView.layout.add(nil);
 		scroll.canvas = contentView;
 
 		// set this for quick connection to device
-		addDeviceView.(contentView, addDevice.("192.168.0.100"));
+		//addDeviceView.(contentView, addDevice.("192.168.0.100"));
 		//addDeviceView.(contentView, addDevice.("192.168.0.101"));
 
 	};
@@ -218,7 +251,7 @@
 	addDeviceView = { |view, d|
 
 		var header;
-		var va,vb;
+		var va,vb,vc;
 		var stackView, stackLayout;
 
 		header = View(view).layout_( HLayout(
@@ -227,7 +260,8 @@
 				.minWidth_(120)
 				.states_([
 					["Attitude"],	
-					["Accelerometer"]
+					["Accelerometer"],
+					["Rotation Rate"]
 				])
 				.action_({|b|
 					stackLayout.index = b.value;
@@ -268,19 +302,17 @@
 
 							if(b.value == 1,{
 
-								// var path = PathName.new(dataPath).fullPath+/+Date.getDate.asSortableString++".txt"; 
-								// dc.saveTo(path);
-								// lc = DataCollector.fromFile(path);
-								// lc.collection.reverse.postln;
-
-								// isSimulating.({broadcastRoutine.stop},{disableOSCListening.()});
-								// replayRoutine.reset().play(AppClock);
-
-
+								//var path = PathName.new(dataPath).fullPath+/+Date.getDate.asSortableString++".txt";
+								d.dc.backup; 
+								//d.dc.saveTo(path);
+								d.lc = DataCollector.new(d.name++"_data");
+								d.lc.recover;
+								disableOSCListening.();
+								d.lcout.reset().play(AppClock);
 							},{
-								// isSimulating.({broadcastRoutine.reset().play(AppClock)},{enableOSCListening.()});
-								// replayRoutine.stop;
 
+								d.lcout.stop;
+								enableOSCListening.();
 							});
 
 						}),
@@ -310,7 +342,8 @@
 
 		view.layout.add(stackView = View().background_(Color.yellow).minHeight_(250).layout_( stackLayout = StackLayout(
 				va = View().background_(Color.cyan(0.2)),
-				vb = View().background_(Color.blue(0.2))
+				vb = View().background_(Color.blue(0.2)),
+				vc = View().background_(Color.blue(0.2))
 				)
 			);
 		);	
@@ -331,16 +364,27 @@
 
 		createPlotterGroup.(vb, Rect(250,0,400,250), [
 			["aaccelX",Color.cyan,{|p|
-				p.value = (d.dc.getLast(dataSize).asArray.collect({|a,i| a[\data][6]}));
+				p.value = (d.dc.getLast(dataSize).asArray.collect({|a,i| a[\data][3]}));
 			}],
 			["accelY",Color.magenta,{|p|
-				p.value = (d.dc.getLast(dataSize).asArray.collect({|a,i| a[\data][7]}));
+				p.value = (d.dc.getLast(dataSize).asArray.collect({|a,i| a[\data][4]}));
 			}],
 			["accelZ",Color.yellow,{|p|
-				p.value = (d.dc.getLast(dataSize).asArray.collect({|a,i| a[\data][8]}));
+				p.value = (d.dc.getLast(dataSize).asArray.collect({|a,i| a[\data][5]}));
 			}],
 		]);
 
+		createPlotterGroup.(vc, Rect(250,0,400,250), [
+			["rrateX",Color.cyan,{|p|
+				p.value = (d.dc.getLast(dataSize).asArray.collect({|a,i| a[\data][6]}));
+			}],
+			["rrateY",Color.magenta,{|p|
+				p.value = (d.dc.getLast(dataSize).asArray.collect({|a,i| a[\data][7]}));
+			}],
+			["rrateZ",Color.yellow,{|p|
+				p.value = (d.dc.getLast(dataSize).asArray.collect({|a,i| a[\data][8]}));
+			}],
+		]);
 
 		createGyroCanvas.(va,d);
 		createAccelCanvas.(vb,d);

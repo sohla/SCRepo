@@ -22,7 +22,7 @@ var ptn = Array.fill(16,{|i|i=90.rrand(65)}).asAscii;
 
 Pdef(ptn,
 	Pbind(
-        \degree, Pseq([0,2,4,7,6,5,4,3,2,3,4], inf),
+        \degree, Pseq([0,2,4,6,8,7,5,3,1], inf),
 		\args, #[],
 		\amp, Pexprand(0.1,0.4,inf),
 		\pan, Pwhite(-0.8,0.8,inf)
@@ -51,7 +51,7 @@ Pdef(ptn,
 
 		Pdef(ptn).set(\instrument,\adamSynth);
 		Pdef(ptn).set(\dur,0.2);
-		Pdef(ptn).set(\octave,4);
+		Pdef(ptn).set(\octave,5);
 
 		Pdef(ptn).set(\attack,0.001);
 		Pdef(ptn).set(\sustain,0.27);
@@ -84,7 +84,7 @@ Pdef(ptn,
 
 			Pdef(ptn).set(\patch,((d.gyroEvent.pitch + pi).div(pi.twice/4.0)).floor);
 			
-			Pdef(ptn).set(\gtranspose,9 + [0,12,24].at(((d.gyroEvent.roll + pi).div(pi.twice/3.0)).floor));
+			//Pdef(ptn).set(\gtranspose,9 + [0,12,24].at(((d.gyroEvent.roll + pi).div(pi.twice/3.0)).floor));
 
 			//Pdef(ptn).set(\c3,(10 + ((d.gyroEvent.roll + pi)/(pi.twice) * 500)));
 			
