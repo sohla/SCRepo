@@ -93,7 +93,7 @@ Pdef(ptn,
 	//------------------------------------------------------------	
 	~deinit = {
 
-		"deinit HARYY".postln;
+		"deinit HARRY".postln;
 		Pdef(ptn).stop;
 	};
 

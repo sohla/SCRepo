@@ -39,6 +39,7 @@
 			);
 
 		var loadPersonality;
+		var reloadDevice;
 		var createRout;
 
 		
@@ -140,18 +141,31 @@
 		d.ip = ip;
 		//d.gyroEvent.pitch = 0.0;//•?
 
-
 		d.name = usedNames.remove(usedNames.choose);
 
+		devices.put(ip,d);
+		
+		// load the data
+		reloadDevice.(d);
+
+		d // return the device (data)
+	};
+
+	reloadDevice = { |d|
+
+		// stop personality
+
+		d.rout.stop;
+		if(d.env != nil,{ d.env.use{ ~deinit.() }});
+
+		// start new personality
 		d.env = loadPersonality.(d.name);
 		d.env.use{ ~init.() };
 		d.rout = createRout.(d);
 		d.rout.reset.play(AppClock);
 
-		devices.put(ip,d);
-		
-		d // return the device (data)
 	};
+
 	//------------------------------------------------------------	
 	// 
 	//------------------------------------------------------------	
@@ -171,6 +185,11 @@
 		window.view.keyDownAction_({|view,char,mods,uni,code,key|
 			if(uni==82,{
 				//•NO!NO!NO!reloadButton.doAction();
+
+				devices.keysValuesDo({|k,v|
+					reloadDevice.(v);
+				});
+
 			});
 		});
 
@@ -191,7 +210,8 @@
 		scroll.canvas = contentView;
 
 		// set this for quick connection to device
-		//addDeviceView.(contentView, addDevice.("192.168.0.100"));
+		addDeviceView.(contentView, addDevice.("192.168.0.100"));
+
 		// addDeviceView.(contentView, addDevice.("192.168.0.101"));
 	};
 
@@ -201,19 +221,6 @@
 		var va,vb;
 		var stackView, stackLayout;
 
-		var reload = {
-
-			// stop personality
-			d.rout.stop;
-			d.env.use{ ~deinit.() };
-
-			// start new personality
-			d.env = loadPersonality.(d.name);
-			d.env.use{ ~init.() };
-			d.rout = createRout.(d);
-			d.rout.reset.play(AppClock);
-
-		};
 		header = View(view).layout_( HLayout(
 			
 					Button(view)
@@ -240,7 +247,7 @@
 				["Reload"],	
 			])
 			.action_({|b|
-				reload.();
+				reloadDevice.(d);
 			}),
 
 			PopUpMenu(view)
@@ -250,7 +257,7 @@
 					.action_({|b|
 
 						d.name = names.at(b.value);
-						reload.();
+						reloadDevice.(d);
 					}),
 
 			Button(view)
