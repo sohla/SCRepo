@@ -34,7 +34,8 @@
 			\name: "adam",
 			\env: nil,	// Environment for injected code
 			\rout: nil,	// Routine calls ~next every ~fps
-			\dc: nil, //DataCollector			
+			\dc: nil, //DataCollector
+			\dcout: nil //••DataCollecto Routine re-player
 			);
 
 		var loadPersonality;
@@ -222,7 +223,7 @@
 
 		header = View(view).layout_( HLayout(
 			
-					Button(view)
+			Button(view)
 				.minWidth_(120)
 				.states_([
 					["Attitude"],	
@@ -257,6 +258,32 @@
 						d.name = names.at(b.value);
 						reloadDevice.(d);
 					}),
+					Button()
+						.maxWidth_(50)
+						.states_([
+							["replay",Color.black],
+							["replay",Color.green]
+						])
+						.action_({|b|
+
+							if(b.value == 1,{
+
+								// var path = PathName.new(dataPath).fullPath+/+Date.getDate.asSortableString++".txt"; 
+								// dc.saveTo(path);
+								// lc = DataCollector.fromFile(path);
+								// lc.collection.reverse.postln;
+
+								// isSimulating.({broadcastRoutine.stop},{disableOSCListening.()});
+								// replayRoutine.reset().play(AppClock);
+
+
+							},{
+								// isSimulating.({broadcastRoutine.reset().play(AppClock)},{enableOSCListening.()});
+								// replayRoutine.stop;
+
+							});
+
+						}),
 
 			Button(view)
 				.maxWidth_(100)
