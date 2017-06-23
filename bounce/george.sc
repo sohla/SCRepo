@@ -1,5 +1,5 @@
 
-var ptn = \ohyea;
+var ptn =Array.fill(16,{|i|i=90.rrand(65)}).asAscii;
 
 //------------------------------------------------------------	
 // SYNTH DEF
@@ -16,7 +16,7 @@ SynthDef(\help_dwgplucked, { |out=0, freq=440, amp=0.5, gate=1, c3=20, pan=0, po
 	//verb = FreeVerb2.ar(sig[0],sig[1],0.3,200);
     //DetectSilence.ar(sig, 0.001, doneAction:2);
 
-	Out.ar(out,sig);
+	Out.ar(out,sig);	
 }).add;
 );
 
@@ -51,7 +51,7 @@ Pdef(ptn,
 //------------------------------------------------------------	
 (
 
-	~fps = 0.03;
+	~secs = 0.03;
 
 	//------------------------------------------------------------	
 	~init = { 

@@ -6,7 +6,7 @@
 		var contentView = View().background_(Color.grey(0.2));
 
 		var names = ["adam","george","harry"];
-		var usedNames = names.copy;
+		var possibleNames = names.copy;
 
 		var reloadButton;
 
@@ -18,8 +18,6 @@
 
 	    var gryoListner, rotMatListner, rrateListener, accelListener, altListener, ampListener;
 	    var buttonListener;
-
-
 
 		var devices = Dictionary();
 
@@ -33,26 +31,23 @@
 			\accelEvent: (\x:0,\y:0,\z:0),
 			\accelMass: 0,
 			\ampValue: 0,
-			\name: "george",
-			\env: nil,
-			\rout: nil
+			\name: "adam",
+			\env: nil,	// Environment for injected code
+			\rout: nil,	// Routine calls ~next every ~fps
+			\dc: nil, //DataCollector			
 			);
 
 		var loadPersonality;
 		var reloadDevice;
 		var createRout;
-
 		
-		var broadcastRoutine;
-		var replayRoutine;
-
+		// var broadcastRoutine;
+//		var replayRoutine;
 
 		var dataSize = 100;
-		var dc = DataCollector.new("test");
-		var lc = nil;
-		var dataPath = "~/Develop/SuperCollider/Projects/SCRepo/bounce/data/";
-
-
+		//var dc = DataCollector.new("test");
+		//var lc = nil;
+		//var dataPath = "~/Develop/SuperCollider1/Projects/SCRepo/bounce/data/";
 
 		var pos3D = [0,0,0];
 
@@ -62,7 +57,7 @@
 				yes.();
 			},{
 				no.();
-			});
+			});	
 		};
 
 	//------------------------------------------------------------	
@@ -97,12 +92,11 @@
 			loop{ 
 				d.env.use{
 					~next.(i,d);
-					(~fps.()).yield;
+					(~secs.()).yield;
 					i=i+1;
 				};
 			}
 		};
-
 	};
 
 	//------------------------------------------------------------	
@@ -111,7 +105,7 @@
 	startup = {
 
 		DataCollector.makeBackupFolder();
-		DataCollector.folder = PathName.new(dataPath).fullPath;
+		DataCollector.folder = PathName.new("~/Develop/SuperCollider/Projects/SCRepo/bounce/data/").fullPath;
 
 	};
 
@@ -125,8 +119,8 @@
 			v.rout.stop();
 		});
 
-		broadcastRoutine.stop;
-		replayRoutine.stop;
+		// broadcastRoutine.stop;
+//		replayRoutine.stop;
 
 		stopOSCListening.();
 	};
@@ -139,9 +133,13 @@
 		var d = Event.new(proto:deviceProto);
 		
 		d.ip = ip;
-		//d.gyroEvent.pitch = 0.0;//•?
 
-		d.name = usedNames.remove(usedNames.choose);
+		// hack : choose from a possible list : list is not kept or updated
+		// use only for adding of device (ie. reloading not supported)
+		//d.name = possibleNames.remove(possibleNames.choose);
+
+		// data collector for replay and analysis
+		d.dc = DataCollector.new(d.name++"_data");
 
 		devices.put(ip,d);
 		
@@ -205,14 +203,15 @@
 	createWindowView = {|view|
 
 		var scroll = ScrollView(view,Rect(0,0,width,height/2 - 70)).background_(Color.yellow);
+		
 		contentView.layout_(VLayout());
 		contentView.layout.add(nil);
 		scroll.canvas = contentView;
 
 		// set this for quick connection to device
 		addDeviceView.(contentView, addDevice.("192.168.0.100"));
+		//addDeviceView.(contentView, addDevice.("192.168.0.101"));
 
-		// addDeviceView.(contentView, addDevice.("192.168.0.101"));
 	};
 
 	addDeviceView = { |view, d|
@@ -255,7 +254,6 @@
 					.items_(names)
 					.valueAction_(names.find([d.name]))
 					.action_({|b|
-
 						d.name = names.at(b.value);
 						reloadDevice.(d);
 					}),
@@ -292,29 +290,29 @@
 
 
 
-		// createPlotterGroup.(va, Rect(500,0,400,height/2), [
-		// 	["pitch",Color.red,{|p|
-		// 		p.value = (dc.getLast(dataSize).asArray.collect({|a,i| a[\data][0]}));
-		// 	}],
-		// 	["roll",Color.green,{|p|
-		// 		p.value = (dc.getLast(dataSize).asArray.collect({|a,i| a[\data][1]}));
-		// 	}],
-		// 	["yaw",Color.blue,{|p|
-		// 		p.value = (dc.getLast(dataSize).asArray.collect({|a,i| a[\data][2]}));
-		// 	}],
-		// ]);
+		createPlotterGroup.(va, Rect(250,0,400,250), [
+			["pitch",Color.red,{|p|
+				p.value = (d.dc.getLast(dataSize).asArray.collect({|a,i| a[\data][0]}));
+			}],
+			["roll",Color.green,{|p|
+				p.value = (d.dc.getLast(dataSize).asArray.collect({|a,i| a[\data][1]}));
+			}],
+			["yaw",Color.blue,{|p|
+				p.value = (d.dc.getLast(dataSize).asArray.collect({|a,i| a[\data][2]}));
+			}],
+		]);
 
-		// createPlotterGroup.(vb, Rect(500,0,400,height/2), [
-		// 	["aaccelX",Color.cyan,{|p|
-		// 		p.value = (dc.getLast(dataSize).asArray.collect({|a,i| a[\data][6]}));
-		// 	}],
-		// 	["accelY",Color.magenta,{|p|
-		// 		p.value = (dc.getLast(dataSize).asArray.collect({|a,i| a[\data][7]}));
-		// 	}],
-		// 	["accelZ",Color.yellow,{|p|
-		// 		p.value = (dc.getLast(dataSize).asArray.collect({|a,i| a[\data][8]}));
-		// 	}],
-		// ]);
+		createPlotterGroup.(vb, Rect(250,0,400,250), [
+			["aaccelX",Color.cyan,{|p|
+				p.value = (d.dc.getLast(dataSize).asArray.collect({|a,i| a[\data][6]}));
+			}],
+			["accelY",Color.magenta,{|p|
+				p.value = (d.dc.getLast(dataSize).asArray.collect({|a,i| a[\data][7]}));
+			}],
+			["accelZ",Color.yellow,{|p|
+				p.value = (d.dc.getLast(dataSize).asArray.collect({|a,i| a[\data][8]}));
+			}],
+		]);
 
 
 		createGyroCanvas.(va,d);
@@ -397,7 +395,7 @@
 
 		graph1 = Canvas3D(view, Rect(0, 0, 250, 250))
 		    .scale_(200)
-			.background_(Color.gray)
+			.background_(Color.black)
 		    .perspective_(0.5)
 		    .distance_(3.5);
 
@@ -428,21 +426,21 @@
 
 
      graph1.add(p1 = Canvas3DItem.grid(2)
-        .color_(Color.black)
+        .color_(Color.green)
 		.fill_(false)
         .width_(1)
 		.transform(Canvas3D.mScale(1,t,1))
 		//.transform(Canvas3D.mRotateY(pi/2))
     );
     graph1.add(p2 = Canvas3DItem.grid(2)
-        .color_(Color.black)
+        .color_(Color.red)
         .width_(1)
 		.fill_(false)
 		.transform(Canvas3D.mScale(t,1,1))
 		.transform(Canvas3D.mRotateY(pi/2))
     );
     graph1.add(p3 = Canvas3DItem.grid(2)
-        .color_(Color.black)
+        .color_(Color.blue)
         .width_(1)
 		.fill_(false)
 		.transform(Canvas3D.mScale(t,1,t))
@@ -451,8 +449,8 @@
 
 
 		 graph1.add(ico = Canvas3DItem()
-	        .color_(Color.blue.alpha_(0.1))
-    	    .width_(2)
+	        .color_(Color.white.alpha_(0.1))
+    	    .width_(1)
 			.fill_(true)
 			.paths_([
 				[p1.paths[0][0],p1.paths[0][1],p2.paths[0][1]],
@@ -492,16 +490,22 @@
 			var sx,sy,sz;
 
 			// store data
-/*
-			dc.addData([
-				gyroEvent.pitch,gyroEvent.roll,gyroEvent.yaw,
-				accelEvent.y.neg,accelEvent.z,accelEvent.x,
-				rrateEvent.x,rrateEvent.y,rrateEvent.z
+
+			data.dc.addData([
+				data.gyroEvent.pitch, 
+				data.gyroEvent.roll, 
+				data.gyroEvent.yaw,
+				data.accelEvent.y.neg,
+				data.accelEvent.z,
+				data.accelEvent.x,
+				data.rrateEvent.x,
+				data.rrateEvent.y,
+				data.rrateEvent.z
 				],t);
 
 
-		 	dc.collection = dc.getLast(dataSize); // limit size of collected samples
-*/
+		 	data.dc.collection = data.dc.getLast(dataSize); // limit size of collected samples
+
 	    	pos3D = [0,0,0];
 	        pos3D = Canvas3D.vectorMatrixMul(pos3D, Canvas3D.mScale(1,0.5,0.05));
 	        pos3D = Canvas3D.vectorMatrixMul(pos3D, Canvas3D.mTranslate(0,0,1.5));
@@ -523,7 +527,7 @@
 			sz = ((pos3D[2] + 1.5) * ( 2.0 / 3.0)).floor;
 
 			//( (sz*4) + (sy*2) + sx).postln;
-			graph1.background_(Color.hsv(( ( (sz*4) + (sy*2) + sx) / 8.0 ),0.8,0.8,1));
+			//graph1.background_(Color.hsv(( ( (sz*4) + (sy*2) + sx) / 8.0 ),0.8,0.8,1));
 
 			cube.transforms = [ 
 				Canvas3D.mScale(1,0.5,0.05),
@@ -544,7 +548,7 @@
 		    ];
 
 		    ico.transforms = [ 
-				//Canvas3D.mScale(0.6,0.6,0.6),
+				Canvas3D.mScale(0.6,0.6,0.6),
 		        Canvas3D.mRotateX(data.gyroEvent.roll + pi.half),
 		        Canvas3D.mRotateY(data.gyroEvent.yaw.neg),
 		        Canvas3D.mRotateZ(data.gyroEvent.pitch.neg),
@@ -757,58 +761,58 @@
 	// 
 	//------------------------------------------------------------	
 
-	broadcastRoutine = Routine {
-		var i=0,j=0,k=0;
-		loop {
+	// broadcastRoutine = Routine {
+	// 	var i=0,j=0,k=0;
+	// 	loop {
 
-			i=i+0.01;
-			j=j+0.022;
-			k=k+0.034;
+	// 		i=i+0.01;
+	// 		j=j+0.022;
+	// 		k=k+0.034;
 
-			// gyroYaw = (i.mod(pi).twice) - pi;
-			// gyroPitch = (i*10).sin + (i*11).cos;
-			// gyroRoll = (i*12).sin * 0.8 + (i*21).sin * 0.4;
-			//gyroYaw = (i*5).cos * 2.0;
+	// 		// gyroYaw = (i.mod(pi).twice) - pi;
+	// 		// gyroPitch = (i*10).sin + (i*11).cos;
+	// 		// gyroRoll = (i*12).sin * 0.8 + (i*21).sin * 0.4;
+	// 		//gyroYaw = (i*5).cos * 2.0;
 
-			//gyroEvent.yaw = (i.mod(pi).twice) - pi;
-			// gyroEvent.pitch = (k.mod(pi).twice) - pi;//((i*10).sin + (i*11).cos) * 2.0;
-			// gyroEvent.roll =  (j.mod(pi).twice) - pi;
+	// 		//gyroEvent.yaw = (i.mod(pi).twice) - pi;
+	// 		// gyroEvent.pitch = (k.mod(pi).twice) - pi;//((i*10).sin + (i*11).cos) * 2.0;
+	// 		// gyroEvent.roll =  (j.mod(pi).twice) - pi;
 
-			// accelEvent.y = (i*60).sin + (i*51).cos * 0.09;
-			// accelEvent.x = (i*30).cos + (i*81).sin * 0.06;
-			// accelEvent.z = (i*130).cos + (i*181).sin * 0.07;
+	// 		// accelEvent.y = (i*60).sin + (i*51).cos * 0.09;
+	// 		// accelEvent.x = (i*30).cos + (i*81).sin * 0.06;
+	// 		// accelEvent.z = (i*130).cos + (i*181).sin * 0.07;
 
-			// rrateEvent.x =  (i.mod(pi).twice) - pi;
-			// rrateEvent.y =  (j.mod(pi).twice) - pi;
-			// rrateEvent.z =  (i.mod(pi).twice) - pi;
+	// 		// rrateEvent.x =  (i.mod(pi).twice) - pi;
+	// 		// rrateEvent.y =  (j.mod(pi).twice) - pi;
+	// 		// rrateEvent.z =  (i.mod(pi).twice) - pi;
 
-			(1.0/60.0).yield;
-		}
-	};
+	// 		(1.0/60.0).yield;
+	// 	}
+	// };
 
-	replayRoutine = Routine {
-		var i=0;
-		loop {
+	// replayRoutine = Routine {
+	// 	var i=0;
+	// 	loop {
 
-			var data = [];
+	// 		var data = [];
 
-			i = (i+1).mod(lc.collection.size);
+	// 		i = (i+1).mod(lc.collection.size);
 
-			data = lc.collection.reverse[i][\data];
+	// 		data = lc.collection.reverse[i][\data];
 
-			// gyroEvent.pitch = data[0];
-			// gyroEvent.roll = data[1];
-			// gyroEvent.yaw = data[2];
-			// accelEvent.y = data[3];
-			// accelEvent.z = data[4];
-			// accelEvent.x = data[5];
-			// rrateEvent.x = data[6];
-			// rrateEvent.y = data[7];
-			// rrateEvent.z = data[8];
+	// 		// gyroEvent.pitch = data[0];
+	// 		// gyroEvent.roll = data[1];
+	// 		// gyroEvent.yaw = data[2];
+	// 		// accelEvent.y = data[3];
+	// 		// accelEvent.z = data[4];
+	// 		// accelEvent.x = data[5];
+	// 		// rrateEvent.x = data[6];
+	// 		// rrateEvent.y = data[7];
+	// 		// rrateEvent.z = data[8];
 
-			(1.0/60.0).yield;
-		}
-	};
+	// 		(1.0/60.0).yield;
+	// 	}
+	// };
 
 	//------------------------------------------------------------	
 	// 

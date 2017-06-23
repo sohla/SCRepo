@@ -1,0 +1,1 @@
+DataCollector("adam_data", [ ( 'data': [ 1, 2, 3 ], 'date': "20170623162700" ) ])
