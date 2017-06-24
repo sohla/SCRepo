@@ -239,7 +239,6 @@
 		var scroll = ScrollView(view,Rect(0,0,width,height - 250 )).background_(Color.yellow);
 		
 		contentView.layout_(VLayout());
-		contentView.layout.add(nil);
 		scroll.canvas = contentView;
 
 		// set this for quick connection to device
@@ -389,7 +388,8 @@
 		createGyroCanvas.(va,d);
 		createAccelCanvas.(vb,d);
 
-		
+		contentView.layout.add(nil);
+
 
 	};
 
@@ -793,7 +793,9 @@
 		// }, '/gyrosc/alt');
 			
 		ampListener = OSCFunc({ |msg, time, addr, recvPort|
-				devices.at(addr.ip).ampValue = msg[1].asFloat;
+				if(devices.at(addr.ip) != nil,{
+					devices.at(addr.ip).ampValue = msg[1].asFloat;
+				});
 		}, '/gyrosc/amp');
 
 	};
