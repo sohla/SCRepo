@@ -45,24 +45,12 @@
 		var createRout;
 		var createLCout;
 		
-		// var broadcastRoutine;
-//		var replayRoutine;
 
 		var dataSize = 100;
-		//var dc = DataCollector.new("test");
-		//var lc = nil;
 		var dataPath = "~/Develop/SuperCollider/Projects/SCRepo/bounce/data/";
 
 		var pos3D = [0,0,0];
 
-		var isSimulating = {|yes,no|
-
-			if(false,{
-				yes.();
-			},{
-				no.();
-			});	
-		};
 
 	//------------------------------------------------------------	
 	// midi
@@ -257,7 +245,8 @@
 		scroll.canvas = contentView;
 
 		// set this for quick connection to device
-		//addDeviceView.(contentView, addDevice.("192.168.0.100"));
+		addDeviceView.(contentView, addDevice.("192.168.0.100"));
+
 		//addDeviceView.(contentView, addDevice.("192.168.0.101"));
 
 	};
@@ -287,16 +276,14 @@
 				.minWidth_(500)
 				.string_("📡  ip ["+d.ip+"] port ["+d.port+"]"),
 
-	
-
 			reloadButton = Button(view)
-			.maxWidth_(80)
-			.states_([
-				["reload"],	
-			])
-			.action_({|b|
-				reloadDevice.(d);
-			}),
+				.maxWidth_(80)
+				.states_([
+					["reload"],	
+				])
+				.action_({|b|
+					reloadDevice.(d);
+				}),
 
 			PopUpMenu(view)
 					.minWidth_(160)
@@ -316,9 +303,7 @@
 
 					if(b.value == 1,{
 
-						//var path = PathName.new(dataPath).fullPath+/+Date.getDate.asSortableString++".txt";
 						d.dc.backup; 
-						//d.dc.saveTo(path);
 						d.lc = DataCollector.new(d.name++"_data");
 						d.lc.recover;
 						disableOSCListening.();
@@ -351,9 +336,6 @@
 
 		).setAlignment(0,\left).setAlignment(3,\left));
 
-
-
-
 		view.layout.add(stackView = View().background_(Color.yellow).minHeight_(250).layout_( stackLayout = StackLayout(
 				va = View().background_(Color.cyan(0.2)),
 				vb = View().background_(Color.blue(0.2)),
@@ -361,8 +343,6 @@
 				)
 			);
 		);	
-
-
 
 		createPlotterGroup.(va, Rect(250,0,400,250), [
 			["pitch",Color.red,{|p|
@@ -404,8 +384,6 @@
 		createAccelCanvas.(vb,d);
 
 		contentView.layout.add(nil);
-
-
 	};
 
 	//------------------------------------------------------------	
@@ -419,7 +397,7 @@
 		var pw = bounds.width;
 		var ph = bounds.height / size;
 
-			plotterView.drawFunc_({});
+		plotterView.drawFunc_({});
 
 		plotters.do{ |specs,i|
 			var max = 0;
@@ -511,28 +489,27 @@
 		);
 
 
-     graph1.add(p1 = Canvas3DItem.grid(2)
-        .color_(Color.green)
-		.fill_(false)
-        .width_(1)
-		.transform(Canvas3D.mScale(1,t,1))
-		//.transform(Canvas3D.mRotateY(pi/2))
-    );
-    graph1.add(p2 = Canvas3DItem.grid(2)
-        .color_(Color.red)
-        .width_(1)
-		.fill_(false)
-		.transform(Canvas3D.mScale(t,1,1))
-		.transform(Canvas3D.mRotateY(pi/2))
-    );
-    graph1.add(p3 = Canvas3DItem.grid(2)
-        .color_(Color.blue)
-        .width_(1)
-		.fill_(false)
-		.transform(Canvas3D.mScale(t,1,t))
-		.transform(Canvas3D.mRotateX(pi/2))
-    );
-
+	     graph1.add(p1 = Canvas3DItem.grid(2)
+	        .color_(Color.green)
+			.fill_(false)
+	        .width_(1)
+			.transform(Canvas3D.mScale(1,t,1))
+			//.transform(Canvas3D.mRotateY(pi/2))
+	    );
+	    graph1.add(p2 = Canvas3DItem.grid(2)
+	        .color_(Color.red)
+	        .width_(1)
+			.fill_(false)
+			.transform(Canvas3D.mScale(t,1,1))
+			.transform(Canvas3D.mRotateY(pi/2))
+	    );
+	    graph1.add(p3 = Canvas3DItem.grid(2)
+	        .color_(Color.blue)
+	        .width_(1)
+			.fill_(false)
+			.transform(Canvas3D.mScale(t,1,t))
+			.transform(Canvas3D.mRotateX(pi/2))
+	    );
 
 		 graph1.add(ico = Canvas3DItem()
 	        .color_(Color.white.alpha_(0.1))
@@ -731,14 +708,6 @@
 		};
 
 	};
-	//------------------------------------------------------------	
-	// 
-	//------------------------------------------------------------	
-
-	// tween = {|input,history,friction = 0.5|
-	// 	(friction * input + ((1 - friction) * history))
-	// };
-
 
 	//------------------------------------------------------------	
 	// osc listneners
@@ -845,62 +814,6 @@
 		accelListener.disable;
 	};
 
-	//------------------------------------------------------------	
-	// 
-	//------------------------------------------------------------	
-
-	// broadcastRoutine = Routine {
-	// 	var i=0,j=0,k=0;
-	// 	loop {
-
-	// 		i=i+0.01;
-	// 		j=j+0.022;
-	// 		k=k+0.034;
-
-	// 		// gyroYaw = (i.mod(pi).twice) - pi;
-	// 		// gyroPitch = (i*10).sin + (i*11).cos;
-	// 		// gyroRoll = (i*12).sin * 0.8 + (i*21).sin * 0.4;
-	// 		//gyroYaw = (i*5).cos * 2.0;
-
-	// 		//gyroEvent.yaw = (i.mod(pi).twice) - pi;
-	// 		// gyroEvent.pitch = (k.mod(pi).twice) - pi;//((i*10).sin + (i*11).cos) * 2.0;
-	// 		// gyroEvent.roll =  (j.mod(pi).twice) - pi;
-
-	// 		// accelEvent.y = (i*60).sin + (i*51).cos * 0.09;
-	// 		// accelEvent.x = (i*30).cos + (i*81).sin * 0.06;
-	// 		// accelEvent.z = (i*130).cos + (i*181).sin * 0.07;
-
-	// 		// rrateEvent.x =  (i.mod(pi).twice) - pi;
-	// 		// rrateEvent.y =  (j.mod(pi).twice) - pi;
-	// 		// rrateEvent.z =  (i.mod(pi).twice) - pi;
-
-	// 		(1.0/60.0).yield;
-	// 	}
-	// };
-
-	// replayRoutine = Routine {
-	// 	var i=0;
-	// 	loop {
-
-	// 		var data = [];
-
-	// 		i = (i+1).mod(lc.collection.size);
-
-	// 		data = lc.collection.reverse[i][\data];
-
-	// 		// gyroEvent.pitch = data[0];
-	// 		// gyroEvent.roll = data[1];
-	// 		// gyroEvent.yaw = data[2];
-	// 		// accelEvent.y = data[3];
-	// 		// accelEvent.z = data[4];
-	// 		// accelEvent.x = data[5];
-	// 		// rrateEvent.x = data[6];
-	// 		// rrateEvent.y = data[7];
-	// 		// rrateEvent.z = data[8];
-
-	// 		(1.0/60.0).yield;
-	// 	}
-	// };
 
 	//------------------------------------------------------------	
 	// 
@@ -910,8 +823,7 @@
 	startup.();
 	buildUI.();
 	startOSCListening.();
-//	isSimulating.({broadcastRoutine.reset().play(AppClock);disableOSCListening.();},{});
 
-	)
+)
 
 
