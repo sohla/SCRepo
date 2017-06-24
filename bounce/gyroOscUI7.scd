@@ -9,6 +9,7 @@
 		var possibleNames = names.copy;
 
 		var reloadButton;
+		var loopButton, stackButton;
 
 		var createPlotterGroup, createGyroCanvas, createAccelCanvas, createTransportView;
 		var createWindowView, addDeviceView;
@@ -215,14 +216,21 @@
 
 		window = Window("gyro osc tester", Rect(0, height, width, height-250), false).front;
 		window.view.keyDownAction_({|view,char,mods,uni,code,key|
-			if(uni==82,{
-				//•NO!NO!NO!reloadButton.doAction();
-
+			if(uni==114,{
 				devices.keysValuesDo({|k,v|
 					reloadDevice.(v);
 				});
-
 			});
+			if(uni==108,{
+				loopButton.valueAction_(loopButton.value.asBoolean.not);
+			});
+			if(uni==97,{
+				stackButton.valueAction_((stackButton.value+1).mod(3));
+			});
+			if(uni==100,{
+				//•disconnect
+			});
+			//uni.postln;
 		});
 
 		window.onClose = {
@@ -236,8 +244,15 @@
 
 	createWindowView = {|view|
 
-		var scroll = ScrollView(view,Rect(0,0,width,height - 250 )).background_(Color.yellow);
+		var scroll = ScrollView(view,Rect(0,30,width,height - 250 )).background_(Color.yellow);
 		
+		StaticText(view)
+				.stringColor_(Color.yellow)
+				.font_(Font(size:14))
+				.minHeight_(30)
+				.minWidth_(200)
+				.string_(" :: bounce");
+
 		contentView.layout_(VLayout());
 		scroll.canvas = contentView;
 
@@ -255,12 +270,12 @@
 
 		header = View(view).layout_( HLayout(
 			
-			Button(view)
-				.minWidth_(120)
+			stackButton = Button(view)
+				.minWidth_(160)
 				.states_([
-					["Attitude"],	
-					["Accelerometer"],
-					["Rotation Rate"]
+					["attitude"],	
+					["accelerometer"],
+					["rotation rate"]
 				])
 				.action_({|b|
 					stackLayout.index = b.value;
@@ -275,51 +290,51 @@
 	
 
 			reloadButton = Button(view)
-			.maxWidth_(60)
+			.maxWidth_(80)
 			.states_([
-				["Reload"],	
+				["reload"],	
 			])
 			.action_({|b|
 				reloadDevice.(d);
 			}),
 
 			PopUpMenu(view)
-					.minWidth_(200)
+					.minWidth_(160)
 					.items_(names)
 					.valueAction_(names.find([d.name]))
 					.action_({|b|
 						d.name = names.at(b.value);
 						reloadDevice.(d);
 					}),
-					Button()
-						.maxWidth_(50)
-						.states_([
-							["replay",Color.black],
-							["replay",Color.green]
-						])
-						.action_({|b|
+			loopButton = Button()
+				.maxWidth_(80)
+				.states_([
+					["loop",Color.white],
+					["loop",Color.green]
+				])
+				.action_({|b|
 
-							if(b.value == 1,{
+					if(b.value == 1,{
 
-								//var path = PathName.new(dataPath).fullPath+/+Date.getDate.asSortableString++".txt";
-								d.dc.backup; 
-								//d.dc.saveTo(path);
-								d.lc = DataCollector.new(d.name++"_data");
-								d.lc.recover;
-								disableOSCListening.();
-								d.lcout.reset().play(AppClock);
-							},{
+						//var path = PathName.new(dataPath).fullPath+/+Date.getDate.asSortableString++".txt";
+						d.dc.backup; 
+						//d.dc.saveTo(path);
+						d.lc = DataCollector.new(d.name++"_data");
+						d.lc.recover;
+						disableOSCListening.();
+						d.lcout.reset().play(AppClock);
+					},{
 
-								d.lcout.stop;
-								enableOSCListening.();
-							});
+						d.lcout.stop;
+						enableOSCListening.();
+					});
 
-						}),
+				}),
 
 			Button(view)
-				.maxWidth_(100)
+				.maxWidth_(80)
 				.states_([
-					["Disconect",Color.red(0.5)],	
+					["disconect",Color.red(0.5)],	
 
 				])
 				.action_({|b|
@@ -342,7 +357,7 @@
 		view.layout.add(stackView = View().background_(Color.yellow).minHeight_(250).layout_( stackLayout = StackLayout(
 				va = View().background_(Color.cyan(0.2)),
 				vb = View().background_(Color.blue(0.2)),
-				vc = View().background_(Color.blue(0.2))
+				vc = View().background_(Color.magenta(0.2))
 				)
 			);
 		);	

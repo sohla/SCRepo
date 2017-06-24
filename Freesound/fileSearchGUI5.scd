@@ -26,8 +26,8 @@ SynthDef("bufplayerMono", { |bufnum = 0, volume = 0.0, gate = 1|
 	son = PlayBuf.ar(1,bufnum,BufRateScale.kr(bufnum),loop:1,doneAction:2)
 	* EnvGen.kr(Env.asr(2.8,1.0,2.8,\sine),gate,doneAction:2) * volume;
 
-	Out.ar(0, [0,0,0,0,0,0,0,0,son!2]);
-//	Out.ar(0, son!2);
+//	Out.ar(0, [0,0,0,0,0,0,0,0,son!2]);
+	Out.ar(0, son!2);
 }).load(s);
 
 SynthDef("bufplayerStereo", { |bufnum = 0, volume = 0.0, gate = 1|
@@ -35,8 +35,8 @@ SynthDef("bufplayerStereo", { |bufnum = 0, volume = 0.0, gate = 1|
 	son = PlayBuf.ar(2,bufnum,BufRateScale.kr(bufnum),loop:1,doneAction:2)
 	* EnvGen.kr(Env.asr(2.8,1.0,2.8,\sine),gate,doneAction:2) * volume;
 
-	Out.ar(0, [0,0,0,0,0,0,0,0,son[0],son[1]]);
-//	Out.ar(0, son);
+//	Out.ar(0, [0,0,0,0,0,0,0,0,son[0],son[1]]);
+	Out.ar(0, son);
 }).load(s);
 
 )
@@ -418,6 +418,7 @@ stackView =({|i|
 //------------------------------------------------------
 // build UI
 //------------------------------------------------------
+QtGUI.palette = QPalette.dark; 
 window = Window("",Rect(0,0,Window.screenBounds.width, Window.screenBounds.height/3)
 	.center_(Window.availableBounds.center)
 	).front;
