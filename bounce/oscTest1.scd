@@ -52,6 +52,47 @@ n = NetAddr("127.0.0.1",5403)
 n.ip.class
 n.port
 
+
+a = Synth.head(s,\help_Bus);
+a.set(\ffreq,423);
+a.set(\ff,0.1);
+
+
+ 
+b = OSCBus(nil,"/test",3,s);
+b.bus.scope
+a.map(\ffreq,b.bus);
+
+
+OSCBus(nil,"/test",3,s).bus.scope
+
+o = OSCFunc({ arg msg, time, addr, recvPort;
+	[msg, time, addr, recvPort].postln;
+}, '/test');
+
+o.free;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 a = (\e:"hello", \f:(\a:1,\b:2))
 a.class
 
@@ -104,3 +145,5 @@ d.trueAt("1") == 4
 
 ~a = {"oh yes".postln}
 ~a.()
+
+
