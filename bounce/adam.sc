@@ -60,11 +60,14 @@ Pdef(ptn,
 		Pdef(ptn).play;
 	};
 	~plot = { |d,p|
-		[0,12,24].at(((d.gyroEvent.roll + pi).div(pi.twice/3.0)).floor);
+		//[0,12,24].at(((d.gyroEvent.roll + pi).div(pi.twice/3.0)).floor);
+		//(10 + ((d.gyroEvent.roll + pi)/(pi.twice) * 100));
+		//(0.1 + ((d.gyroEvent.yaw + pi)/(pi.twice) * 10));
+		Array.geom(8, 1, 2).at((d.rrateEvent.sumabs.sqrt.half).floor).twice.reciprocal;
 	};
 
 	~plotMin = 0;
-	~plotMax = 30;
+	~plotMax = 11;
 
 	//------------------------------------------------------------	
 	~next = {|f,d| 
@@ -85,7 +88,7 @@ Pdef(ptn,
 		});
 			
 
-			(d.gyroEvent.roll + pi).postln;//• how can we get this to plot? 
+			//(d.gyroEvent.roll + pi).postln;//• how can we get this to plot? 
 
 	 	// set pattern
 	  	if(Pdef(ptn).isPlaying, {

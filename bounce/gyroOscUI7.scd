@@ -402,20 +402,14 @@
 			}],
 		]);
 
-		createPlotterGroup.(va, Rect(650,0,400,250), [
+		createPlotterGroup.(va, Rect(650,0,620,250), [
 			["a",Color.cyan,{|p|
 
 				p.value = p.value.shift(-1).putLast(d.env.use{ ~plot.(d)});
 				p.minval_(d.env.use{ ~plotMin});
 				p.maxval_(d.env.use{ ~plotMax});
 				//p.value =  p.value ++ [d.env.use{ ~plot.(d)}];
-			}],
-			["b",Color.magenta,{|p|
-				p.value = (d.dc.collection.collect({|a,i| a[\data][7]}));
-			}],
-			["c",Color.yellow,{|p|
-				p.value = (d.dc.collection.collect({|a,i| a[\data][8]}));
-			}],
+			}]
 		]);
 
 
