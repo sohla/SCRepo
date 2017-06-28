@@ -90,7 +90,6 @@
 			}
 		};
 	};
-
 	//------------------------------------------------------------	
 	// 
 	//------------------------------------------------------------	
@@ -245,7 +244,7 @@
 		scroll.canvas = contentView;
 
 		// set this for quick connection to device
-		addDeviceView.(contentView, addDevice.("192.168.0.100"));
+		addDeviceView.(contentView, addDevice.("127.0.0.1"));
 
 		//addDeviceView.(contentView, addDevice.("192.168.0.101"));
 
@@ -293,6 +292,29 @@
 						d.name = names.at(b.value);
 						reloadDevice.(d);
 					}),
+
+			Button()
+				.maxWidth_(30)
+				.states_([
+					["->",Color.white]
+				])
+				.action_({|b|
+
+					File.openDialog ("yo", {
+
+						//• populate d.dc with new data...then set loop
+						// d.dc.backup; 
+						// d.lc = DataCollector.new(d.name++"_data");
+						// d.lc.recover;
+						// disableOSCListening.();
+						// d.lcout.reset().play(AppClock);
+					},{
+
+						// d.lcout.stop;
+						// enableOSCListening.();
+					});
+
+				}),
 			loopButton = Button()
 				.maxWidth_(80)
 				.states_([
@@ -346,39 +368,56 @@
 
 		createPlotterGroup.(va, Rect(250,0,400,250), [
 			["pitch",Color.red,{|p|
-				p.value = (d.dc.getLast(dataSize).asArray.collect({|a,i| a[\data][0]}));
+				p.value = (d.dc.collection.collect({|a,i| a[\data][0]})); p.minval_(pi); p.maxval_(-pi);
 			}],
 			["roll",Color.green,{|p|
-				p.value = (d.dc.getLast(dataSize).asArray.collect({|a,i| a[\data][1]}));
+				p.value = (d.dc.collection.collect({|a,i| a[\data][1]})); p.minval_(pi); p.maxval_(-pi);
 			}],
 			["yaw",Color.blue,{|p|
-				p.value = (d.dc.getLast(dataSize).asArray.collect({|a,i| a[\data][2]}));
+				p.value = (d.dc.collection.collect({|a,i| a[\data][2]})); p.minval_(pi); p.maxval_(-pi);
 			}],
 		]);
 
 		createPlotterGroup.(vb, Rect(250,0,400,250), [
 			["aaccelX",Color.cyan,{|p|
-				p.value = (d.dc.getLast(dataSize).asArray.collect({|a,i| a[\data][3]}));
+				p.value = (d.dc.collection.collect({|a,i| a[\data][3]})); p.minval_(pi); p.maxval_(-pi);
 			}],
 			["accelY",Color.magenta,{|p|
-				p.value = (d.dc.getLast(dataSize).asArray.collect({|a,i| a[\data][4]}));
+				p.value = (d.dc.collection.collect({|a,i| a[\data][4]})); p.minval_(pi); p.maxval_(-pi);
 			}],
 			["accelZ",Color.yellow,{|p|
-				p.value = (d.dc.getLast(dataSize).asArray.collect({|a,i| a[\data][5]}));
+				p.value = (d.dc.collection.collect({|a,i| a[\data][5]})); p.minval_(pi); p.maxval_(-pi);
 			}],
 		]);
 
 		createPlotterGroup.(vc, Rect(250,0,400,250), [
 			["rrateX",Color.cyan,{|p|
-				p.value = (d.dc.getLast(dataSize).asArray.collect({|a,i| a[\data][6]}));
+				p.value = (d.dc.collection.collect({|a,i| a[\data][6]})); p.minval_(pi); p.maxval_(-pi);
 			}],
 			["rrateY",Color.magenta,{|p|
-				p.value = (d.dc.getLast(dataSize).asArray.collect({|a,i| a[\data][7]}));
+				p.value = (d.dc.collection.collect({|a,i| a[\data][7]})); p.minval_(pi); p.maxval_(-pi);
 			}],
 			["rrateZ",Color.yellow,{|p|
-				p.value = (d.dc.getLast(dataSize).asArray.collect({|a,i| a[\data][8]}));
+				p.value = (d.dc.collection.collect({|a,i| a[\data][8]})); p.minval_(pi); p.maxval_(-pi);
 			}],
 		]);
+
+		createPlotterGroup.(va, Rect(650,0,400,250), [
+			["a",Color.cyan,{|p|
+
+				p.value = p.value.shift(-1).putLast(d.env.use{ ~plot.(d)});
+				p.minval_(d.env.use{ ~plotMin});
+				p.maxval_(d.env.use{ ~plotMax});
+				//p.value =  p.value ++ [d.env.use{ ~plot.(d)}];
+			}],
+			["b",Color.magenta,{|p|
+				p.value = (d.dc.collection.collect({|a,i| a[\data][7]}));
+			}],
+			["c",Color.yellow,{|p|
+				p.value = (d.dc.collection.collect({|a,i| a[\data][8]}));
+			}],
+		]);
+
 
 		createGyroCanvas.(va,d);
 		createAccelCanvas.(vb,d);
@@ -435,8 +474,8 @@
 					if(val > max, {max = val});
 
 					su.string_("max :"+max);
-					plotter.minval_(-pi);
-					plotter.maxval_(pi);
+					//plotter.minval_(-pi);
+					//plotter.maxval_(pi);
 
 					plotter.setProperties(\plotColor, specs[1]).refresh;
 

@@ -59,7 +59,12 @@ Pdef(ptn,
 
 		Pdef(ptn).play;
 	};
+	~plot = { |d,p|
+		[0,12,24].at(((d.gyroEvent.roll + pi).div(pi.twice/3.0)).floor);
+	};
 
+	~plotMin = 0;
+	~plotMax = 30;
 
 	//------------------------------------------------------------	
 	~next = {|f,d| 
@@ -78,6 +83,9 @@ Pdef(ptn,
 		},{
 			if(Pdef(ptn).isPlaying.not,{Pdef(ptn).resume});
 		});
+			
+
+			(d.gyroEvent.roll + pi).postln;//• how can we get this to plot? 
 
 	 	// set pattern
 	  	if(Pdef(ptn).isPlaying, {
