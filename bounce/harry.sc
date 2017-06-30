@@ -97,4 +97,24 @@ Pdef(ptn,
 		Pdef(ptn).stop;
 	};
 
+	//------------------------------------------------------------	
+	// min and max of plotters output
+	//------------------------------------------------------------	
+
+	~plotMin = 0;
+	~plotMax = 1;
+
+	//------------------------------------------------------------	
+	// utility for output to a plotter : returns a value that
+	// that will be put at the end of plotters data array
+	//------------------------------------------------------------	
+
+	~plot = { |d,p|
+		//[0,12,24].at(((d.gyroEvent.roll + pi).div(pi.twice/3.0)).floor);
+		//(10 + ((d.gyroEvent.roll + pi)/(pi.twice) * 100));
+		//(0.1 + ((d.gyroEvent.yaw + pi)/(pi.twice) * 10));
+		Array.geom(8, 1, 2).at((d.rrateEvent.sumabs.sqrt.half).floor).twice.reciprocal;
+	};
+	
+
 )

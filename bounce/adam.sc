@@ -1,6 +1,6 @@
+
+// unique name for pattern 
 var ptn = Array.fill(16,{|i|i=90.rrand(65)}).asAscii;
-
-
 
 //------------------------------------------------------------	
 // SYNTH DEF
@@ -14,6 +14,7 @@ var ptn = Array.fill(16,{|i|i=90.rrand(65)}).asAscii;
 }).add;
 );
 
+// use to hear this synth onces
 //x = Synth(\adamSynth);s.sendBundle(0.5,[\n_set,x.nodeID,\gate,0]);
 
 //------------------------------------------------------------	
@@ -28,7 +29,7 @@ Pdef(ptn,
 		\pan, Pwhite(-0.8,0.8,inf)
 ));
 
-
+// use this to test patter/synth with default gui
 // Pdef(ptn).play.gui;
 // Pdef(ptn).set(\instrument,\adamSynth);
 // Pdef(ptn).set(\dur,0.2);
@@ -42,8 +43,13 @@ Pdef(ptn,
 
 (
 
+	//------------------------------------------------------------	
+	// how ofter does ~next() get called from engine
+	//------------------------------------------------------------	
 	~secs = 0.03;
 
+	//------------------------------------------------------------	
+	// intial state
 	//------------------------------------------------------------	
 	~init = { 
 
@@ -59,16 +65,9 @@ Pdef(ptn,
 
 		Pdef(ptn).play;
 	};
-	~plot = { |d,p|
-		//[0,12,24].at(((d.gyroEvent.roll + pi).div(pi.twice/3.0)).floor);
-		//(10 + ((d.gyroEvent.roll + pi)/(pi.twice) * 100));
-		//(0.1 + ((d.gyroEvent.yaw + pi)/(pi.twice) * 10));
-		Array.geom(8, 1, 2).at((d.rrateEvent.sumabs.sqrt.half).floor).twice.reciprocal;
-	};
 
-	~plotMin = 0;
-	~plotMax = 11;
-
+	//------------------------------------------------------------	
+	// do all the work(logic) taking data in and playing pattern/synth
 	//------------------------------------------------------------	
 	~next = {|f,d| 
 		
@@ -116,10 +115,32 @@ Pdef(ptn,
 	};
 
 	//------------------------------------------------------------	
+	// cleanup
+	//------------------------------------------------------------	
 	~deinit = {
 
 		"deinit ADAM".postln;
 		Pdef(ptn).stop;
 	};
+
+	//------------------------------------------------------------	
+	// min and max of plotters output
+	//------------------------------------------------------------	
+
+	~plotMin = 0;
+	~plotMax = 1;
+
+	//------------------------------------------------------------	
+	// utility for output to a plotter : returns a value that
+	// that will be put at the end of plotters data array
+	//------------------------------------------------------------	
+
+	~plot = { |d,p|
+		//[0,12,24].at(((d.gyroEvent.roll + pi).div(pi.twice/3.0)).floor);
+		//(10 + ((d.gyroEvent.roll + pi)/(pi.twice) * 100));
+		//(0.1 + ((d.gyroEvent.yaw + pi)/(pi.twice) * 10));
+		Array.geom(8, 1, 2).at((d.rrateEvent.sumabs.sqrt.half).floor).twice.reciprocal;
+	};
+	
 
 )
