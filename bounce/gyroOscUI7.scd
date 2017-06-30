@@ -5,7 +5,7 @@
 
 			var contentView = View().background_(Color.grey(0.2));
 
-			var names = ["adam","george","harry"];
+			var names = ["adam","george","harry","susan"];
 			var possibleNames = names.copy;
 
 			var reloadButton;
@@ -24,7 +24,7 @@
 
 		    // data
 			var deviceProto = (
-				\name: "adam",
+				\name: "susan",
 				\ip: "127.0.0.1",
 				\port: "57120",
 				\gyroEvent: (\pitch:0,\roll:0,\yaw:0),
