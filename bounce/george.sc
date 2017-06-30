@@ -72,7 +72,7 @@ Pdef(ptn,
 	~next = {|f,d| 
 		
 		var tween = {|input,history,friction = 0.5|
-			(friction * input + ((1 - friction) * history))
+			(friction * input + ((1 - friction) * history));
 		};
 
 		// ["running GEORGE...",f%7].postln;
@@ -94,7 +94,7 @@ Pdef(ptn,
 
 				//Pdef(ptn).set(\patch,((gyroEvent.pitch + pi).div(pi.twice/4.0)).floor);
 				
-				Pdef(ptn).set(\gtranspose,-3 + [0,12,24].at(((d.gyroEvent.roll + pi).div(pi.twice/3.0)).floor));
+				// Pdef(ptn).set(\gtranspose,-3 + [0,12,24].at(((d.gyroEvent.roll + pi).div(pi.twice/3.0)).floor));
 
 				Pdef(ptn).set(\c3,(12 + ((d.gyroEvent.roll + pi)/(pi.twice) * 500)));
 				
@@ -139,7 +139,7 @@ Pdef(ptn,
 		//(0.1 + ((d.gyroEvent.yaw + pi)/(pi.twice) * 10));
 		//Array.geom(8, 1, 2).at((d.rrateEvent.sumabs.sqrt.half).floor).twice.reciprocal;
 		//-3 + [0,12,24].at(((d.gyroEvent.roll + pi).div(pi.twice/3.0)).floor);
-		0.2
+		0.2;
 	};
 
 );

@@ -22,6 +22,7 @@ var ptn = \someting;
 Pdef(ptn,
 	Pbind(
         \degree, Pseq([1,5,3,8,6,2,4,7], inf),
+		\args, #[],
 		\amp, Pexprand(0.1,0.4,inf),
 		\pan, Pwhite(-0.8,0.8,inf)
 ));
@@ -37,7 +38,7 @@ Pdef(ptn,
 
 		"init HARRY".postln;
 
-		Pdef(ptn).set(\octave,2);
+		Pdef(ptn).set(\octave,4);
 		Pdef(ptn).set(\dur,0.125);
 		Pdef(ptn).set(\patch,0);
 		Pdef(ptn).set(\attack,0.01);
@@ -70,7 +71,7 @@ Pdef(ptn,
 
 				Pdef(ptn).set(\patch,((d.gyroEvent.pitch + pi).div(pi.twice/4.0)).floor);
 				
-				Pdef(ptn).set(\gtranspose,9 + [0,12,24].at(((d.gyroEvent.roll + pi).div(pi.twice/3.0)).floor));
+				//Pdef(ptn).set(\gtranspose,9 + [0,12,24].at(((d.gyroEvent.roll + pi).div(pi.twice/3.0)).floor));
 
 				//Pdef(ptn).set(\c3,(10 + ((d.gyroEvent.roll + pi)/(pi.twice) * 500)));
 				
@@ -115,6 +116,6 @@ Pdef(ptn,
 		//(0.1 + ((d.gyroEvent.yaw + pi)/(pi.twice) * 10));
 		Array.geom(8, 1, 2).at((d.rrateEvent.sumabs.sqrt.half).floor).twice.reciprocal;
 	};
-	
+
 
 )
