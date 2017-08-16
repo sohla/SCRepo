@@ -6,6 +6,7 @@
 			var contentView = View().background_(Color.grey(0.2));
 
 			var names = ["adam","george","harry","susan"];
+			var faces = ["🦆","🦊","🐴","🐯"];
 			var possibleNames = names.copy;
 
 			var reloadButton;
@@ -66,7 +67,7 @@
 
 		loadPersonality = {|name|
 
-			var path = PathName.new("~/Develop/SuperCollider/Projects/SCRepo/bounce/"++name++".sc");
+			var path = PathName.new("~/Develop/SuperCollider/Projects/SCRepo/bounce/personalities/"++name++".sc");
 			var file = File.new(path.asAbsolutePath,"r");
 			var str = file.readAllString;
 			var env = Environment.make {interpret(str)};
@@ -260,16 +261,16 @@
 				stackButton = Button(view)
 					.minWidth_(160)
 					.states_([
-						["attitude"],	
-						["accelerometer"],
-						["rotation rate"]
+						["⚾︎ attitude"],	
+						["⊙ accelerometer"],
+						["⊚ rotation rate"]
 					])
 					.action_({|b|
 						stackLayout.index = b.value;
 					}),
 
 				StaticText(view)
-					.stringColor_(Color.gray(0.8))
+					.stringColor_(Color.white)
 					.font_(Font(size:14))
 					.minWidth_(500)
 					.string_("📡  ip ["+d.ip+"] port ["+d.port+"]"),
@@ -277,7 +278,7 @@
 				reloadButton = Button(view)
 					.maxWidth_(80)
 					.states_([
-						["reload"],	
+						["💾 reload"],	
 					])
 					.action_({|b|
 						reloadDevice.(d);
@@ -285,7 +286,7 @@
 
 				PopUpMenu(view)
 						.minWidth_(160)
-						.items_(names)
+						.items_(names.collect{|o,i|faces[i]+o})
 						.valueAction_(names.find([d.name]))
 						.action_({|b|
 							d.name = names.at(b.value);
@@ -317,8 +318,8 @@
 				loopButton = Button()
 					.maxWidth_(80)
 					.states_([
-						["loop",Color.white],
-						["loop",Color.green]
+						["↻ loop",Color.white],
+						["↻ loop",Color.green]
 					])
 					.action_({|b|
 
@@ -338,9 +339,9 @@
 					}),
 
 				Button(view)
-					.maxWidth_(80)
+					.maxWidth_(120)
 					.states_([
-						["disconect",Color.red(0.5)],	
+						["✖️ disconect",Color.red(0.5)],	
 
 					])
 					.action_({|b|
