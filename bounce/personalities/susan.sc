@@ -34,14 +34,14 @@ Pdef(ptn,
 ));
 
 //use this to test patter/synth with default gui
-Pdef(ptn).play.gui;
-Pdef(ptn).set(\instrument,\harpsichord1);
-Pdef(ptn).set(\dur,0.25);
-Pdef(ptn).set(\octave,4);
+// Pdef(ptn).play.gui;
+// Pdef(ptn).set(\instrument,\harpsichord1);
+// Pdef(ptn).set(\dur,0.25);
+// Pdef(ptn).set(\octave,4);
 
-Pdef(ptn).set(\attack,0.001);
-Pdef(ptn).set(\sustain,0.27);
-Pdef(ptn).set(\release,0.92);
+// Pdef(ptn).set(\attack,0.001);
+// Pdef(ptn).set(\sustain,0.27);
+// Pdef(ptn).set(\release,0.92);
 
 
 
