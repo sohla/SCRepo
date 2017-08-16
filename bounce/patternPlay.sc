@@ -99,5 +99,20 @@ Pbind(
 ).play
 )
 
-Pstutter(1,Pseq((0..8))).asStream.nextN(8)
+Pstutter(Pseq([1,2],inf),Pseq((0..8))).asStream.nextN(8)
+
+Pstep(Pseq([2,4]), Pseq([1,2,1]), inf).trace.play
+
+Pstep(Pseq([1,2].collect((_).half)), Pseq([1,2,1]), inf).trace.play
+
+
+(
+Pdef(\c,
+	a = #[0,1,2,4,7,10];
+Pbind(
+	\note,[Pseq((0,2..19),inf).asStream,4],
+	\dur, Pseq([2,4],inf)
+)
+).play.gui
+)
 

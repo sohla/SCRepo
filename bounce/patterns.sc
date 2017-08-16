@@ -11,7 +11,17 @@
 
 
 
+/*
 
+	device - generates sudo-random values : both in pitch and rhythmic ideas
+
+									
+	
+	
+
+
+
+*/
 
 
 	
