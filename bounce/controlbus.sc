@@ -1,6 +1,6 @@
 (
 var window, slider;
-var cs = ControlSpec(100, 1000, \linear, 0.01,0.1); // min, max, mapping, step, default
+var cs = ControlSpec(100, 1000, \linear, 0.01); // min, max, mapping, step, default
 var bc = Bus.control(s).value_(cs.map(cs.default));
 
 // bus represents a bus on the server
