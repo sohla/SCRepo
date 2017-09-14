@@ -1,5 +1,5 @@
 (
-var window;
+var window, slider;
 var cs = ControlSpec(100, 1000, \linear, 0.01,0.1); // min, max, mapping, step, default
 var bc = Bus.control(s).value_(cs.map(cs.default));
 
@@ -24,16 +24,22 @@ window = Window("")
 	)
 	.front;
 
-window.layout = VLayout(
+slider = EZSlider(window,80@300,"test", initAction:true, initVal: 0.9 ,layout:\vert, margin: 20@20)
+		.controlSpec_(cs)
+		.action_({|o|
+			bc.set(o.value);   
+			});
 
-	Slider()
-		.maxWidth_(30)
-		.valueAction_(cs.default)
-	    .action_({|o|
-	        //(cs.map(o.value).asString).postln;
-			bc.set(cs.map(o.value));       
-	    });
-);
+// window.layout = VLayout(
+
+// 	Slider()//• should try EZSlider too
+// 		.maxWidth_(30)
+// 		.valueAction_(cs.default)
+// 	    .action_({|o|
+// 	        //(cs.map(o.value).asString).postln;
+// 			bc.set(cs.map(o.value));       
+// 	    });
+// );
 
 synth = Synth.head(s,\help_Bus);
 

@@ -20,26 +20,26 @@
 //
 //
 
-(
-SynthDef("bufplayerMono", { |bufnum = 0, volume = 0.0, gate = 1|
-	var son;
-	son = PlayBuf.ar(1,bufnum,BufRateScale.kr(bufnum),loop:1,doneAction:2)
-	* EnvGen.kr(Env.asr(2.8,1.0,2.8,\sine),gate,doneAction:2) * volume;
+// (
+// SynthDef("bufplayerMono", { |bufnum = 0, volume = 0.0, gate = 1|
+// 	var son;
+// 	son = PlayBuf.ar(1,bufnum,BufRateScale.kr(bufnum),loop:1,doneAction:2)
+// 	* EnvGen.kr(Env.asr(2.8,1.0,2.8,\sine),gate,doneAction:2) * volume;
 
-//	Out.ar(0, [0,0,0,0,0,0,0,0,son!2]);
-	Out.ar(0, son!2);
-}).load(s);
+// //	Out.ar(0, [0,0,0,0,0,0,0,0,son!2]);
+// 	Out.ar(0, son!2);
+// }).load(s);
 
-SynthDef("bufplayerStereo", { |bufnum = 0, volume = 0.0, gate = 1|
-	var son;
-	son = PlayBuf.ar(2,bufnum,BufRateScale.kr(bufnum),loop:1,doneAction:2)
-	* EnvGen.kr(Env.asr(2.8,1.0,2.8,\sine),gate,doneAction:2) * volume;
+// SynthDef("bufplayerStereo", { |bufnum = 0, volume = 0.0, gate = 1|
+// 	var son;
+// 	son = PlayBuf.ar(2,bufnum,BufRateScale.kr(bufnum),loop:1,doneAction:2)
+// 	* EnvGen.kr(Env.asr(2.8,1.0,2.8,\sine),gate,doneAction:2) * volume;
 
-//	Out.ar(0, [0,0,0,0,0,0,0,0,son[0],son[1]]);
-	Out.ar(0, son);
-}).load(s);
+// //	Out.ar(0, [0,0,0,0,0,0,0,0,son[0],son[1]]);
+// 	Out.ar(0, son);
+// }).load(s);
 
-)
+// )
 
 
 
@@ -55,7 +55,8 @@ var fastSearch;
 
 //var dirPath = "/Volumes/Steph2015/*".postln;
 //var dirPath = "/Volumes/Steph2015/Samples:Loops:SFX/*".postln;
-var dirPath = "~/Music/*";
+var dirPath = "/Volumes/Steph2017/SFX/*".postln;
+// var dirPath = "~/Music/*";
 
 s.boot;
 
@@ -419,7 +420,7 @@ stackView =({|i|
 // build UI
 //------------------------------------------------------
 QtGUI.palette = QPalette.dark; 
-window = Window("",Rect(0,0,Window.screenBounds.width, Window.screenBounds.height/3)
+window = Window("",Rect(0,0,Window.screenBounds.width, Window.screenBounds.height)
 	.center_(Window.availableBounds.center)
 	).front;
 

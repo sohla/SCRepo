@@ -9,8 +9,9 @@ var ptn = Array.fill(16,{|i|i=90.rrand(65)}).asAscii;
 (
 	SynthDef(\adamSynth, { |out=0, freq=240, gate=1, amp=0.3, pan=0.0, attack=0.01, sustain=0.5, release=1.3|
 	var env = EnvGen.kr(Env.adsr(attack, sustain, sustain, release), gate, doneAction:2);
-	var sig = SinOsc.ar(freq,0,1.0);
-	Out.ar(out, Pan2.ar(sig, pan, env * amp));
+	var sig = SinOsc.ar(freq,0,1.0)!2;
+	var verb = FreeVerb2.ar(sig[0],sig[1],0.3 ,500);
+	Out.ar(out, Pan2.ar(verb, pan, env * amp));
 }).add;
 );
 
@@ -23,7 +24,8 @@ var ptn = Array.fill(16,{|i|i=90.rrand(65)}).asAscii;
 
 Pdef(ptn,
 	Pbind(
-        \degree, Pseq([0,2,4,6,8,7,5,3,1], inf),
+//        \degree, Pseq([0,2,4,6,8,7,5,3,1], inf),
+        \degree, Pseq([0,1,2,0,2,0,2,1,2,3,3,2,1,3,2,3,4,2,4,2,4,3,4,5,5,4,3,5,4,0,1,2,3,4,5,5,1,2,3,4,5,6,6,2,3,4,5,6,7,6,5,5,3,6,4,7,4,3,1], inf),
 		\args, #[],
 		\amp, Pexprand(0.1,0.4,inf),
 		\pan, Pwhite(-0.8,0.8,inf)
@@ -106,6 +108,8 @@ Pdef(ptn,
 		// (d.rrateEvent.sumabs.sqrt).postln;
 		
 		// if(Pdef(ptn).isPlaying, {
+
+		Pdef(ptn).set(\octave,(3+d.rrateMass.ceil));
 
 			Pdef(ptn).set(\attack,(1.0 + d.rrateEvent.sumabs).pow(4).reciprocal);
 
