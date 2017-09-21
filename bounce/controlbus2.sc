@@ -29,7 +29,7 @@ z = Synth.tail(s,"help-Infreq", [\bus, b.index]);
 c.scope;
 
 y.set(\fc,2);
-x.set(\freq,2);
+x.set(\freq,1);
 
 
 
